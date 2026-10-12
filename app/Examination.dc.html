@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes eIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="max-width: 1180px;">
+
+  <sc-if value="{{ isGrade }}" hint-placeholder-val="{{ true }}">
+    <div key="grade" style="animation: eIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Grade Card</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Semester-wise results · B.Tech Computer Engineering</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+          <sc-for list="{{ semTabs }}" as="s" hint-placeholder-count="3">
+            <button type="button" onClick="{{ s.go }}" style="{{ s.style }}">{{ s.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: {{ gradeCols }}; gap: 16px; align-items: start;">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0;">
+          <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; padding: 16px 22px; border-bottom: 1px solid #F0EDE6;">
+            <span style="font-size: 15.5px; font-weight: 700;">Semester {{ semRoman }}</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E;">{{ semTerm }}</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; min-width: 520px; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #FAF8F4;">
+                  <th style="padding: 10px 22px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Subject</th>
+                  <th style="padding: 10px 12px; text-align: center; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Credits</th>
+                  <th style="padding: 10px 12px; text-align: center; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Grade</th>
+                  <th style="padding: 10px 22px; text-align: right; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Points</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ gradeRows }}" as="r" hint-placeholder-count="6">
+                  <tr style="{{ r.style }}">
+                    <td style="padding: 12px 22px;">
+                      <div style="font-size: 13.5px; font-weight: 600;">{{ r.name }}</div>
+                      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #9AA2A9; margin-top: 2px;">{{ r.code }}</div>
+                    </td>
+                    <td style="padding: 12px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #4A555E;">{{ r.credits }}</td>
+                    <td style="padding: 12px; text-align: center;"><span style="{{ r.gradeStyle }}">{{ r.grade }}</span></td>
+                    <td style="padding: 12px 22px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: #4A555E;">{{ r.points }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 26px; padding: 16px 22px; background: #FAF8F4; border-top: 1px solid #F0EDE6;">
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Credits earned</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; margin-top: 3px;">{{ semCredits }}</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">SGPA</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; margin-top: 3px; color: #0B8F86;">{{ sgpa }}</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">CGPA</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; margin-top: 3px; color: #0B8F86;">{{ cgpa }}</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Result</div>
+              <div style="font-size: 14px; font-weight: 700; margin-top: 4px; color: #146B43;">PASS · No backlog</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div style="background: #131A1F; border-radius: 14px; padding: 20px 22px; color: #EDEAE3;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #7E8C90;">SGPA trend</div>
+            <div style="display: flex; align-items: flex-end; gap: 10px; height: 104px; margin-top: 18px;">
+              <sc-for list="{{ sgpaBars }}" as="b" hint-placeholder-count="3">
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px;">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6FE3D6;">{{ b.value }}</span>
+                  <div style="{{ b.barStyle }}"></div>
+                  <span style="font-size: 10px; color: #8A989B;">{{ b.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 18px 20px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Grade scale</div>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 12px;">
+              <sc-for list="{{ scale }}" as="g" hint-placeholder-count="8">
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 9px; background: #FBFAF6; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px;">
+                  <span style="font-weight: 600;">{{ g.grade }}</span><span style="color: #8B949C;">{{ g.points }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isMarksheet }}">
+    <div key="ms" style="animation: eIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Mark Sheet</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Statement of marks · issued by the Controller of Examinations</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+          <sc-for list="{{ semTabs }}" as="s" hint-placeholder-count="3">
+            <button type="button" onClick="{{ s.go }}" style="{{ s.style }}">{{ s.label }}</button>
+          </sc-for>
+          <button type="button" onClick="{{ download }}" style="padding: 9px 15px; background: #131A1F; border: none; border-radius: 8px; color: #FFFFFF; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Download Mark Sheet</button>
+        </div>
+      </div>
+
+      <div style="background: #FFFCF5; border: 1px solid #DCD3BE; border-radius: 6px; padding: 7px; box-shadow: 0 14px 40px rgba(20,26,31,.10);">
+        <div style="border: 1.5px double #C9BE9E; padding: clamp(20px, 3vw, 36px); position: relative; overflow: hidden;">
+          <div style="position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none;">
+            <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(70px, 13vw, 150px); font-weight: 600; color: rgba(11,143,134,.045); transform: rotate(-22deg); letter-spacing: .04em; white-space: nowrap;">VIT PUNE</div>
+          </div>
+          <div style="position: relative; text-align: center; padding-bottom: 18px; border-bottom: 1px solid #E0D8C3;">
+            <div style="width: 46px; height: 46px; margin: 0 auto 12px; border: 1.5px solid #9A8F73; display: grid; place-items: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 15px; color: #6B6248;">VIT</div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(19px, 2.4vw, 25px); font-weight: 600; letter-spacing: .02em;">Vishwakarma Institute of Technology</div>
+            <div style="font-size: 11.5px; color: #7A7460; margin-top: 4px; letter-spacing: .06em;">An Autonomous Institute affiliated to Savitribai Phule Pune University</div>
+            <div style="display: inline-block; margin-top: 14px; padding: 5px 16px; border: 1px solid #C9BE9E; font-size: 11px; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: #6B6248;">Statement of Marks</div>
+          </div>
+
+          <div style="position: relative; display: grid; grid-template-columns: {{ msInfoCols }}; gap: 10px 26px; padding: 20px 0; border-bottom: 1px solid #E0D8C3;">
+            <sc-for list="{{ msInfo }}" as="i" hint-placeholder-count="8">
+              <div style="display: flex; gap: 9px; font-size: 12.5px;">
+                <span style="min-width: 92px; color: #8A8368; letter-spacing: .02em;">{{ i.label }}</span>
+                <span style="font-weight: 700; color: #2A2A22;">{{ i.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="position: relative; overflow-x: auto; padding-top: 4px;">
+            <table style="width: 100%; min-width: 620px; border-collapse: collapse;">
+              <thead>
+                <tr>
+                  <th style="padding: 11px 8px 11px 0; text-align: left; font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8A8368; border-bottom: 1px solid #C9BE9E;">Course</th>
+                  <th style="padding: 11px 8px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8A8368; border-bottom: 1px solid #C9BE9E;">ISE<br /><span style="font-weight: 400;">20</span></th>
+                  <th style="padding: 11px 8px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8A8368; border-bottom: 1px solid #C9BE9E;">MSE<br /><span style="font-weight: 400;">30</span></th>
+                  <th style="padding: 11px 8px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8A8368; border-bottom: 1px solid #C9BE9E;">ESE<br /><span style="font-weight: 400;">50</span></th>
+                  <th style="padding: 11px 8px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8A8368; border-bottom: 1px solid #C9BE9E;">Total</th>
+                  <th style="padding: 11px 8px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8A8368; border-bottom: 1px solid #C9BE9E;">Cr</th>
+                  <th style="padding: 11px 0 11px 8px; text-align: right; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #8A8368; border-bottom: 1px solid #C9BE9E;">Grade</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ msRows }}" as="r" hint-placeholder-count="6">
+                  <tr>
+                    <td style="padding: 10px 8px 10px 0; border-bottom: 1px solid #EDE6D5;">
+                      <div style="font-size: 13px; font-weight: 600; color: #2A2A22;">{{ r.name }}</div>
+                      <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #9A9278; margin-top: 1px;">{{ r.code }}</div>
+                    </td>
+                    <td style="padding: 10px 8px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; border-bottom: 1px solid #EDE6D5;">{{ r.ise }}</td>
+                    <td style="padding: 10px 8px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; border-bottom: 1px solid #EDE6D5;">{{ r.mse }}</td>
+                    <td style="padding: 10px 8px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; border-bottom: 1px solid #EDE6D5;">{{ r.ese }}</td>
+                    <td style="padding: 10px 8px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 600; border-bottom: 1px solid #EDE6D5;">{{ r.total }}</td>
+                    <td style="padding: 10px 8px; text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #6B6248; border-bottom: 1px solid #EDE6D5;">{{ r.credits }}</td>
+                    <td style="padding: 10px 0 10px 8px; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 700; color: #2A2A22; border-bottom: 1px solid #EDE6D5;">{{ r.grade }}</td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="position: relative; display: flex; flex-wrap: wrap; gap: 30px; margin-top: 20px; padding: 16px 18px; background: rgba(201,190,158,.13); border: 1px solid #E0D8C3;">
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8A8368;">Total marks</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; margin-top: 3px;">{{ msTotal }}</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8A8368;">Percentage</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; margin-top: 3px;">{{ msPct }}%</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8A8368;">SGPA</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600; margin-top: 3px;">{{ sgpa }}</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8A8368;">Result</div>
+              <div style="font-size: 14px; font-weight: 700; margin-top: 3px; letter-spacing: .06em;">PASS</div>
+            </div>
+          </div>
+
+          <div style="position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; margin-top: 30px;">
+            <div style="font-size: 10.5px; color: #8A8368; line-height: 1.7; max-width: 46ch;">Issued at Pune on {{ issueDate }}. This statement is computer generated and valid without signature when verified against the portal record.<br />Certificate ID · <span style="font-family: 'JetBrains Mono', monospace;">{{ msId }}</span></div>
+            <div style="text-align: center;">
+              <div style="width: 168px; border-bottom: 1px solid #9A8F73; height: 34px;"></div>
+              <div style="font-size: 10.5px; color: #6B6248; margin-top: 6px; letter-spacing: .08em; text-transform: uppercase;">Controller of Examinations</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isHall }}">
+    <div key="hall" style="animation: eIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Hall Ticket</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ hallExam }}</div>
+        </div>
+        <button type="button" onClick="{{ download }}" style="padding: 9px 15px; background: #131A1F; border: none; border-radius: 8px; color: #FFFFFF; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Download Hall Ticket</button>
+      </div>
+
+      <sc-if value="{{ hallBlocked }}">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 16px 20px; margin-bottom: 16px; background: #F8EFDC; border: 1px solid #EADDBC; border-radius: 12px;">
+          <span style="min-width: 9px; height: 9px; border-radius: 50%; background: #B4801C;"></span>
+          <div style="flex: 1; min-width: 200px;">
+            <div style="font-size: 13.5px; font-weight: 700; color: #6E4C10;">Examination fee pending — {{ feeAmount }}</div>
+            <div style="font-size: 12px; color: #8A6114; margin-top: 3px; line-height: 1.5;">This hall ticket is provisional until the fee is cleared. Invigilators will ask for the paid receipt.</div>
+          </div>
+          <button type="button" onClick="{{ goAccounts }}" style="padding: 9px 14px; background: #FFFFFF; border: 1px solid #EADDBC; border-radius: 8px; color: #8A6114; font-size: 12px; font-weight: 700; cursor: pointer;">Go to Accounts</button>
+        </div>
+      </sc-if>
+
+      <div style="background: #131A1F; border-radius: 16px; overflow: hidden; color: #EDEAE3; position: relative;">
+        <div style="position: absolute; inset: 0; background: radial-gradient(46% 80% at 90% 4%, rgba(18,179,166,.22), transparent 66%);"></div>
+        <div style="position: relative; display: grid; grid-template-columns: {{ hallCols }};">
+          <div style="padding: clamp(20px, 2.6vw, 30px); border-right: 1px solid rgba(237,234,227,.13);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="min-width: 40px; height: 40px; border: 1.4px solid rgba(237,234,227,.34); display: grid; place-items: center; font-weight: 800; font-size: 13px;">VIT</div>
+              <div style="line-height: 1.3;">
+                <div style="font-size: 12.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;">Hall Ticket</div>
+                <div style="font-size: 11px; color: #98A6A9;">Academic Year {{ hallAy }}</div>
+              </div>
+            </div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(22px, 2.4vw, 27px); font-weight: 400; margin-top: 22px; line-height: 1.2;">{{ studentName }}</div>
+            <div style="display: grid; gap: 12px; margin-top: 18px;">
+              <sc-for list="{{ hallInfo }}" as="i" hint-placeholder-count="6">
+                <div>
+                  <div style="font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">{{ i.label }}</div>
+                  <div style="font-size: 13.5px; font-weight: 700; margin-top: 3px;">{{ i.value }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; gap: 14px; margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(237,234,227,.13);">
+              <div style="width: 76px; height: 76px; border: 1px dashed rgba(237,234,227,.3); border-radius: 8px; display: grid; place-items: center; font-family: 'JetBrains Mono', monospace; font-size: 8.5px; text-align: center; color: #7E8C90; line-height: 1.5;">PHOTO<br />paste<br />here</div>
+              <div style="flex: 1;">
+                <div style="height: 44px; border-bottom: 1px solid rgba(237,234,227,.3);"></div>
+                <div style="font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #7E8C90; margin-top: 6px;">Candidate signature</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: clamp(20px, 2.6vw, 30px); background: rgba(237,234,227,.03);">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #7E8C90;">Examination schedule</div>
+            <div style="display: grid; gap: 8px; margin-top: 14px;">
+              <sc-for list="{{ papers }}" as="p" hint-placeholder-count="5">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 14px; background: rgba(237,234,227,.05); border: 1px solid rgba(237,234,227,.1); border-radius: 10px;">
+                  <div style="min-width: 62px;">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; color: #6FE3D6;">{{ p.dayNum }}</div>
+                    <div style="font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: #7E8C90;">{{ p.month }}</div>
+                  </div>
+                  <div style="flex: 1; min-width: 150px;">
+                    <div style="font-size: 13.5px; font-weight: 700; line-height: 1.3;">{{ p.name }}</div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #98A6A9; margin-top: 3px;">{{ p.code }} · {{ p.day }}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;">{{ p.time }}</div>
+                    <div style="font-size: 11px; color: #98A6A9; margin-top: 2px;">{{ p.venue }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(237,234,227,.13);">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #7E8C90;">Instructions</div>
+              <ol style="margin: 12px 0 0; padding-left: 18px; display: grid; gap: 7px;">
+                <sc-for list="{{ instructions }}" as="i" hint-placeholder-count="5">
+                  <li style="font-size: 12px; color: #A9B6B8; line-height: 1.6;">{{ i }}</li>
+                </sc-for>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isConversion }}">
+    <div key="conv" style="animation: eIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="margin-bottom: 18px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Conversion Certificate</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">CGPA to percentage conversion, as prescribed by the institute ordinance.</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: {{ convCols }}; gap: 16px; align-items: start;">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: clamp(22px, 3vw, 32px);">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: clamp(16px, 4vw, 40px);">
+            <div style="text-align: center;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">CGPA</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: clamp(42px, 7vw, 62px); font-weight: 600; letter-spacing: -.03em; line-height: 1.05; margin-top: 8px;">{{ cgpa }}</div>
+              <div style="font-size: 11.5px; color: #8B949C; margin-top: 4px;">on a 10-point scale</div>
+            </div>
+            <div style="display: grid; place-items: center; gap: 6px;">
+              <div style="font-size: 22px; color: #C3BDB0;">↓</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86; background: #E4F2F0; border-radius: 6px; padding: 4px 9px; white-space: nowrap;">(CGPA − 0.75) × 10</div>
+            </div>
+            <div style="text-align: center;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #0B8F86;">Percentage</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: clamp(42px, 7vw, 62px); font-weight: 600; letter-spacing: -.03em; line-height: 1.05; margin-top: 8px; color: #0B8F86;">{{ pct }}<span style="font-size: .5em;">%</span></div>
+              <div style="font-size: 11.5px; color: #8B949C; margin-top: 4px;">equivalent aggregate</div>
+            </div>
+          </div>
+
+          <div style="display: grid; gap: 9px; margin-top: 30px; padding-top: 22px; border-top: 1px solid #F0EDE6;">
+            <sc-for list="{{ convRows }}" as="r" hint-placeholder-count="4">
+              <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 13px;">
+                <span style="color: #6B757E;">{{ r.label }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">{{ r.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top: 22px; padding: 14px 16px; background: #FAF8F4; border: 1px dashed #D6D0C4; border-radius: 10px; font-size: 12px; color: #6B757E; line-height: 1.65;">The conversion formula is fixed by institute ordinance and applies to the aggregate CGPA across all completed semesters. Employers and universities requiring a percentage should be given this certificate rather than a self-computed figure.</div>
+
+          <button type="button" onClick="{{ download }}" style="margin-top: 20px; padding: 12px 18px; background: #131A1F; border: none; border-radius: 9px; color: #FFFFFF; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Download Conversion Certificate</button>
+        </div>
+
+        <div style="background: #FAF8F4; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Semester-wise equivalent</div>
+          <div style="display: grid; gap: 11px; margin-top: 14px;">
+            <sc-for list="{{ semPcts }}" as="s" hint-placeholder-count="3">
+              <div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+                  <span style="font-size: 12.5px; font-weight: 600;">Semester {{ s.roman }}</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #4A555E;">{{ s.sgpa }} · {{ s.pct }}%</span>
+                </div>
+                <div style="height: 6px; margin-top: 5px; background: #EFEDE6; border-radius: 3px; overflow: hidden;">
+                  <div style="{{ s.barStyle }}"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:900},&quot;sub&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;grade&quot;,&quot;marksheet&quot;,&quot;hall&quot;,&quot;conversion&quot;],&quot;default&quot;:&quot;grade&quot;,&quot;tsType&quot;:&quot;'grade' | 'marksheet' | 'hall' | 'conversion'&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+
+class Component extends DCLogic {
+  state = { sem: 3, mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    requestAnimationFrame(() => requestAnimationFrame(() => this.setState({ mount: true })));
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  // split a total out of 100 into ISE/MSE/ESE deterministically
+  split(total) {
+    const ise = Math.min(20, Math.round(total * 0.21));
+    const mse = Math.min(30, Math.round(total * 0.29));
+    return { ise, mse, ese: total - ise - mse };
+  }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, sub = this.props.sub || 'grade', w = st.w, mount = st.mount;
+    const nav = this.props.nav || (() => {});
+    const semData = S.transcript.find(t => t.sem === st.sem) || S.transcript[S.transcript.length - 1];
+    const g = S.gpa();
+    const tabBase = 'padding: 8px 14px; font-size: 12.5px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all .2s;';
+
+    const semTabs = S.transcript.map(t => ({
+      label: 'Sem ' + ROMAN[t.sem], go: () => this.setState({ sem: t.sem }),
+      style: tabBase + (t.sem === st.sem ? 'background: #131A1F; color: #EDEAE3; border: 1px solid #131A1F;' : 'background: #FFFFFF; color: #4A555E; border: 1px solid #E3DFD6;')
+    })).concat([{ label: 'Sem IV · in progress', go: () => S.toast({ title: 'Semester IV is in progress', body: 'Results are published after the end-semester examination in November.', kind: 'info' }), style: tabBase + 'background: #FAF8F4; color: #9AA2A9; border: 1px dashed #D6D0C4;' }]);
+
+    const rows = semData.courses.map(([code, grade, marks]) => {
+      const c = S.byCode[code];
+      return { code, name: c.name, credits: c.credits, grade, marks, points: (S.GP[grade] * c.credits) };
+    });
+    const semCredits = rows.reduce((n, r) => n + r.credits, 0);
+    const sgpa = S.sgpa(st.sem);
+    const download = () => S.toast({ title: 'Preparing document', body: 'A signed PDF is emailed to ' + S.student.email + ' within a few minutes.', kind: 'info' });
+
+    const out = {
+      isGrade: sub === 'grade', isMarksheet: sub === 'marksheet', isHall: sub === 'hall', isConversion: sub === 'conversion',
+      semTabs, semRoman: ROMAN[st.sem], semTerm: semData.term,
+      cgpa: g.cgpa.toFixed(2), sgpa: sgpa.toFixed(2), semCredits,
+      gradeCols: w < 980 ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
+      studentName: S.student.name, download
+    };
+
+    if (sub === 'grade') {
+      Object.assign(out, {
+        gradeRows: rows.map((r, i) => ({
+          code: r.code, name: r.name, credits: r.credits, grade: r.grade, points: r.points,
+          style: 'border-bottom: 1px solid #F4F1EA; background: ' + (i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
+          gradeStyle: 'display: inline-block; min-width: 34px; padding: 3px 8px; border-radius: 6px; font-family: \'JetBrains Mono\', monospace; font-size: 12px; font-weight: 700; background: ' + (S.GP[r.grade] >= 9 ? '#E6F2EA' : S.GP[r.grade] >= 7 ? '#E4F2F0' : '#F8EFDC') + '; color: ' + (S.GP[r.grade] >= 9 ? '#146B43' : S.GP[r.grade] >= 7 ? '#0B6F68' : '#8A6114') + ';'
+        })),
+        sgpaBars: S.transcript.map(t => {
+          const v = S.sgpa(t.sem);
+          return {
+            value: v.toFixed(2), label: 'Sem ' + ROMAN[t.sem],
+            barStyle: 'width: 100%; height: ' + (mount ? Math.round(v / 10 * 62) : 0) + 'px; background: ' + (t.sem === st.sem ? '#12B3A6' : 'rgba(18,179,166,.34)') + '; border-radius: 4px 4px 0 0; transition: height .9s cubic-bezier(.2,.8,.2,1) ' + (t.sem * 90) + 'ms;'
+          };
+        }),
+        scale: S.RANK.slice().reverse().map(gr => ({ grade: gr, points: S.GP[gr] }))
+      });
+    }
+
+    if (sub === 'marksheet') {
+      const msRows = rows.map(r => {
+        const sp = this.split(r.marks);
+        return { code: r.code, name: r.name, credits: r.credits, grade: r.grade, total: r.marks, ise: sp.ise, mse: sp.mse, ese: sp.ese };
+      });
+      const total = msRows.reduce((n, r) => n + r.total, 0);
+      Object.assign(out, {
+        msInfoCols: w < 760 ? '1fr' : 'repeat(2, minmax(0, 1fr))',
+        msInfo: [
+          { label: 'Student name', value: S.student.name },
+          { label: 'PRN', value: S.student.prn },
+          { label: 'Programme', value: 'B.Tech (Computer Engineering)' },
+          { label: 'Semester', value: ROMAN[st.sem] },
+          { label: 'Academic term', value: semData.term },
+          { label: 'Division / Batch', value: 'A / ' + S.student.batch },
+          { label: 'Date of birth', value: S.student.dob },
+          { label: 'Admission', value: S.student.admission }
+        ],
+        msRows,
+        msTotal: total + ' / ' + (msRows.length * 100),
+        msPct: (total / msRows.length).toFixed(1),
+        msId: 'VIT/MS/' + st.sem + '/' + S.student.prn,
+        issueDate: '22 December 2025'
+      });
+    }
+
+    if (sub === 'hall') {
+      const ht = S.hallTicket;
+      const fee = S.fees.heads.find(h => h.status === 'PENDING' && h.head.indexOf('Examination') >= 0);
+      Object.assign(out, {
+        hallExam: ht.exam, hallAy: ht.ay,
+        hallCols: w < 900 ? '1fr' : 'minmax(0, .85fr) minmax(0, 1.15fr)',
+        hallBlocked: !!fee, feeAmount: fee ? S.fmtINR(fee.amount) : '',
+        goAccounts: () => nav('accounts'),
+        hallInfo: [
+          { label: 'PRN', value: S.student.prn },
+          { label: 'Seat number', value: ht.seat },
+          { label: 'Programme', value: 'B.Tech Computer Engineering' },
+          { label: 'Year / Division', value: S.student.year + ' · Division ' + S.student.division },
+          { label: 'Examination centre', value: ht.centre },
+          { label: 'Block', value: ht.block }
+        ],
+        papers: ht.papers.map(p => {
+          const parts = p.date.split(' ');
+          return { code: p.code, name: S.courseName(p.code), dayNum: parts[0], month: parts[1], day: p.day, time: p.time, venue: p.venue };
+        }),
+        instructions: ht.instructions
+      });
+    }
+
+    if (sub === 'conversion') {
+      const pct = (g.cgpa - 0.75) * 10;
+      Object.assign(out, {
+        convCols: w < 980 ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
+        pct: pct.toFixed(2),
+        convRows: [
+          { label: 'Credits earned', value: g.credits + ' / 120' },
+          { label: 'Semesters completed', value: S.transcript.length },
+          { label: 'Class awarded', value: pct >= 70 ? 'First Class with Distinction' : pct >= 60 ? 'First Class' : 'Second Class' },
+          { label: 'Certificate ID', value: 'VIT/CC/' + S.student.prn }
+        ],
+        semPcts: S.transcript.map(t => {
+          const v = S.sgpa(t.sem), p = (v - 0.75) * 10;
+          return {
+            roman: ROMAN[t.sem], sgpa: v.toFixed(2), pct: p.toFixed(1),
+            barStyle: 'height: 100%; width: ' + (mount ? p : 0) + '%; background: #0B8F86; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1) ' + (t.sem * 90) + 'ms;'
+          };
+        })
+      });
+    }
+
+    return out;
+  }
+}
+
+</script>
+</body>
+</html>

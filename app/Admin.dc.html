@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes aIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes aPop { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="max-width: 1480px; animation: aIn .3s cubic-bezier(.2,.8,.2,1) backwards;">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+    <div>
+      <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Database console</div>
+      <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Add, edit and delete rows directly in Supabase. Every change is checked by the database's constraints and row-level security.</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: {{ layoutCols }}; gap: 16px; align-items: start;">
+    <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 10px; display: flex; flex-direction: {{ pickerDir }}; flex-wrap: wrap; gap: 4px;">
+      <sc-for list="{{ tables }}" as="t" hint-placeholder-count="8">
+        <button type="button" onClick="{{ t.go }}" style="{{ t.style }}">
+          <span>{{ t.label }}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; opacity: .7;">{{ t.name }}</span>
+        </button>
+      </sc-for>
+    </div>
+
+    <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #F0EDE6;">
+        <div style="flex: 1; min-width: 180px;">
+          <div style="font-size: 16px; font-weight: 700;">{{ tableLabel }} <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #0B8F86; font-weight: 500;">{{ tableName }}</span></div>
+          <div style="font-size: 12px; color: #6B757E; margin-top: 3px;">{{ showing }}</div>
+        </div>
+        <input type="text" value="{{ q }}" onChange="{{ setQ }}" placeholder="Search rows…" aria-label="Search rows" style="width: 220px; max-width: 100%; height: 36px; padding: 0 12px; font-size: 13px; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.12); outline: none;" />
+        <button type="button" onClick="{{ reload }}" style="height: 36px; padding: 0 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #0B8F86;">Refresh</button>
+        <button type="button" onClick="{{ openAdd }}" style="height: 36px; padding: 0 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .2s;" style-hover="background: #0B8F86;">+ Add row</button>
+      </div>
+
+      <sc-if value="{{ note }}">
+        <div style="padding: 10px 18px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6; font-size: 12px; color: #5A6570; line-height: 1.55;">{{ note }}</div>
+      </sc-if>
+      <sc-if value="{{ error }}">
+        <div style="margin: 14px 18px 0; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12.5px; color: #96382C; line-height: 1.5;">{{ error }}</div>
+      </sc-if>
+      <sc-if value="{{ loading }}">
+        <div style="padding: 30px 18px; font-size: 13px; color: #8B949C;">Loading…</div>
+      </sc-if>
+
+      <sc-if value="{{ showGrid }}">
+        <div style="overflow-x: auto;">
+          <div style="min-width: {{ gridMin }};">
+            <div style="{{ headStyle }}">
+              <sc-for list="{{ heads }}" as="h" hint-placeholder-count="5">
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ h }}</div>
+              </sc-for>
+              <div style="text-align: right;">Actions</div>
+            </div>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
+              <div style="{{ rowStyle }}" style-hover="background: #FAF8F4;">
+                <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="5">
+                  <div title="{{ c }}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c }}</div>
+                </sc-for>
+                <div style="display: flex; justify-content: flex-end; gap: 6px;">
+                  <sc-if value="{{ r.canLogin }}">
+                    <button type="button" onClick="{{ r.login }}" style="padding: 5px 9px; background: #FFFFFF; border: 1px solid #CFE3DF; border-radius: 7px; font-size: 11.5px; font-weight: 600; color: #0B8F86; cursor: pointer;" style-hover="border-color: #0B8F86;">Create login</button>
+                  </sc-if>
+                  <button type="button" onClick="{{ r.edit }}" style="padding: 5px 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; font-size: 11.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #0B8F86;">Edit</button>
+                  <button type="button" onClick="{{ r.del }}" style="padding: 5px 10px; background: #FFFFFF; border: 1px solid #EDCFC9; border-radius: 7px; font-size: 11.5px; font-weight: 600; color: #96382C; cursor: pointer;" style-hover="background: #F8E9E6;">Delete</button>
+                </div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ empty }}">
+              <div style="padding: 26px 18px; font-size: 13px; color: #8B949C;">No rows match.</div>
+            </sc-if>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 12px 18px; border-top: 1px solid #F0EDE6; font-size: 12px; color: #6B757E;">
+          <span>Page {{ pageNo }} of {{ pageCount }}</span>
+          <button type="button" onClick="{{ prevPage }}" disabled="{{ atFirst }}" style="padding: 6px 11px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; font-size: 12px; cursor: pointer;">‹ Prev</button>
+          <button type="button" onClick="{{ nextPage }}" disabled="{{ atLast }}" style="padding: 6px 11px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; font-size: 12px; cursor: pointer;">Next ›</button>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+
+  <!-- add / edit -->
+  <sc-if value="{{ formOpen }}">
+    <div onClick="{{ closeAll }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: aFade .2s both; overflow-y: auto;">
+      <div onClick="{{ stop }}" style="width: 100%; max-width: 640px; margin: auto; background: #FFFFFF; border-radius: 14px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: aPop .28s cubic-bezier(.2,.8,.2,1) both; overflow: hidden;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px 22px; border-bottom: 1px solid #F0EDE6;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">{{ formKicker }}</div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: 22px; margin-top: 4px;">{{ formTitle }}</div>
+          </div>
+          <button type="button" onClick="{{ closeAll }}" aria-label="Close" style="width: 30px; height: 30px; display: grid; place-items: center; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; color: #6B757E; font-size: 13px; cursor: pointer;">✕</button>
+        </div>
+        <div style="padding: 18px 22px; display: grid; grid-template-columns: {{ formCols }}; gap: 14px 16px; max-height: 62vh; overflow-y: auto;">
+          <sc-for list="{{ fields }}" as="f" hint-placeholder-count="6">
+            <label style="display: block; min-width: 0;">
+              <span style="display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5A6570; margin-bottom: 6px;">{{ f.label }} <span style="font-family: 'JetBrains Mono', monospace; font-weight: 500; letter-spacing: 0; text-transform: none; color: #9AA2A9;">{{ f.hint }}</span></span>
+              <sc-if value="{{ f.isInput }}">
+                <input type="{{ f.inputType }}" step="{{ f.step }}" value="{{ f.value }}" onChange="{{ f.set }}" disabled="{{ f.locked }}" style="width: 100%; height: 38px; padding: 0 11px; font-size: 13.5px; border: 1px solid #DCD7CC; border-radius: 8px; background: #FFFFFF; color: #161D22;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.12); outline: none;" />
+              </sc-if>
+              <sc-if value="{{ f.isLong }}">
+                <textarea value="{{ f.value }}" onChange="{{ f.set }}" rows="3" style="width: 100%; padding: 9px 11px; font-size: 13.5px; border: 1px solid #DCD7CC; border-radius: 8px; background: #FFFFFF; color: #161D22; resize: vertical;"></textarea>
+              </sc-if>
+              <sc-if value="{{ f.isBool }}">
+                <input type="checkbox" checked="{{ f.value }}" onChange="{{ f.set }}" style="width: 18px; height: 18px; accent-color: #0B8F86;" />
+              </sc-if>
+              <sc-if value="{{ f.isSelect }}">
+                <select value="{{ f.value }}" onChange="{{ f.set }}" disabled="{{ f.locked }}" style="width: 100%; height: 38px; padding: 0 9px; font-size: 13px; border: 1px solid #DCD7CC; border-radius: 8px; background: #FFFFFF; color: #161D22;">
+                  <option value="">—</option>
+                  <sc-for list="{{ f.options }}" as="o" hint-placeholder-count="3">
+                    <option value="{{ o.v }}">{{ o.l }}</option>
+                  </sc-for>
+                </select>
+              </sc-if>
+            </label>
+          </sc-for>
+        </div>
+        <sc-if value="{{ formError }}">
+          <div style="margin: 0 22px 4px; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12.5px; color: #96382C; line-height: 1.5;">{{ formError }}</div>
+        </sc-if>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; padding: 14px 22px 18px;">
+          <button type="button" onClick="{{ closeAll }}" style="padding: 10px 15px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">Cancel</button>
+          <button type="button" onClick="{{ save }}" disabled="{{ busy }}" style="padding: 10px 18px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">{{ saveLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- delete confirm -->
+  <sc-if value="{{ confirmOpen }}">
+    <div onClick="{{ closeAll }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: aFade .2s both;">
+      <div onClick="{{ stop }}" style="width: 100%; max-width: 440px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: aPop .28s cubic-bezier(.2,.8,.2,1) both; padding: 22px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: 22px;">Delete this row?</div>
+        <div style="font-size: 13px; color: #4A555E; margin-top: 8px; line-height: 1.55;">{{ confirmText }}</div>
+        <sc-if value="{{ formError }}">
+          <div style="margin-top: 12px; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12.5px; color: #96382C; line-height: 1.5;">{{ formError }}</div>
+        </sc-if>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+          <button type="button" onClick="{{ closeAll }}" style="padding: 10px 15px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">Cancel</button>
+          <button type="button" onClick="{{ doDelete }}" disabled="{{ busy }}" style="padding: 10px 18px; background: #B8483A; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;">Delete</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- create login -->
+  <sc-if value="{{ loginOpen }}">
+    <div onClick="{{ closeAll }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: aFade .2s both;">
+      <div onClick="{{ stop }}" style="width: 100%; max-width: 460px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: aPop .28s cubic-bezier(.2,.8,.2,1) both; padding: 22px;">
+        <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Accounts</div>
+        <div style="font-family: Newsreader, Georgia, serif; font-size: 22px; margin-top: 4px;">Create login</div>
+        <div style="font-size: 13px; color: #4A555E; margin-top: 8px; line-height: 1.55;">Creates a Supabase Auth user for <span style="font-family: 'JetBrains Mono', monospace; color: #0B8F86;">{{ loginEmail }}</span>. It is linked to this record automatically.</div>
+        <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5A6570; margin: 16px 0 6px;">Initial password</label>
+        <input type="text" value="{{ loginPw }}" onChange="{{ setLoginPw }}" placeholder="at least 6 characters" style="width: 100%; height: 38px; padding: 0 11px; font-size: 13.5px; font-family: 'JetBrains Mono', monospace; border: 1px solid #DCD7CC; border-radius: 8px;" />
+        <div style="font-size: 11.5px; color: #8B949C; margin-top: 10px; line-height: 1.55;">If the project has "Confirm email" enabled, the user must click the link in the confirmation email before signing in — or turn it off in Supabase: Authentication → Sign In / Providers → Email → Confirm email.</div>
+        <sc-if value="{{ loginMsg }}">
+          <div style="margin-top: 12px; padding: 11px 13px; background: #E6F2EA; border: 1px solid #CBE4D6; border-radius: 8px; font-size: 12.5px; color: #12503A; line-height: 1.5;">{{ loginMsg }}</div>
+        </sc-if>
+        <sc-if value="{{ formError }}">
+          <div style="margin-top: 12px; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12.5px; color: #96382C; line-height: 1.5;">{{ formError }}</div>
+        </sc-if>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+          <button type="button" onClick="{{ closeAll }}" style="padding: 10px 15px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">Close</button>
+          <button type="button" onClick="{{ doCreateLogin }}" disabled="{{ busy }}" style="padding: 10px 18px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">Create login</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:860},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+// One config drives every screen. Column spec: [name, type, extra]
+//   type: text | long | number | date | time | bool | list (text[] as comma list) | select (extra.opts) | fk:<table>
+//   extra.num: send the value as a number (selects).  Table: pk columns, id: identity pk (never sent), list: columns shown in the grid.
+const DAY_OPTS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const TABLES = {
+  student: { label: 'Students', pk: ['student_id'], login: true, list: ['student_id', 'name', 'program_id', 'year', 'division', 'email', 'user_id'], cols: [
+    ['student_id', 'text'], ['name', 'text'], ['first_name', 'text'], ['program_id', 'fk:program'], ['dept_id', 'fk:department'], ['admit_year', 'number'],
+    ['roll', 'text'], ['year', 'select', { opts: ['FE', 'SE', 'TE', 'BE'] }], ['division', 'text'], ['batch', 'text'], ['current_sem', 'number'],
+    ['email', 'text'], ['phone', 'text'], ['dob', 'date'], ['gender', 'text'], ['category', 'text'], ['admission', 'text'], ['mentor_id', 'fk:faculty']] },
+  faculty: { label: 'Faculty', pk: ['faculty_id'], login: true, list: ['faculty_id', 'name', 'dept_id', 'designation', 'email', 'user_id'], cols: [
+    ['faculty_id', 'text'], ['name', 'text'], ['short_name', 'text'], ['dept_id', 'fk:department'], ['email', 'text'], ['designation', 'text'], ['cabin', 'text']] },
+  course: { label: 'Courses', pk: ['course_id'], list: ['course_id', 'title', 'dept_id', 'credits', 'sem_no', 'course_type', 'coordinator_id'], cols: [
+    ['course_id', 'text'], ['title', 'text'], ['dept_id', 'fk:department'], ['credits', 'number'], ['sem_no', 'number'], ['course_type', 'text'],
+    ['coordinator_id', 'fk:faculty'], ['description', 'long'], ['skills', 'list'], ['careers', 'list'], ['next', 'list']] },
+  section: { label: 'Sections', pk: ['section_id'], id: true, cols: [
+    ['course_id', 'fk:course'], ['sem_id', 'fk:semester'], ['section_code', 'text'], ['day', 'select', { opts: DAY_OPTS }], ['start_time', 'time'], ['end_time', 'time'],
+    ['faculty_id', 'fk:faculty'], ['room', 'text'], ['capacity', 'number'], ['seats', 'number']] },
+  section_meeting: { label: 'Section meetings', pk: ['id'], id: true, cols: [
+    ['section_id', 'fk:section'], ['day', 'select', { opts: DAY_OPTS }], ['start_time', 'time'], ['end_time', 'time'], ['room', 'text'], ['type', 'select', { opts: ['Lecture', 'Lab', 'Tutorial', 'Studio', 'Project', 'Workshop'] }]] },
+  enrollment: { label: 'Enrollments', pk: ['enroll_id'], id: true, note: 'Direct edits bypass registration rules and do not change section seats — adjust seats on the Sections screen if needed. Set grade point + marks to complete a course.', cols: [
+    ['student_id', 'fk:student'], ['section_id', 'fk:section'], ['grade_point', 'select', { opts: ['10', '9', '8', '7', '6', '5', '4', '0'], num: true }], ['marks', 'number']] },
+  semester: { label: 'Semesters', pk: ['sem_id'], id: true, cols: [
+    ['term_name', 'text'], ['year', 'text'], ['credit_cap', 'number'], ['min_credits', 'number'], ['reg_opens', 'date'], ['reg_closes', 'date']] },
+  department: { label: 'Departments', pk: ['dept_id'], cols: [['dept_id', 'text'], ['dept_name', 'text'], ['hod_name', 'text']] },
+  program: { label: 'Programs', pk: ['program_id'], cols: [['program_id', 'text'], ['program_name', 'text'], ['dept_id', 'fk:department'], ['total_credits', 'number']] },
+  program_requirement: { label: 'Program requirements', pk: ['program_id', 'course_id', 'category'], cols: [
+    ['program_id', 'fk:program'], ['course_id', 'fk:course'], ['category', 'fk:requirement_category'], ['is_mandatory', 'bool']] },
+  requirement_category: { label: 'Requirement categories', pk: ['category'], cols: [['category', 'text'], ['name', 'text'], ['credits', 'number'], ['note', 'text']] },
+  prerequisite: { label: 'Prerequisites', pk: ['course_id', 'prereq_course_id', 'group_no'], note: 'Rows with the same course and group are AND-ed; different groups are OR-ed. Min grade point 4 = pass.', cols: [
+    ['course_id', 'fk:course'], ['prereq_course_id', 'fk:course'], ['group_no', 'number'], ['min_grade_point', 'select', { opts: ['4', '5', '6', '7', '8', '9', '10'], num: true }]] },
+  fee: { label: 'Fees', pk: ['id'], id: true, cols: [
+    ['student_id', 'fk:student'], ['year', 'text'], ['head', 'text'], ['amount', 'number'], ['status', 'select', { opts: ['PAID', 'PENDING'] }],
+    ['paid_on', 'date'], ['due_on', 'date'], ['receipt', 'text'], ['mode', 'text']] },
+  certificate: { label: 'Certificates', pk: ['id'], id: true, cols: [
+    ['student_id', 'fk:student'], ['title', 'text'], ['issuer', 'text'], ['ref_code', 'text'], ['issued_on', 'date'], ['hours', 'number'], ['verified', 'bool'], ['grade', 'text']] },
+  notification: { label: 'Notifications', pk: ['id'], id: true, note: 'Leave the student empty to notify everyone.', cols: [
+    ['student_id', 'fk:student'], ['title', 'text'], ['body', 'long'], ['kind', 'select', { opts: ['academic', 'registration', 'warning', 'accounts', 'brief'] }], ['read', 'bool']] },
+  calendar_event: { label: 'Calendar events', pk: ['id'], id: true, cols: [
+    ['sem_id', 'fk:semester'], ['title', 'text'], ['kind', 'select', { opts: ['academic', 'registration', 'holiday', 'exam'] }], ['start_on', 'date'], ['end_on', 'date'], ['detail', 'long']] }
+};
+// How a referenced row is shown in selects and in the grid.
+const LABEL = {
+  department: r => r.dept_id + ' · ' + r.dept_name,
+  program: r => r.program_id + ' · ' + r.program_name,
+  faculty: r => r.faculty_id + ' · ' + r.name,
+  course: r => r.course_id + ' · ' + r.title,
+  student: r => r.student_id + ' · ' + r.name,
+  requirement_category: r => r.category + ' · ' + r.name,
+  semester: r => r.term_name,
+  section: (r, L) => r.course_id + ' · ' + r.section_code + ' · ' + ((L.semester || []).find(s => s.sem_id === r.sem_id) || {}).term_name
+};
+const PAGE = 50;
+const fkOf = (type) => type.indexOf('fk:') === 0 ? type.slice(3) : null;
+const pkOf = (t, row) => Object.fromEntries(TABLES[t].pk.map(k => [k, row[k]]));
+
+// db value → form string, and back
+function toForm(type, v) {
+  if (type === 'bool') return !!v;
+  if (v == null) return '';
+  if (type === 'list') return v.join(', ');
+  if (type === 'time') return String(v).slice(0, 5);
+  return String(v);
+}
+function fromForm(type, extra, v) {
+  if (type === 'bool') return !!v;
+  if (type === 'list') return String(v).split(',').map(x => x.trim()).filter(Boolean);
+  if (v === '' || v == null) return null;
+  const fk = fkOf(type);
+  if (type === 'number' || (extra && extra.num) || (fk && TABLES[fk] && TABLES[fk].id)) return Number(v);
+  return v;
+}
+
+class Component extends DCLogic {
+  state = { table: 'student', rows: [], count: 0, lookups: {}, loading: true, error: '', q: '', page: 0,
+            modal: null, busy: false, formError: '', w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.load('student'); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    this.onKey = (e) => { if (e.key === 'Escape' && this.state.modal) this.close(); };
+    window.addEventListener('keydown', this.onKey);
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); window.removeEventListener('keydown', this.onKey); }
+
+  // Loads the table plus every table its foreign keys point at (section labels also need semester).
+  load(table) {
+    const A = window.VIT.admin, cfg = TABLES[table];
+    const refs = Array.from(new Set(cfg.cols.map(c => fkOf(c[1])).filter(Boolean)));
+    if (refs.indexOf('section') >= 0 && refs.indexOf('semester') < 0) refs.push('semester');
+    this.setState({ table, loading: true, error: '', page: table === this.state.table ? this.state.page : 0, q: table === this.state.table ? this.state.q : '' });
+    Promise.resolve()
+      .then(() => Promise.all([A.list(table, { order: cfg.pk })].concat(refs.map(t => A.list(t, { order: TABLES[t].pk })))))
+      .then(([main, ...lk]) => {
+        if (this.state.table !== table) return;
+        const lookups = {};
+        refs.forEach((t, i) => { lookups[t] = lk[i].rows; });
+        this.setState({ rows: main.rows, count: main.count, lookups, loading: false });
+      })
+      .catch(e => { if (this.state.table === table) this.setState({ rows: [], count: 0, loading: false, error: e.message }); });
+  }
+
+  close = () => this.setState({ modal: null, busy: false, formError: '' });
+
+  // run an admin call with busy/error handling; on success close the modal and reload
+  run(fn, keepOpen) {
+    this.setState({ busy: true, formError: '' });
+    Promise.resolve().then(fn).then(
+      (msg) => {
+        if (keepOpen) { this.setState({ busy: false, modal: Object.assign({}, this.state.modal, { msg }) }); return; }
+        this.close(); if (msg) window.VIT.toast({ title: msg, kind: 'ok' }); this.load(this.state.table);
+      },
+      (e) => this.setState({ busy: false, formError: e.message || String(e) }));
+  }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, t = st.table, cfg = TABLES[t], w = st.w, L = st.lookups;
+    const fkLabel = (ref, v) => {
+      if (v == null || v === '') return '';
+      const key = TABLES[ref].pk[0], row = (L[ref] || []).find(r => String(r[key]) === String(v));
+      return row ? LABEL[ref](row, L) : String(v);
+    };
+    const colType = Object.fromEntries(cfg.cols.map(c => [c[0], c[1]]));
+    const listCols = cfg.list || (cfg.id ? cfg.pk : []).concat(cfg.cols.map(c => c[0]));
+    const cell = (row, c) => {
+      const v = row[c], type = colType[c] || '';
+      if (c === 'user_id') return v ? 'linked' : '—';
+      if (fkOf(type)) return fkLabel(fkOf(type), v);
+      if (type === 'bool') return v ? 'yes' : 'no';
+      if (Array.isArray(v)) return v.join(', ');
+      if (type === 'time') return v ? String(v).slice(0, 5) : '';
+      return v == null ? '' : String(v);
+    };
+
+    // Note: search/paging is client-side over the first 1000 rows; switch to server-side .ilike/.range if a table outgrows that
+    const q = st.q.trim().toLowerCase();
+    const all = st.rows.map(r => ({ row: r, cells: listCols.map(c => cell(r, c)) }));
+    const hits = q ? all.filter(x => x.cells.join(' ').toLowerCase().indexOf(q) >= 0) : all;
+    const pageCount = Math.max(1, Math.ceil(hits.length / PAGE));
+    const pg = Math.min(st.page, pageCount - 1);
+    const shown = hits.slice(pg * PAGE, pg * PAGE + PAGE);
+    const gridCols = 'grid-template-columns: repeat(' + listCols.length + ', minmax(110px, 1fr)) ' + (cfg.login ? '250px' : '140px') + ';';
+    const rowBase = 'display: grid; ' + gridCols + ' gap: 12px; align-items: center; padding: 9px 18px; ';
+
+    const m = st.modal;
+    const out = {
+      layoutCols: w < 900 ? '1fr' : '230px minmax(0, 1fr)',
+      pickerDir: w < 900 ? 'row' : 'column',
+      tables: Object.keys(TABLES).map(name => ({
+        name, label: TABLES[name].label, go: () => this.load(name),
+        style: 'display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 11px; border: none; border-radius: 8px; text-align: left; font-size: 13px; font-weight: ' + (name === t ? 700 : 500) + '; cursor: pointer; background: ' + (name === t ? '#131A1F' : 'transparent') + '; color: ' + (name === t ? '#EDEAE3' : '#161D22') + ';'
+      })),
+      tableLabel: cfg.label, tableName: t, note: cfg.note || '',
+      showing: st.loading ? '' : 'Showing ' + (hits.length ? pg * PAGE + 1 : 0) + '–' + (pg * PAGE + shown.length) + ' of ' + hits.length + (q ? ' matching' : '') + ' · ' + st.count + ' in database' + (st.count > st.rows.length ? ' (first ' + st.rows.length + ' loaded)' : ''),
+      q: st.q, setQ: (e) => this.setState({ q: e.target.value, page: 0 }),
+      reload: () => this.load(t),
+      error: st.error, loading: st.loading, showGrid: !st.loading && !st.error,
+      gridMin: (listCols.length * 122 + (cfg.login ? 262 : 152) + 36) + 'px',
+      headStyle: rowBase + 'background: #FAF8F4; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;',
+      rowStyle: rowBase + 'border-bottom: 1px solid #F4F1EA; font-size: 12.5px;',
+      heads: listCols.map(c => c === 'user_id' ? 'login' : c),
+      empty: shown.length === 0,
+      rows: shown.map(({ row, cells }) => ({
+        cells,
+        canLogin: !!cfg.login && !row.user_id,
+        login: () => this.setState({ modal: { kind: 'login', email: row.email, pw: '' }, formError: '' }),
+        edit: () => this.setState({ modal: { kind: 'edit', pk: pkOf(t, row), values: Object.fromEntries(cfg.cols.map(c => [c[0], toForm(c[1], row[c[0]])])) }, formError: '' }),
+        del: () => this.setState({ modal: { kind: 'delete', pk: pkOf(t, row), text: cells.slice(0, 3).filter(Boolean).join(' · ') }, formError: '' })
+      })),
+      pageNo: pg + 1, pageCount, atFirst: pg === 0, atLast: pg >= pageCount - 1,
+      prevPage: () => this.setState({ page: Math.max(0, pg - 1) }),
+      nextPage: () => this.setState({ page: Math.min(pageCount - 1, pg + 1) }),
+      openAdd: () => this.setState({ modal: { kind: 'add', values: Object.fromEntries(cfg.cols.map(c => [c[0], toForm(c[1], c[1] === 'bool' ? false : null)])) }, formError: '' }),
+
+      closeAll: this.close, stop: (e) => e.stopPropagation(), busy: st.busy, formError: st.formError,
+      formOpen: !!m && (m.kind === 'add' || m.kind === 'edit'),
+      confirmOpen: !!m && m.kind === 'delete',
+      loginOpen: !!m && m.kind === 'login'
+    };
+
+    if (out.formOpen) {
+      const isEdit = m.kind === 'edit';
+      const setVal = (c, v) => { const cur = this.state.modal; this.setState({ modal: Object.assign({}, cur, { values: Object.assign({}, cur.values, { [c]: v }) }) }); };
+      Object.assign(out, {
+        formKicker: (isEdit ? 'Edit · ' : 'New · ') + t,
+        formTitle: isEdit ? cfg.label.replace(/s$/, '') + ' ' + Object.values(m.pk).join(' / ') : 'Add ' + cfg.label.replace(/s$/, '').toLowerCase(),
+        formCols: w < 640 ? '1fr' : '1fr 1fr',
+        saveLabel: st.busy ? 'Saving…' : isEdit ? 'Save changes' : 'Insert row',
+        fields: cfg.cols.map(([c, type, extra]) => {
+          const ref = fkOf(type);
+          const opts = ref ? (L[ref] || []).map(r => ({ v: String(r[TABLES[ref].pk[0]]), l: LABEL[ref](r, L) })) : type === 'select' ? extra.opts.map(o => ({ v: o, l: o })) : [];
+          const input = ['text', 'number', 'date', 'time', 'list'].indexOf(type) >= 0;
+          return {
+            label: c, hint: ref ? '→ ' + ref : type === 'list' ? 'comma-separated' : '',
+            isInput: input, isLong: type === 'long', isBool: type === 'bool', isSelect: !!ref || type === 'select',
+            inputType: type === 'list' ? 'text' : type, step: type === 'number' ? 'any' : undefined,
+            value: m.values[c], options: opts,
+            locked: isEdit && cfg.pk.indexOf(c) >= 0, // primary keys are fixed once created
+            set: (e) => setVal(c, type === 'bool' ? e.target.checked : e.target.value)
+          };
+        }),
+        save: () => {
+          const vals = {};
+          cfg.cols.forEach(([c, type, extra]) => {
+            if (isEdit && cfg.pk.indexOf(c) >= 0) return;
+            const v = fromForm(type, extra, m.values[c]);
+            if (!isEdit && (v === null || (Array.isArray(v) && !v.length))) return; // let the column default apply
+            vals[c] = v;
+          });
+          this.run(() => (isEdit ? S.admin.update(t, m.pk, vals) : S.admin.insert(t, vals)).then(() => isEdit ? 'Row updated' : 'Row inserted'));
+        }
+      });
+    }
+    if (out.confirmOpen) Object.assign(out, {
+      confirmText: t + ' · ' + m.text + '. This cannot be undone; rows that reference it may block the delete or be removed with it (per the schema\'s foreign keys).',
+      doDelete: () => this.run(() => S.admin.remove(t, m.pk).then(() => 'Row deleted'))
+    });
+    if (out.loginOpen) Object.assign(out, {
+      loginEmail: m.email, loginPw: m.pw, loginMsg: m.msg || '',
+      setLoginPw: (e) => this.setState({ modal: Object.assign({}, this.state.modal, { pw: e.target.value }) }),
+      doCreateLogin: () => {
+        if ((m.pw || '').length < 6) { this.setState({ formError: 'Password must be at least 6 characters.' }); return; }
+        this.run(() => S.admin.createLogin(m.email, m.pw).then(r => {
+          this.load(t);
+          return r.needsConfirm
+            ? 'Login created. "Confirm email" is on, so ' + m.email + ' must confirm via the emailed link before signing in.'
+            : 'Login created. ' + m.email + ' can sign in now with the password you set.';
+        }), true);
+      }
+    });
+    return out;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes tIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes tSlide { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
+  @keyframes tBlock { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="max-width: 1560px;">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+    <div>
+      <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Timetable</div>
+      <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ subtitle }}</div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+      <div style="display: flex; padding: 3px; background: #EAE6DE; border-radius: 9px;">
+        <sc-for list="{{ scopes }}" as="s" hint-placeholder-count="3">
+          <button type="button" onClick="{{ s.go }}" style="{{ s.style }}">{{ s.label }}</button>
+        </sc-for>
+      </div>
+      <div style="display: flex; padding: 3px; background: #EAE6DE; border-radius: 9px;">
+        <button type="button" onClick="{{ viewWeek }}" style="{{ weekStyle }}">Week</button>
+        <button type="button" onClick="{{ viewDay }}" style="{{ dayStyle }}">Day</button>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 14px;">
+    <sc-for list="{{ legend }}" as="l" hint-placeholder-count="4">
+      <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #4A555E;">
+        <span style="{{ l.swatch }}"></span>{{ l.label }}
+      </div>
+    </sc-for>
+    <div style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8B949C;">{{ loadNote }}</div>
+  </div>
+
+  <sc-if value="{{ isWeek }}" hint-placeholder-val="{{ true }}">
+    <div key="{{ gridKey }}" style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; animation: tIn .28s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="overflow-x: auto;">
+        <div style="min-width: 860px;">
+          <div style="display: grid; grid-template-columns: 66px repeat(6, 1fr); background: #FAF8F4; border-bottom: 1px solid #EAE6DE;">
+            <div></div>
+            <sc-for list="{{ dayHeads }}" as="d" hint-placeholder-count="6">
+              <div style="{{ d.style }}">
+                <div style="font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;">{{ d.label }}</div>
+                <div style="font-size: 10px; color: #9AA2A9; margin-top: 2px;">{{ d.count }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="position: relative; display: grid; grid-template-columns: 66px repeat(6, 1fr);">
+            <div>
+              <sc-for list="{{ hours }}" as="h" hint-placeholder-count="10">
+                <div style="height: 62px; padding: 4px 10px 0 0; text-align: right; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #9AA2A9; border-bottom: 1px solid #F4F1EA;">{{ h }}</div>
+              </sc-for>
+            </div>
+            <sc-for list="{{ columns }}" as="col" hint-placeholder-count="6">
+              <div style="{{ col.style }}">
+                <sc-for list="{{ col.lines }}" as="ln" hint-placeholder-count="10">
+                  <div style="height: 62px; border-bottom: 1px solid #F4F1EA;"></div>
+                </sc-for>
+                <sc-for list="{{ col.blocks }}" as="b" hint-placeholder-count="0">
+                  <div onMouseEnter="{{ b.enter }}" onMouseLeave="{{ b.leave }}" style="{{ b.style }}">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 9px; opacity: .85; letter-spacing: .04em;">{{ b.code }}</div>
+                    <div style="font-size: 11.5px; font-weight: 700; line-height: 1.25; margin-top: 2px;">{{ b.name }}</div>
+                    <div style="font-size: 9.5px; opacity: .85; margin-top: auto;">{{ b.meta }}</div>
+                    <sc-if value="{{ b.hovered }}">
+                      <div style="position: absolute; left: 50%; top: calc(100% + 8px); transform: translateX(-50%); z-index: 40; width: 200px; padding: 12px 14px; background: #131A1F; color: #EDEAE3; border-radius: 10px; box-shadow: 0 16px 38px rgba(20,26,31,.28); text-align: left;">
+                        <div style="font-size: 13px; font-weight: 700; line-height: 1.3;">{{ b.name }}</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #12B3A6; margin-top: 3px;">{{ b.code }} · {{ b.type }}</div>
+                        <div style="display: grid; gap: 4px; margin-top: 9px; font-size: 11.5px; color: #A9B6B8;">
+                          <div>{{ b.facName }}</div>
+                          <div>Room {{ b.room }} · Section {{ b.section }}</div>
+                          <div>{{ b.time }}</div>
+                        </div>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDay }}">
+    <div>
+      <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px;">
+        <sc-for list="{{ dayTabs }}" as="d" hint-placeholder-count="6">
+          <button type="button" onClick="{{ d.go }}" style="{{ d.style }}">
+            <span style="font-size: 12.5px; font-weight: 700;">{{ d.label }}</span>
+            <span style="{{ d.countStyle }}">{{ d.count }}</span>
+          </button>
+        </sc-for>
+      </div>
+      <div key="{{ dayKey }}" style="display: grid; gap: 10px; animation: tSlide .3s cubic-bezier(.2,.8,.2,1) both;">
+        <sc-for list="{{ daySessions }}" as="s" hint-placeholder-count="4">
+          <div style="{{ s.rowStyle }}">
+            <div style="min-width: 88px;">
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600;">{{ s.start }}</div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA2A9; margin-top: 2px;">{{ s.end }}</div>
+            </div>
+            <div style="{{ s.railStyle }}"></div>
+            <div style="flex: 1; min-width: 0;">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 9px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86;">{{ s.code }}</span>
+                <span style="font-size: 16px; font-weight: 700; letter-spacing: -.01em;">{{ s.name }}</span>
+                <span style="{{ s.typeStyle }}">{{ s.type }}</span>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 7px; font-size: 12.5px; color: #6B757E;">
+                <span>{{ s.facName }}</span>
+                <span>Room {{ s.room }}</span>
+                <span>Section {{ s.section }}</span>
+                <span style="color: {{ s.attColor }}; font-weight: 600;">{{ s.attLabel }}</span>
+              </div>
+            </div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #9AA2A9; white-space: nowrap;">{{ s.duration }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ dayEmpty }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 58px 22px; background: #FFFFFF; border: 1px dashed #D6D0C4; border-radius: 14px; text-align: center;">
+          <div style="width: 36px; height: 36px; border: 1.5px dashed #D6D0C4; border-radius: 10px;"></div>
+          <div style="font-size: 15.5px; font-weight: 700;">Nothing scheduled on {{ activeDay }}</div>
+          <p style="margin: 0; max-width: 44ch; font-size: 13px; color: #6B757E; line-height: 1.6;">{{ dayEmptyBody }}</p>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <div style="display: grid; grid-template-columns: {{ footCols }}; gap: 16px; margin-top: 18px;">
+    <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+      <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Weekly load</div>
+      <div style="display: grid; gap: 10px; margin-top: 14px;">
+        <sc-for list="{{ loadRows }}" as="r" hint-placeholder-count="6">
+          <div>
+            <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+              <span style="font-size: 12.5px; font-weight: 600;">{{ r.name }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E;">{{ r.hours }}h</span>
+            </div>
+            <div style="height: 6px; margin-top: 5px; background: #EFEDE6; border-radius: 3px; overflow: hidden;">
+              <div style="{{ r.barStyle }}"></div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="background: #FAF8F4; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+      <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">{{ scopeNoteTitle }}</div>
+      <p style="margin: 12px 0 0; font-size: 13px; color: #4A555E; line-height: 1.7; text-wrap: pretty;">{{ scopeNote }}</p>
+      <button type="button" onClick="{{ goRegistration }}" style="margin-top: 16px; padding: 10px 15px; background: #131A1F; border: none; border-radius: 8px; color: #FFFFFF; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Change registration</button>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+const TYPE_COL = {
+  Lecture: ['#131A1F', '#EDEAE3'],
+  Lab: ['#0B8F86', '#FFFFFF'],
+  Tutorial: ['#E6F2EA', '#12503A'],
+  Studio: ['#1C8F5A', '#FFFFFF'],
+  Project: ['#F8EFDC', '#6E4C10'],
+  Workshop: ['#EFE6F0', '#5B3F62']
+};
+const START_H = 9, END_H = 17, HOUR_PX = 62;
+
+class Component extends DCLogic {
+  state = { scope: 'my', view: 'week', day: null, hover: null, w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, w = st.w;
+    const scope = st.scope;
+    const rows = S.weekGrid(scope);
+    const att = S.attendance();
+    const activeDay = st.day || S.dayName() || 'Mon';
+    const tabBase = 'padding: 8px 15px; font-size: 12.5px; font-weight: 700; border: none; border-radius: 7px; cursor: pointer; transition: all .22s;';
+    const on = 'background: #FFFFFF; color: #161D22; box-shadow: 0 1px 2px rgba(20,26,31,.1);';
+    const off = 'background: transparent; color: #7A828A;';
+
+    const hours = [];
+    for (let h = START_H; h <= END_H; h++) hours.push(String(h).padStart(2, '0') + ':00');
+
+    const byDay = {};
+    S.DAYS.forEach(d => { byDay[d] = rows.filter(r => r.day === d).sort((a, b) => S.toMin(a.start) - S.toMin(b.start)); });
+
+    const totalMins = rows.reduce((n, r) => n + (S.toMin(r.end) - S.toMin(r.start)), 0);
+    const perCourse = {};
+    rows.forEach(r => { perCourse[r.code] = (perCourse[r.code] || 0) + (S.toMin(r.end) - S.toMin(r.start)); });
+    const maxMins = Math.max.apply(null, Object.values(perCourse).concat([1]));
+
+    const daySessions = byDay[activeDay] || [];
+
+    return {
+      subtitle: scope === 'my'
+        ? 'Your registered sections · Semester IV · ' + Math.round(totalMins / 60 * 10) / 10 + ' contact hours a week'
+        : scope === 'class' ? 'SE Computer Engineering · Division A · full class schedule'
+        : 'Batch A2 laboratory and studio sessions · Division A',
+      scopes: [['my', 'My Timetable'], ['class', 'Class Timetable'], ['batch', 'Batch Timetable']].map(([id, label]) => ({
+        label, go: () => this.setState({ scope: id }),
+        style: tabBase + (scope === id ? on : off)
+      })),
+      isWeek: st.view === 'week', isDay: st.view === 'day',
+      weekStyle: tabBase + (st.view === 'week' ? on : off),
+      dayStyle: tabBase + (st.view === 'day' ? on : off),
+      viewWeek: () => this.setState({ view: 'week' }), viewDay: () => this.setState({ view: 'day' }),
+      gridKey: scope, dayKey: scope + activeDay,
+      legend: Object.keys(TYPE_COL).slice(0, 4).map(k => ({
+        label: k, swatch: 'width: 11px; height: 11px; border-radius: 3px; background: ' + TYPE_COL[k][0] + ';'
+      })),
+      loadNote: rows.length + ' sessions · ' + Math.round(totalMins / 60 * 10) / 10 + 'h weekly',
+      hours,
+      dayHeads: S.DAYS.map(d => ({
+        label: d, count: (byDay[d] || []).length + ' cls',
+        style: 'padding: 10px 6px; text-align: center; color: ' + (d === S.dayName() ? '#0B8F86' : '#5A6570') + '; border-left: 1px solid #EAE6DE; background: ' + (d === S.dayName() ? '#E4F2F0' : 'transparent') + ';'
+      })),
+      columns: S.DAYS.map(d => ({
+        style: 'position: relative; border-left: 1px solid #F4F1EA;',
+        lines: hours.map(() => 1),
+        blocks: (byDay[d] || []).map((b, i) => {
+          const top = (S.toMin(b.start) - START_H * 60) / 60 * HOUR_PX;
+          const h = (S.toMin(b.end) - S.toMin(b.start)) / 60 * HOUR_PX;
+          const col = TYPE_COL[b.type] || TYPE_COL.Lecture;
+          const key = d + i;
+          return {
+            code: b.code, name: b.name, type: b.type, room: b.room, section: b.section,
+            facName: S.faculty[b.fac] ? S.faculty[b.fac].name : '',
+            time: b.start + ' – ' + b.end,
+            meta: b.room + ' · ' + (S.faculty[b.fac] ? S.faculty[b.fac].short : ''),
+            hovered: st.hover === key,
+            enter: () => this.setState({ hover: key }), leave: () => this.setState({ hover: null }),
+            style: 'position: absolute; left: 4px; right: 4px; top: ' + (top + 3) + 'px; height: ' + (h - 6) + 'px; display: flex; flex-direction: column; padding: 7px 9px; border-radius: 8px; background: ' + col[0] + '; color: ' + col[1] + '; overflow: visible; cursor: default; animation: tBlock .3s cubic-bezier(.2,.8,.2,1) ' + (i * 40) + 'ms both; z-index: ' + (st.hover === key ? 30 : 3) + '; box-shadow: ' + (st.hover === key ? '0 8px 22px rgba(20,26,31,.22)' : 'none') + '; transition: box-shadow .2s;'
+          };
+        })
+      })),
+      dayTabs: S.DAYS.map(d => {
+        const active = d === activeDay;
+        return {
+          label: d, count: (byDay[d] || []).length, go: () => this.setState({ day: d }),
+          style: 'display: flex; align-items: center; gap: 8px; padding: 9px 14px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#4A555E') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 9px; cursor: pointer; transition: all .2s;',
+          countStyle: 'font-family: \'JetBrains Mono\', monospace; font-size: 10.5px; padding: 1px 6px; border-radius: 10px; background: ' + (active ? 'rgba(237,234,227,.14)' : '#F4F1EA') + '; color: ' + (active ? '#8FE9DE' : '#8B949C') + ';'
+        };
+      }),
+      activeDay,
+      dayEmpty: daySessions.length === 0,
+      dayEmptyBody: scope === 'batch' ? 'Batch A2 has no laboratory or studio session on this day.' : 'No sessions fall on this day for the selected timetable.',
+      daySessions: daySessions.map(s => {
+        const a = att.find(x => x.code === s.code);
+        const col = TYPE_COL[s.type] || TYPE_COL.Lecture;
+        return {
+          code: s.code, name: s.name, type: s.type, room: s.room, section: s.section,
+          start: s.start, end: s.end,
+          facName: S.faculty[s.fac] ? S.faculty[s.fac].name : '',
+          duration: (S.toMin(s.end) - S.toMin(s.start)) + ' min',
+          attColor: a ? (a.pct < 75 ? '#B4801C' : '#146B43') : '#9AA2A9',
+          attLabel: a ? a.pct + '% attendance' : 'Not in your registration',
+          rowStyle: 'display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 12px;',
+          railStyle: 'width: 3px; align-self: stretch; border-radius: 2px; background: ' + col[0] + ';',
+          typeStyle: 'padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; background: ' + col[0] + '; color: ' + col[1] + ';'
+        };
+      }),
+      footCols: w < 900 ? '1fr' : 'minmax(0, 1fr) minmax(0, 1fr)',
+      loadRows: Object.keys(perCourse).map(code => ({
+        name: S.courseName(code), hours: Math.round(perCourse[code] / 60 * 10) / 10,
+        barStyle: 'height: 100%; width: ' + (perCourse[code] / maxMins * 100) + '%; background: #0B8F86; border-radius: 3px; transition: width .7s cubic-bezier(.2,.8,.2,1);'
+      })),
+      scopeNoteTitle: scope === 'my' ? 'This grid is generated' : scope === 'class' ? 'Class view' : 'Batch view',
+      scopeNote: scope === 'my'
+        ? 'Nothing here is stored as a timetable. Every block is derived from the sections you are registered in — register or drop a course and this grid changes immediately.'
+        : scope === 'class'
+        ? 'The full Division A schedule for SE Computer Engineering, including courses you are not registered in. Use it to find a section that fits your plan.'
+        : 'Batch A2 splits from the division for laboratory, tutorial and studio work. Lecture slots are shared with the whole division.',
+      goRegistration: () => (this.props.nav || (() => {}))('registration')
+    };
+  }
+}
+
+</script>
+</body>
+</html>

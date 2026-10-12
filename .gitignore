@@ -1,0 +1,9 @@
+# secrets — never commit
+keys.env
+*.env
+.env*
+
+# local
+__pycache__/
+*.log
+.vscode/

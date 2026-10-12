@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes dRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="max-width: 1240px; display: flex; flex-direction: column; gap: 22px;">
+
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px;">
+    <div>
+      <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(26px, 3vw, 34px); font-weight: 400; letter-spacing: -.015em; line-height: 1.1;">{{ greeting }}</div>
+      <div style="margin-top: 7px; font-size: 13px; color: #6B757E;">Computer Engineering · Semester IV · Division A</div>
+    </div>
+    <sc-if value="{{ hasUnread }}">
+      <div style="display: flex; align-items: center; gap: 9px; padding: 9px 14px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 30px;">
+        <span style="width: 7px; height: 7px; border-radius: 50%; background: #B4801C;"></span>
+        <span style="font-size: 12.5px; color: #4A555E;">{{ unreadLabel }} in notifications</span>
+      </div>
+    </sc-if>
+  </div>
+
+  <div style="display: grid; grid-template-columns: {{ cols }}; gap: 14px;">
+    <sc-for list="{{ modules }}" as="m" hint-placeholder-count="9">
+      <button type="button" onClick="{{ m.go }}" onMouseEnter="{{ m.enter }}" onMouseLeave="{{ m.leave }}" style="{{ m.tileStyle }}">
+        <span style="{{ m.iconBoxStyle }}">
+          <sc-for list="{{ m.shapes }}" as="s" hint-placeholder-count="3">
+            <span style="{{ s.style }}"></span>
+          </sc-for>
+        </span>
+        <span style="{{ m.nameStyle }}">{{ m.name }}</span>
+      </button>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:620},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+// icon shapes, drawn inside a 26×26 box from rectangles, rings and circles only
+const bar = (x, y, w, h) => ({ x, y, w, h, r: 1.5, fill: 1 });
+const sq = (x, y, w, h, r) => ({ x, y, w, h, r: r === undefined ? 2 : r, fill: 0 });
+const box = (x, y, w, h, r) => ({ x, y, w, h, r: r === undefined ? 2 : r, fill: 1 });
+const ring = (x, y, d) => ({ x, y, w: d, h: d, r: d / 2, fill: 0 });
+const dot = (x, y, d) => ({ x, y, w: d, h: d, r: d / 2, fill: 1 });
+
+const MODULES = [
+  { id: 'academic', name: 'Academic', sub: 'calendar', shapes: [bar(1, 3, 23, 3), bar(1, 11.5, 16, 3), bar(1, 20, 19, 3)] },
+  { id: 'accounts', name: 'Accounts', sub: 'receipt', shapes: [ring(1, 1, 24), bar(7.5, 11.5, 11, 3)] },
+  { id: 'certificates', name: 'Certificates', shapes: [sq(1, 1, 24, 15), dot(8, 13, 10)] },
+  { id: 'examination', name: 'Examination', sub: 'grade', shapes: [sq(3, 1, 20, 24), bar(7, 7, 12, 2.5), bar(7, 13, 12, 2.5), bar(7, 19, 7, 2.5)] },
+  { id: 'hostel', name: 'Hostel', shapes: [box(5, 1, 16, 7, 1.5), sq(2, 10, 22, 15)] },
+  { id: 'timetable', name: 'Timetable', shapes: [sq(1, 1, 10.5, 10.5), box(14.5, 1, 10.5, 10.5), box(1, 14.5, 10.5, 10.5), sq(14.5, 14.5, 10.5, 10.5)] },
+  { id: 'registration', name: 'Subject Registration', shapes: [sq(1, 1, 24, 24, 7), bar(7, 11.5, 12, 3), bar(11.5, 7, 3, 12)] },
+  { id: 'ppo', name: 'PPO', shapes: [dot(8.5, 1, 9), sq(2, 13, 22, 12, 6)] },
+  { id: 'career', name: 'Career Choices', shapes: [bar(1, 17, 5.5, 8), bar(10, 10, 5.5, 15), bar(19, 2, 5.5, 23)] }
+];
+
+class Component extends DCLogic {
+  state = { hover: null, w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.pushBrief(); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  // the academic overview that used to sit on the dashboard now arrives as notifications
+  pushBrief() {
+    const S = window.VIT;
+    if (S.state.notifications.some(n => n.kind === 'brief')) return;
+    const g = S.gpa(), att = S.attendance();
+    const tot = att.reduce((a, x) => a + x.total, 0), got = att.reduce((a, x) => a + x.attended, 0);
+    const aggPct = tot ? Math.round(got / tot * 100) : 0;
+    const today = S.todayClasses();
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    const nx = today.filter(c => S.toMin(c.end) > nowMin)[0];
+
+    if (nx) {
+      const diff = S.toMin(nx.start) - nowMin;
+      S.notify({
+        kind: 'brief',
+        title: 'Next class — ' + nx.name,
+        body: (diff > 0 ? 'Starts in ' + (diff >= 60 ? Math.floor(diff / 60) + 'h ' + (diff % 60) + 'm' : diff + ' min') : 'In progress') + ' · ' + nx.start + '–' + nx.end + ' · Room ' + nx.room + ' · ' + S.faculty[nx.fac].short
+      });
+    }
+    S.notify({
+      kind: 'brief',
+      title: today.length ? "Today's schedule — " + today.length + ' sessions' : 'No classes scheduled today',
+      body: today.length ? today.map(c => c.start + ' ' + c.name).join(' · ') : 'Nothing is scheduled against your registered subjects today.'
+    });
+    S.notify({
+      kind: 'brief',
+      title: 'Academic standing — CGPA ' + g.cgpa.toFixed(2),
+      body: 'Attendance ' + aggPct + '% · ' + g.credits + ' of 120 credits earned · ' + S.credits() + ' credits in progress · no backlogs.'
+    });
+  }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, w = st.w;
+    const nav = this.props.nav || (() => {});
+    const hour = new Date().getHours();
+    const unread = S.state.notifications.filter(n => !n.read).length;
+
+    return {
+      greeting: 'Good ' + (hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening') + ', ' + S.student.first + '.',
+      hasUnread: unread > 0,
+      unreadLabel: unread + ' update' + (unread === 1 ? '' : 's'),
+      cols: w < 560 ? 'repeat(2, minmax(0, 1fr))' : w < 900 ? 'repeat(3, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(190px, 1fr))',
+      modules: MODULES.map(m => {
+        const hov = st.hover === m.id;
+        return {
+          name: m.name,
+          go: () => nav(m.id, m.sub),
+          enter: () => this.setState({ hover: m.id }),
+          leave: () => this.setState({ hover: null }),
+          tileStyle: 'display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 26px; min-height: 152px; padding: 20px; background: ' + (hov ? '#131A1F' : '#FFFFFF') + '; border: 1px solid ' + (hov ? '#131A1F' : '#E3DFD6') + '; border-radius: 14px; text-align: left; cursor: pointer; transform: translateY(' + (hov ? '-3px' : '0') + '); box-shadow: ' + (hov ? '0 14px 32px rgba(20,26,31,.16)' : '0 1px 2px rgba(20,26,31,.04)') + '; transition: all .24s cubic-bezier(.2,.8,.2,1);',
+          iconBoxStyle: 'position: relative; display: block; width: 26px; height: 26px; flex-shrink: 0;',
+          nameStyle: 'font-size: 15px; font-weight: 700; letter-spacing: -.005em; line-height: 1.3; color: ' + (hov ? '#EDEAE3' : '#161D22') + '; transition: color .24s;',
+          shapes: m.shapes.map(s => ({
+            style: 'position: absolute; left: ' + s.x + 'px; top: ' + s.y + 'px; width: ' + s.w + 'px; height: ' + s.h + 'px; border-radius: ' + s.r + 'px; '
+              + (s.fill
+                ? 'background: ' + (hov ? '#12B3A6' : '#0B8F86') + ';'
+                : 'border: 2px solid ' + (hov ? '#12B3A6' : '#0B8F86') + ';')
+              + ' transition: background .24s, border-color .24s;'
+          }))
+        };
+      })
+    };
+  }
+}
+
+</script>
+</body>
+</html>

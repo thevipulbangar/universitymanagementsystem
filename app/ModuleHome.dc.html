@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes mIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div key="{{ moduleKey }}" style="max-width: 1240px; animation: mIn .3s cubic-bezier(.2,.8,.2,1) both;">
+  <div style="display: grid; grid-template-columns: {{ headCols }}; gap: 22px; align-items: end; padding: clamp(20px, 2.6vw, 28px); background: #131A1F; border-radius: 16px; color: #EDEAE3; position: relative; overflow: hidden;">
+    <div style="position: absolute; inset: 0; background: radial-gradient(48% 110% at 90% 0%, rgba(18,179,166,.22), transparent 68%);"></div>
+    <div style="position: relative;">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="display: grid; place-items: center; min-width: 30px; height: 24px; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600; letter-spacing: .06em; background: #12B3A6; color: #06231F; border-radius: 5px;">{{ code }}</span>
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: #7E8C90;">Module</span>
+      </div>
+      <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(28px, 3.4vw, 38px); font-weight: 400; letter-spacing: -.02em; line-height: 1.08; margin-top: 13px;">{{ title }}</div>
+      <p style="margin: 10px 0 0; font-size: 13.5px; color: #A9B6B8; line-height: 1.65; max-width: 54ch; text-wrap: pretty;">{{ blurb }}</p>
+    </div>
+    <div style="position: relative; display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 18px;">
+      <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+        <div>
+          <div style="font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">{{ s.label }}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; font-weight: 600; margin-top: 5px; color: {{ s.color }};">{{ s.value }}</div>
+          <div style="font-size: 10.5px; color: #8A989B; margin-top: 2px;">{{ s.note }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 22px 0 12px;">
+    <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Sub-modules</span>
+    <span style="font-size: 11.5px; color: #8B949C;">{{ subCount }}</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: {{ cardCols }}; gap: 14px;">
+    <sc-for list="{{ cards }}" as="c" hint-placeholder-count="4">
+      <button type="button" onClick="{{ c.go }}" style="display: flex; flex-direction: column; align-items: stretch; gap: 0; padding: 0; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; text-align: left; cursor: pointer; overflow: hidden; transition: transform .18s, border-color .2s, box-shadow .2s;" style-hover="transform: translateY(-2px); border-color: #0B8F86; box-shadow: 0 12px 30px rgba(20,26,31,.09);">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px 20px 16px;">
+          <div style="min-width: 0;">
+            <div style="font-size: 16.5px; font-weight: 700; letter-spacing: -.01em;">{{ c.title }}</div>
+            <div style="font-size: 12.5px; color: #6B757E; line-height: 1.6; margin-top: 6px; max-width: 46ch; text-wrap: pretty;">{{ c.body }}</div>
+          </div>
+          <div style="text-align: right; flex-shrink: 0;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; line-height: 1; color: {{ c.metricColor }};">{{ c.metric }}</div>
+            <div style="font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #9AA2A9; margin-top: 4px;">{{ c.metricLabel }}</div>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding: 11px 20px; background: #FBFAF6; border-top: 1px solid #F0EDE6;">
+          <span style="font-size: 11.5px; color: #6B757E;">{{ c.foot }}</span>
+          <span style="font-size: 12px; font-weight: 700; color: #0B8F86;">Open →</span>
+        </div>
+      </button>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1240,&quot;height&quot;:680},&quot;module&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;academic&quot;,&quot;examination&quot;,&quot;accounts&quot;],&quot;default&quot;:&quot;academic&quot;,&quot;tsType&quot;:&quot;'academic' | 'examination' | 'accounts'&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const mod = this.props.module || 'academic';
+    const nav = this.props.nav || (() => {});
+    const w = this.state.w;
+    const go = (sub) => () => nav(mod, sub);
+
+    const att = S.attendance();
+    const tot = att.reduce((a, x) => a + x.total, 0), got = att.reduce((a, x) => a + x.attended, 0);
+    const aggAtt = tot ? Math.round(got / tot * 100) : 0;
+    const g = S.gpa();
+    const audit = S.audit();
+    const cov = att.length ? Math.round(S.state.registered.reduce((n, r) => n + S.lessonProgress(r.code).pct, 0) / S.state.registered.length) : 0;
+    const nextEvent = S.calendar.filter(e => new Date(e.end || e.date) >= new Date())[0];
+    const low = att.filter(a => a.pct < 75).length;
+    const paid = S.fees.heads.filter(h => h.status === 'PAID').reduce((n, h) => n + h.amount, 0);
+    const due = S.fees.heads.filter(h => h.status !== 'PAID').reduce((n, h) => n + h.amount, 0);
+    const lastSem = S.transcript[S.transcript.length - 1];
+
+    const CONFIG = {
+      academic: {
+        code: 'AC', title: 'Academic',
+        blurb: 'Everything the institute records about your coursework this semester — the calendar you are held to, the attendance derived from it, syllabus coverage, and how it all adds up against the degree.',
+        stats: [
+          { label: 'CGPA', value: g.cgpa.toFixed(2), note: 'after 3 semesters', color: '#6FE3D6' },
+          { label: 'Attendance', value: aggAtt + '%', note: low ? low + ' subject below 75%' : 'all above threshold', color: aggAtt < 75 ? '#F0B963' : '#6FE3D6' },
+          { label: 'Syllabus', value: cov + '%', note: 'average coverage', color: '#EDEAE3' },
+          { label: 'Degree', value: audit.pct + '%', note: audit.assigned + ' / 120 credits', color: '#EDEAE3' }
+        ],
+        cards: [
+          { sub: 'calendar', title: 'Academic Calendar', body: 'Semester dates, holidays, examination periods, registration and add/drop windows.', metric: nextEvent ? new Date(nextEvent.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—', metricLabel: 'next event', foot: nextEvent ? nextEvent.title : 'Nothing scheduled' },
+          { sub: 'attendance', title: 'Attendance', body: 'Per-subject percentages, the semester trend, and the full session-by-session log.', metric: aggAtt + '%', metricLabel: 'aggregate', metricColor: aggAtt < 75 ? '#B4801C' : '#0B8F86', foot: tot + ' sessions logged · ' + (low ? low + ' subject needs attention' : 'no subject at risk') },
+          { sub: 'lesson', title: 'Lesson Plan', body: 'Module and topic coverage recorded by each course faculty, with objectives.', metric: cov + '%', metricLabel: 'covered', foot: S.state.registered.length + ' registered subjects' },
+          { sub: 'degree', title: 'Degree Audit', body: 'Requirement buckets, optimal credit assignment, and the what-if planner.', metric: audit.pct + '%', metricLabel: 'complete', foot: (120 - audit.assigned) + ' credits remaining · includes What If?' }
+        ]
+      },
+      examination: {
+        code: 'EX', title: 'Examination',
+        blurb: 'Results, official statements and examination logistics. Grade cards and mark sheets are published by the Controller of Examinations; hall tickets are released once fees are cleared.',
+        stats: [
+          { label: 'CGPA', value: g.cgpa.toFixed(2), note: 'aggregate', color: '#6FE3D6' },
+          { label: 'Last SGPA', value: S.sgpa(lastSem.sem).toFixed(2), note: 'Semester III', color: '#EDEAE3' },
+          { label: 'Backlogs', value: '0', note: 'across 3 semesters', color: '#7FDCAA' },
+          { label: 'Next paper', value: '14 Sep', note: 'Design Systems', color: '#EDEAE3' }
+        ],
+        cards: [
+          { sub: 'grade', title: 'Grade Card', body: 'Semester-wise subjects, credits, grades and grade points with SGPA and CGPA.', metric: S.sgpa(lastSem.sem).toFixed(2), metricLabel: 'sem III sgpa', foot: S.transcript.length + ' semesters published' },
+          { sub: 'marksheet', title: 'Mark Sheet', body: 'The official statement of marks with ISE, MSE and ESE components.', metric: S.transcript.length, metricLabel: 'available', foot: 'Downloadable as a signed PDF' },
+          { sub: 'hall', title: 'Hall Ticket', body: 'Seat number, venue, paper dates and examination instructions.', metric: S.hallTicket.papers.length, metricLabel: 'papers', foot: 'In-semester examination I · from 14 Sep' },
+          { sub: 'conversion', title: 'Conversion Certificate', body: 'CGPA converted to an equivalent percentage under the institute ordinance.', metric: ((g.cgpa - 0.75) * 10).toFixed(1) + '%', metricLabel: 'equivalent', foot: 'For employers and universities' }
+        ]
+      },
+      accounts: {
+        code: 'AT', title: 'Accounts',
+        blurb: 'Fee position for the current academic year, head-wise receipts, and anything still outstanding. Payments are processed by the accounts office; this module is the record of them.',
+        stats: [
+          { label: 'Total fees', value: '₹' + (S.fees.total / 1000).toFixed(1) + 'k', note: 'AY 2026–27', color: '#EDEAE3' },
+          { label: 'Paid', value: '₹' + (paid / 1000).toFixed(1) + 'k', note: S.fees.heads.filter(h => h.status === 'PAID').length + ' receipts', color: '#7FDCAA' },
+          { label: 'Outstanding', value: '₹' + (due / 1000).toFixed(1) + 'k', note: due ? 'due 20 Sep 2026' : 'nothing due', color: due ? '#F0B963' : '#7FDCAA' },
+          { label: 'Status', value: due ? 'Partial' : 'Clear', note: due ? '1 head pending' : 'all heads settled', color: due ? '#F0B963' : '#7FDCAA' }
+        ],
+        cards: [
+          { sub: 'receipt', title: 'Fee Receipt', body: 'Head-wise receipts with transaction reference, mode and date of payment.', metric: S.fees.heads.filter(h => h.status === 'PAID').length, metricLabel: 'receipts', foot: 'View or download any receipt' },
+          { sub: 'payment', title: 'Payment Status', body: 'The payment timeline for the year, including what is still outstanding.', metric: due ? '₹' + (due / 1000).toFixed(1) + 'k' : 'Clear', metricLabel: 'pending', metricColor: '#B4801C', foot: due ? 'Examination fee due 20 September 2026' : 'All heads cleared' }
+        ]
+      }
+    };
+
+    const cfg = CONFIG[mod] || CONFIG.academic;
+
+    return {
+      moduleKey: mod, code: cfg.code, title: cfg.title, blurb: cfg.blurb,
+      headCols: w < 900 ? '1fr' : 'minmax(0, 1.08fr) minmax(0, 1fr)',
+      cardCols: w < 760 ? '1fr' : 'repeat(2, minmax(0, 1fr))',
+      stats: cfg.stats,
+      subCount: cfg.cards.length + ' sections in this module',
+      cards: cfg.cards.map(c => ({
+        title: c.title, body: c.body, metric: c.metric, metricLabel: c.metricLabel,
+        metricColor: c.metricColor || '#161D22', foot: c.foot, go: go(c.sub)
+      }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

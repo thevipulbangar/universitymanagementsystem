@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes aIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes aFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes aDraw { from { stroke-dashoffset: 1400; } to { stroke-dashoffset: 0; } }
+</style>
+</helmet>
+
+<div style="max-width: 1420px;">
+
+  <sc-if value="{{ isCalendar }}">
+    <div key="cal" style="animation: aIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Academic Calendar</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Academic Year 2026–27 · Semester IV commenced 20 July 2026</div>
+        </div>
+        <div style="display: flex; padding: 3px; background: #EAE6DE; border-radius: 9px;">
+          <button type="button" onClick="{{ viewMonth }}" style="{{ monthTabStyle }}">Month</button>
+          <button type="button" onClick="{{ viewSem }}" style="{{ semTabStyle }}">Semester</button>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 16px;">
+        <sc-for list="{{ legend }}" as="l" hint-placeholder-count="5">
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: #4A555E;">
+            <span style="{{ l.swatch }}"></span>{{ l.label }}
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ monthView }}" hint-placeholder-val="{{ true }}">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #F0EDE6;">
+            <button type="button" onClick="{{ prevMonth }}" style="width: 32px; height: 32px; display: grid; place-items: center; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; cursor: pointer; font-size: 14px; color: #4A555E;" style-hover="border-color: #0B8F86; color: #0B8F86;">‹</button>
+            <div style="text-align: center;">
+              <div style="font-size: 16.5px; font-weight: 700; letter-spacing: -.01em;">{{ monthLabel }}</div>
+              <div style="font-size: 11.5px; color: #8B949C; margin-top: 2px;">{{ monthEventCount }}</div>
+            </div>
+            <button type="button" onClick="{{ nextMonth }}" style="width: 32px; height: 32px; display: grid; place-items: center; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; cursor: pointer; font-size: 14px; color: #4A555E;" style-hover="border-color: #0B8F86; color: #0B8F86;">›</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(7, 1fr); background: #FAF8F4; border-bottom: 1px solid #F0EDE6;">
+            <sc-for list="{{ dowLabels }}" as="d" hint-placeholder-count="7">
+              <div style="padding: 9px 4px; text-align: center; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">{{ d }}</div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(7, 1fr);">
+            <sc-for list="{{ cells }}" as="c" hint-placeholder-count="35">
+              <div onMouseEnter="{{ c.enter }}" onMouseLeave="{{ c.leave }}" style="{{ c.style }}">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="{{ c.numStyle }}">{{ c.day }}</span>
+                  <sc-if value="{{ c.isToday }}">
+                    <span style="font-size: 8.5px; font-weight: 700; letter-spacing: .08em; color: #0B8F86;">TODAY</span>
+                  </sc-if>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 3px; margin-top: 5px;">
+                  <sc-for list="{{ c.events }}" as="e" hint-placeholder-count="0">
+                    <div style="{{ e.style }}">{{ e.title }}</div>
+                  </sc-for>
+                </div>
+                <sc-if value="{{ c.hovered }}">
+                  <div style="position: absolute; left: 50%; bottom: calc(100% - 6px); transform: translateX(-50%); z-index: 30; width: 236px; padding: 12px 14px; background: #131A1F; color: #EDEAE3; border-radius: 10px; box-shadow: 0 16px 38px rgba(20,26,31,.26); animation: aFade .16s both; text-align: left;">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #12B3A6;">{{ c.fullDate }}</div>
+                    <sc-for list="{{ c.details }}" as="d" hint-placeholder-count="1">
+                      <div style="margin-top: 9px;">
+                        <div style="font-size: 12.5px; font-weight: 700; line-height: 1.35;">{{ d.title }}</div>
+                        <div style="font-size: 11px; color: #A9B6B8; margin-top: 3px;">{{ d.meta }}</div>
+                        <sc-if value="{{ d.detail }}">
+                          <div style="font-size: 11px; color: #8FA0A4; margin-top: 4px; line-height: 1.5;">{{ d.detail }}</div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ semView }}">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C; margin-bottom: 18px;">Semester IV · July – December 2026</div>
+          <div style="position: relative; padding-left: 4px;">
+            <sc-for list="{{ semRows }}" as="r" hint-placeholder-count="12">
+              <div style="display: grid; grid-template-columns: {{ r.cols }}; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid #F4F1EA;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E;">{{ r.dates }}</div>
+                <div>
+                  <div style="font-size: 13.5px; font-weight: 600;">{{ r.title }}</div>
+                  <sc-if value="{{ r.detail }}">
+                    <div style="font-size: 11.5px; color: #8B949C; margin-top: 3px;">{{ r.detail }}</div>
+                  </sc-if>
+                </div>
+                <div style="position: relative; height: 12px; background: #F4F1EA; border-radius: 6px; overflow: hidden;">
+                  <div style="{{ r.barStyle }}"></div>
+                </div>
+                <div style="{{ r.tagStyle }}">{{ r.kind }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isAttendance }}">
+    <div key="att" style="animation: aIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Attendance</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ attSummary }}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 10px;">
+          <span style="font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: #8B949C;">Aggregate</span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600; color: {{ aggColor }};">{{ aggPct }}%</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 14px;">
+        <sc-for list="{{ subjects }}" as="s" hint-placeholder-count="6">
+          <div style="{{ s.cardStyle }}">
+            <div style="display: flex; align-items: center; gap: 15px;">
+              <svg viewBox="0 0 72 72" style="width: 68px; height: 68px; flex-shrink: 0; transform: rotate(-90deg);" aria-hidden="true">
+                <circle cx="36" cy="36" r="30" fill="none" stroke="#EFEDE6" stroke-width="7"></circle>
+                <circle cx="36" cy="36" r="30" fill="none" stroke="{{ s.color }}" stroke-width="7" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="{{ s.offset }}" style="transition: stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1) .1s;"></circle>
+              </svg>
+              <div style="min-width: 0;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B949C;">{{ s.code }}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 24px; font-weight: 600; line-height: 1.1; color: {{ s.color }};">{{ s.pct }}%</div>
+                <div style="font-size: 11.5px; color: #6B757E; margin-top: 2px;">{{ s.attended }} / {{ s.total }} classes</div>
+              </div>
+            </div>
+            <div style="margin-top: 13px; padding-top: 12px; border-top: 1px solid #F0EDE6;">
+              <div style="font-size: 13.5px; font-weight: 700; line-height: 1.35;">{{ s.name }}</div>
+              <div style="font-size: 11.5px; color: #8B949C; margin-top: 4px;">{{ s.facName }}</div>
+              <div style="{{ s.flagStyle }}">{{ s.flag }}</div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: grid; grid-template-columns: {{ trendCols }}; gap: 16px; margin-top: 18px;">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px; min-width: 0;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Attendance Trend</span>
+            <span style="font-size: 11.5px; color: #6B757E;">Cumulative, week by week</span>
+          </div>
+          <svg viewBox="0 0 620 200" preserveAspectRatio="none" style="width: 100%; height: 190px; margin-top: 16px; display: block; overflow: visible;">
+            <line x1="0" y1="50" x2="620" y2="50" stroke="#EFEDE6" stroke-width="1"></line>
+            <line x1="0" y1="100" x2="620" y2="100" stroke="#EFEDE6" stroke-width="1"></line>
+            <line x1="0" y1="150" x2="620" y2="150" stroke="#EFEDE6" stroke-width="1"></line>
+            <line x1="0" y1="{{ thresholdY }}" x2="620" y2="{{ thresholdY }}" stroke="#B4801C" stroke-width="1.4" stroke-dasharray="5 5"></line>
+            <path d="{{ areaPath }}" fill="rgba(11,143,134,.10)"></path>
+            <path d="{{ linePath }}" fill="none" stroke="#0B8F86" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1400" style="animation: aDraw 1.4s cubic-bezier(.2,.8,.2,1) both;"></path>
+            <sc-for list="{{ trendPts }}" as="p" hint-placeholder-count="0">
+              <circle cx="{{ p.x }}" cy="{{ p.y }}" r="3.4" fill="#FFFFFF" stroke="#0B8F86" stroke-width="2"></circle>
+            </sc-for>
+          </svg>
+          <div style="display: flex; justify-content: space-between; margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #9AA2A9;">
+            <span>Week 1</span><span>75% minimum</span><span>{{ lastWeekLabel }}</span>
+          </div>
+        </div>
+
+        <div style="background: #FAF8F4; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">How this is computed</div>
+          <p style="margin: 12px 0 0; font-size: 12.5px; color: #4A555E; line-height: 1.7;">Every percentage on this page is derived from the attendance log, not stored separately. When a faculty member submits a session, a row is appended and these figures recompute immediately.</p>
+          <div style="display: grid; gap: 9px; margin-top: 16px;">
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #6B757E;">Sessions logged</span><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">{{ logCount }}</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #6B757E;">Present</span><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #1C8F5A;">{{ presentCount }}</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #6B757E;">Absent</span><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #B8483A;">{{ absentCount }}</span></div>
+            <div style="display: flex; justify-content: space-between; font-size: 12.5px;"><span style="color: #6B757E;">Excused</span><span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #B4801C;">{{ excusedCount }}</span></div>
+          </div>
+          <div style="margin-top: 16px; padding: 11px 13px; background: #FFFFFF; border: 1px dashed #D6D0C4; border-radius: 9px; font-size: 11.5px; color: #6B757E; line-height: 1.6;">Sign in as faculty and submit a session for Design Systems — this page will move.</div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; margin-top: 18px; overflow: hidden;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #F0EDE6;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C; margin-right: auto;">Attendance History</span>
+          <select value="{{ filterSubject }}" onChange="{{ setFilterSubject }}" aria-label="Filter by subject" style="height: 32px; padding: 0 9px; font-size: 12px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; cursor: pointer;">
+            <option value="all">All subjects</option>
+            <sc-for list="{{ subjectOptions }}" as="o" hint-placeholder-count="0">
+              <option value="{{ o.code }}">{{ o.name }}</option>
+            </sc-for>
+          </select>
+          <select value="{{ filterStatus }}" onChange="{{ setFilterStatus }}" aria-label="Filter by status" style="height: 32px; padding: 0 9px; font-size: 12px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; cursor: pointer;">
+            <option value="all">All statuses</option>
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Excused">Excused</option>
+          </select>
+        </div>
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; min-width: 640px; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #FAF8F4;">
+                <th style="padding: 10px 20px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Date</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Subject</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Faculty</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Type</th>
+                <th style="padding: 10px 20px; text-align: right; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+                <tr style="{{ r.style }}">
+                  <td style="padding: 11px 20px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #4A555E; white-space: nowrap;">{{ r.date }}</td>
+                  <td style="padding: 11px 14px; font-size: 13px; font-weight: 600;">{{ r.name }}</td>
+                  <td style="padding: 11px 14px; font-size: 12.5px; color: #6B757E; white-space: nowrap;">{{ r.fac }}</td>
+                  <td style="padding: 11px 14px; font-size: 12px; color: #6B757E;">{{ r.type }}</td>
+                  <td style="padding: 11px 20px; text-align: right;"><span style="{{ r.pillStyle }}">{{ r.status }}</span></td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <sc-if value="{{ noRows }}">
+          <div style="padding: 40px 22px; text-align: center;">
+            <div style="width: 34px; height: 34px; margin: 0 auto 12px; border: 1.5px dashed #D6D0C4; border-radius: 9px;"></div>
+            <div style="font-size: 14.5px; font-weight: 700;">No sessions match these filters</div>
+            <p style="margin: 6px 0 0; font-size: 12.5px; color: #6B757E;">Try a different subject or status.</p>
+          </div>
+        </sc-if>
+        <sc-if value="{{ canLoadMore }}">
+          <button type="button" onClick="{{ loadMore }}" style="width: 100%; padding: 13px; background: #FAF8F4; border: none; border-top: 1px solid #F0EDE6; font-size: 12.5px; font-weight: 700; color: #0B8F86; cursor: pointer;">Show {{ moreCount }} more sessions</button>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isLesson }}">
+    <div key="lp" style="animation: aIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="margin-bottom: 18px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Lesson Plan</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Module-wise syllabus coverage as recorded by the course faculty.</div>
+      </div>
+      <div style="display: grid; grid-template-columns: {{ lpCols }}; gap: 16px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <sc-for list="{{ lpSubjects }}" as="s" hint-placeholder-count="6">
+            <button type="button" onClick="{{ s.go }}" style="{{ s.style }}">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: {{ s.codeColor }};">{{ s.code }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: {{ s.codeColor }};">{{ s.pct }}%</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; margin-top: 4px; line-height: 1.35; text-align: left;">{{ s.name }}</div>
+              <div style="height: 4px; margin-top: 9px; background: #EFEDE6; border-radius: 2px; overflow: hidden;">
+                <div style="{{ s.barStyle }}"></div>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0;">
+          <div style="padding: 22px 24px; border-bottom: 1px solid #F0EDE6; background: #FAF8F4;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #0B8F86; letter-spacing: .04em;">{{ lpCode }} · {{ lpCredits }} credits</div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: 27px; font-weight: 400; margin-top: 5px; letter-spacing: -.01em;">{{ lpName }}</div>
+            <div style="font-size: 12.5px; color: #6B757E; margin-top: 6px;">{{ lpFaculty }} · {{ lpCabin }}</div>
+            <p style="margin: 12px 0 0; font-size: 13px; color: #4A555E; line-height: 1.65; max-width: 74ch; text-wrap: pretty;">{{ lpDesc }}</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #EAE6DE;">
+              <div>
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Planned classes</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; margin-top: 3px;">{{ lpTotal }}</div>
+              </div>
+              <div>
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Completed</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; margin-top: 3px; color: #1C8F5A;">{{ lpDone }}</div>
+              </div>
+              <div>
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Remaining</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 17px; font-weight: 600; margin-top: 3px; color: #6B757E;">{{ lpRemaining }}</div>
+              </div>
+              <div style="flex: 1; min-width: 160px;">
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Coverage</div>
+                <div style="display: flex; align-items: center; gap: 9px; margin-top: 7px;">
+                  <div style="flex: 1; height: 6px; background: #EFEDE6; border-radius: 3px; overflow: hidden;"><div style="{{ lpBar }}"></div></div>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #0B8F86;">{{ lpPct }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 20px 24px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Course objectives</div>
+            <div style="display: grid; gap: 7px; margin-top: 11px;">
+              <sc-for list="{{ lpObjectives }}" as="o" hint-placeholder-count="3">
+                <div style="display: flex; gap: 9px; font-size: 13px; color: #4A555E; line-height: 1.6;">
+                  <span style="min-width: 5px; height: 5px; margin-top: 8px; border-radius: 50%; background: #0B8F86;"></span>{{ o }}
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="padding: 4px 24px 24px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C; margin-bottom: 14px;">Modules</div>
+            <div style="position: relative; padding-left: 26px;">
+              <div style="position: absolute; left: 7px; top: 6px; bottom: 12px; width: 1.5px; background: #EAE6DE;"></div>
+              <div style="{{ lpProgressLine }}"></div>
+              <sc-for list="{{ lpModules }}" as="mo" hint-placeholder-count="4">
+                <div style="position: relative; margin-bottom: 22px;">
+                  <div style="{{ mo.dotStyle }}"></div>
+                  <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; letter-spacing: .08em; color: #8B949C;">MODULE {{ mo.num }}</span>
+                    <span style="font-size: 15.5px; font-weight: 700; letter-spacing: -.005em;">{{ mo.title }}</span>
+                    <span style="{{ mo.badgeStyle }}">{{ mo.badge }}</span>
+                  </div>
+                  <div style="display: grid; gap: 2px; margin-top: 10px;">
+                    <sc-for list="{{ mo.topics }}" as="t" hint-placeholder-count="4">
+                      <div style="{{ t.style }}">
+                        <span style="{{ t.markStyle }}">{{ t.mark }}</span>
+                        <span style="flex: 1; font-size: 13px; color: {{ t.textColor }}; line-height: 1.5;">{{ t.name }}</span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA2A9; white-space: nowrap;">{{ t.date }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isDegree }}">
+    <dc-import name="DegreeAudit" nav="{{ nav }}" hint-size="100%,700px"></dc-import>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:1000},&quot;sub&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;calendar&quot;,&quot;attendance&quot;,&quot;lesson&quot;,&quot;degree&quot;],&quot;default&quot;:&quot;attendance&quot;,&quot;tsType&quot;:&quot;'calendar' | 'attendance' | 'lesson' | 'degree'&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+const KIND = {
+  academic: { c: '#0B8F86', t: '#E4F2F0', l: 'Academic Event' },
+  holiday: { c: '#B8483A', t: '#F8E9E6', l: 'Holiday' },
+  exam: { c: '#B4801C', t: '#F8EFDC', l: 'Examination' },
+  registration: { c: '#1C8F5A', t: '#E6F2EA', l: 'Registration' },
+  vacation: { c: '#6B757E', t: '#EFEDE6', l: 'Vacation' }
+};
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+class Component extends DCLogic {
+  state = {
+    calView: 'month', month: 8, year: 2026, hoverCell: -1,
+    filterSubject: 'all', filterStatus: 'all', limit: 12,
+    lpCode: 'CS401', mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440
+  };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    requestAnimationFrame(() => requestAnimationFrame(() => this.setState({ mount: true })));
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, sub = this.props.sub || 'attendance', w = st.w, mount = st.mount;
+    const out = {
+      nav: this.props.nav,
+      isCalendar: sub === 'calendar', isAttendance: sub === 'attendance', isLesson: sub === 'lesson', isDegree: sub === 'degree'
+    };
+
+    if (sub === 'calendar') {
+      const tabBase = 'padding: 8px 16px; font-size: 12.5px; font-weight: 700; border: none; border-radius: 7px; cursor: pointer; transition: all .22s;';
+      const on = 'background: #FFFFFF; color: #161D22; box-shadow: 0 1px 2px rgba(20,26,31,.1);';
+      const off = 'background: transparent; color: #7A828A;';
+      const first = new Date(st.year, st.month, 1);
+      const startDow = (first.getDay() + 6) % 7;
+      const daysIn = new Date(st.year, st.month + 1, 0).getDate();
+      const todayStr = new Date().toISOString().slice(0, 10);
+      const inRange = (ev, iso) => iso >= ev.date && iso <= (ev.end || ev.date);
+      const cells = [];
+      for (let i = 0; i < startDow; i++) cells.push(null);
+      for (let d = 1; d <= daysIn; d++) cells.push(d);
+      while (cells.length % 7 !== 0) cells.push(null);
+      const monthEvents = S.calendar.filter(e => {
+        const a = new Date(e.date), b = new Date(e.end || e.date);
+        return (a.getMonth() === st.month && a.getFullYear() === st.year) || (b.getMonth() === st.month && b.getFullYear() === st.year);
+      });
+
+      Object.assign(out, {
+        monthTabStyle: tabBase + (st.calView === 'month' ? on : off),
+        semTabStyle: tabBase + (st.calView === 'sem' ? on : off),
+        viewMonth: () => this.setState({ calView: 'month' }), viewSem: () => this.setState({ calView: 'sem' }),
+        monthView: st.calView === 'month', semView: st.calView === 'sem',
+        legend: Object.keys(KIND).map(k => ({ label: KIND[k].l, swatch: 'width: 10px; height: 10px; border-radius: 3px; background: ' + KIND[k].c + ';' })),
+        dowLabels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        monthLabel: MONTHS[st.month] + ' ' + st.year,
+        monthEventCount: monthEvents.length + ' event' + (monthEvents.length === 1 ? '' : 's') + ' this month',
+        prevMonth: () => this.setState(s => s.month === 0 ? { month: 11, year: s.year - 1 } : { month: s.month - 1 }),
+        nextMonth: () => this.setState(s => s.month === 11 ? { month: 0, year: s.year + 1 } : { month: s.month + 1 }),
+        cells: cells.map((d, i) => {
+          if (d === null) return { style: 'min-height: 92px; background: #FBFAF6; border-right: 1px solid #F4F1EA; border-bottom: 1px solid #F4F1EA;', day: '', events: [], details: [], hovered: false, enter: () => {}, leave: () => {}, numStyle: '', isToday: false, fullDate: '' };
+          const iso = st.year + '-' + String(st.month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+          const evs = S.calendar.filter(e => inRange(e, iso));
+          const isToday = iso === todayStr;
+          const dow = new Date(st.year, st.month, d).getDay();
+          return {
+            day: d, isToday, hovered: st.hoverCell === i && evs.length > 0,
+            fullDate: new Date(st.year, st.month, d).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }),
+            enter: () => this.setState({ hoverCell: i }), leave: () => this.setState({ hoverCell: -1 }),
+            style: 'position: relative; min-height: 92px; padding: 7px 8px; border-right: 1px solid #F4F1EA; border-bottom: 1px solid #F4F1EA; background: ' + (isToday ? '#E4F2F0' : dow === 0 ? '#FBFAF6' : '#FFFFFF') + '; transition: background .18s; cursor: ' + (evs.length ? 'help' : 'default') + ';',
+            numStyle: 'font-family: \'JetBrains Mono\', monospace; font-size: 12px; font-weight: ' + (isToday ? 700 : 500) + '; color: ' + (isToday ? '#0B8F86' : dow === 0 ? '#B7BDC2' : '#4A555E') + ';',
+            events: evs.slice(0, 3).map(e => ({
+              title: e.title,
+              style: 'font-size: 9.5px; font-weight: 600; line-height: 1.3; padding: 2px 5px; border-radius: 4px; background: ' + KIND[e.kind].t + '; color: ' + KIND[e.kind].c + '; border-left: 2px solid ' + KIND[e.kind].c + '; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;'
+            })),
+            details: evs.map(e => ({
+              title: e.title, detail: e.detail || '',
+              meta: KIND[e.kind].l + ' · ' + (e.end && e.end !== e.date ? new Date(e.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) + ' – ' + new Date(e.end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Single day')
+            }))
+          };
+        }),
+        semRows: S.calendar.filter(e => new Date(e.date) <= new Date('2026-12-31')).map(e => {
+          const a = new Date(e.date), b = new Date(e.end || e.date);
+          const semStart = new Date('2026-07-15').getTime(), semEnd = new Date('2026-12-25').getTime();
+          const left = Math.max(0, (a.getTime() - semStart) / (semEnd - semStart) * 100);
+          const width = Math.max(1.6, (b.getTime() - a.getTime()) / (semEnd - semStart) * 100);
+          return {
+            cols: w < 780 ? '1fr' : '116px minmax(0, 1.5fr) minmax(120px, 1.6fr) 96px',
+            dates: a.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) + (b > a ? ' – ' + b.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : ''),
+            title: e.title, detail: e.detail || '', kind: KIND[e.kind].l,
+            barStyle: 'position: absolute; top: 0; bottom: 0; left: ' + left + '%; width: ' + (mount ? width : 0) + '%; background: ' + KIND[e.kind].c + '; border-radius: 6px; transition: width .8s cubic-bezier(.2,.8,.2,1);',
+            tagStyle: 'font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; text-align: right; color: ' + KIND[e.kind].c + ';'
+          };
+        })
+      });
+    }
+
+    if (sub === 'attendance') {
+      const subjects = S.attendance();
+      const tot = subjects.reduce((a, x) => a + x.total, 0), att = subjects.reduce((a, x) => a + x.attended, 0);
+      const agg = tot ? Math.round(att / tot * 100) : 0;
+      const log = S.state.attendanceLog;
+      const filtered = log.filter(r => (st.filterSubject === 'all' || r.code === st.filterSubject) && (st.filterStatus === 'all' || r.status === st.filterStatus));
+      const trend = S.attendanceTrend();
+      const px = (i) => trend.length > 1 ? i / (trend.length - 1) * 620 : 310;
+      const py = (p) => 200 - (p - 40) / 60 * 200;
+      const pts = trend.map((t, i) => ({ x: Math.round(px(i) * 10) / 10, y: Math.round(Math.max(4, Math.min(196, py(t.pct))) * 10) / 10 }));
+      const pill = (s) => 'display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .02em; background: ' + (s === 'Present' ? '#E6F2EA' : s === 'Absent' ? '#F8E9E6' : '#F8EFDC') + '; color: ' + (s === 'Present' ? '#146B43' : s === 'Absent' ? '#96382C' : '#8A6114') + ';';
+
+      Object.assign(out, {
+        attSummary: subjects.length + ' registered subjects · ' + tot + ' sessions logged since 20 July 2026',
+        aggPct: agg, aggColor: agg < 75 ? '#B4801C' : '#0B8F86',
+        subjects: subjects.map(s => {
+          const col = s.pct < 75 ? '#B4801C' : s.pct < 85 ? '#0B8F86' : '#1C8F5A';
+          return {
+            code: s.code, name: s.name, pct: s.pct, attended: s.attended, total: s.total, color: col,
+            facName: S.faculty[s.fac].name,
+            offset: 188.5 * (1 - (mount ? s.pct / 100 : 0)),
+            cardStyle: 'background: #FFFFFF; border: 1px solid ' + (s.pct < 75 ? '#EADDBC' : '#E3DFD6') + '; border-radius: 14px; padding: 18px 20px; transition: transform .18s, box-shadow .2s;',
+            flag: s.pct < 75 ? 'Below the 75% requirement' : 'Meets attendance requirement',
+            flagStyle: 'margin-top: 8px; font-size: 11px; font-weight: 700; color: ' + (s.pct < 75 ? '#96382C' : '#146B43') + ';'
+          };
+        }),
+        trendCols: w < 1000 ? '1fr' : 'minmax(0, 1.6fr) minmax(0, 1fr)',
+        thresholdY: Math.round(py(75) * 10) / 10,
+        linePath: pts.length ? 'M ' + pts.map(p => p.x + ' ' + p.y).join(' L ') : 'M 0 100',
+        areaPath: pts.length ? 'M ' + pts[0].x + ' 200 L ' + pts.map(p => p.x + ' ' + p.y).join(' L ') + ' L ' + pts[pts.length - 1].x + ' 200 Z' : '',
+        trendPts: pts,
+        lastWeekLabel: 'Week ' + (trend.length ? trend[trend.length - 1].week : 1) + ' · ' + agg + '%',
+        logCount: log.length,
+        presentCount: log.filter(r => r.status === 'Present').length,
+        absentCount: log.filter(r => r.status === 'Absent').length,
+        excusedCount: log.filter(r => r.status === 'Excused').length,
+        filterSubject: st.filterSubject, filterStatus: st.filterStatus,
+        setFilterSubject: (e) => this.setState({ filterSubject: e.target.value, limit: 12 }),
+        setFilterStatus: (e) => this.setState({ filterStatus: e.target.value, limit: 12 }),
+        subjectOptions: subjects.map(s => ({ code: s.code, name: s.name })),
+        rows: filtered.slice(0, st.limit).map((r, i) => ({
+          date: new Date(r.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }),
+          name: S.courseName(r.code), fac: S.faculty[r.fac].short, type: r.type, status: r.status,
+          style: 'border-bottom: 1px solid #F4F1EA; background: ' + (i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
+          pillStyle: pill(r.status)
+        })),
+        noRows: filtered.length === 0,
+        canLoadMore: filtered.length > st.limit,
+        moreCount: Math.min(20, filtered.length - st.limit),
+        loadMore: () => this.setState({ limit: st.limit + 20 })
+      });
+    }
+
+    if (sub === 'lesson') {
+      const reg = S.state.registered.map(r => r.code);
+      const code = reg.indexOf(st.lpCode) >= 0 ? st.lpCode : reg[0];
+      const co = S.byCode[code], plan = S.lessonPlans[code] || { objectives: [], modules: [] };
+      const prog = S.lessonProgress(code);
+      let firstIncomplete = -1;
+      plan.modules.forEach((mo, i) => {
+        const done = mo.topics.every(t => S.topicDone(code, mo.n, t[0]));
+        if (!done && firstIncomplete < 0) firstIncomplete = i;
+      });
+
+      Object.assign(out, {
+        lpCols: w < 900 ? '1fr' : '236px minmax(0, 1fr)',
+        lpSubjects: reg.map(c => {
+          const p = S.lessonProgress(c), active = c === code;
+          return {
+            code: c, name: S.courseName(c), pct: p.pct, go: () => this.setState({ lpCode: c }),
+            style: 'display: block; width: 100%; padding: 13px 15px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#161D22') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 11px; cursor: pointer; text-align: left; transition: all .2s;',
+            codeColor: active ? '#6FE3D6' : '#8B949C',
+            barStyle: 'height: 100%; width: ' + p.pct + '%; background: ' + (active ? '#12B3A6' : '#0B8F86') + '; border-radius: 2px; transition: width .6s cubic-bezier(.2,.8,.2,1);'
+          };
+        }),
+        lpCode: code, lpName: co.name, lpCredits: co.credits, lpDesc: co.desc,
+        lpFaculty: S.faculty[co.fac].name, lpCabin: 'Cabin ' + S.faculty[co.fac].cabin,
+        lpObjectives: plan.objectives,
+        lpTotal: prog.total, lpDone: prog.done, lpRemaining: prog.total - prog.done, lpPct: prog.pct,
+        lpBar: 'height: 100%; width: ' + (mount ? prog.pct : 0) + '%; background: #0B8F86; border-radius: 3px; transition: width 1s cubic-bezier(.2,.8,.2,1) .2s;',
+        lpProgressLine: 'position: absolute; left: 7px; top: 6px; width: 1.5px; background: #0B8F86; height: ' + (mount ? prog.pct : 0) + '%; transition: height 1s cubic-bezier(.2,.8,.2,1) .2s;',
+        lpModules: plan.modules.map((mo, i) => {
+          const done = mo.topics.filter(t => S.topicDone(code, mo.n, t[0])).length;
+          const all = done === mo.topics.length, current = i === firstIncomplete;
+          return {
+            num: String(mo.n).padStart(2, '0'), title: mo.title,
+            badge: all ? 'Completed ✓' : current ? 'Current' : done > 0 ? done + ' / ' + mo.topics.length : 'Upcoming',
+            badgeStyle: 'padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; letter-spacing: .03em; background: ' + (all ? '#E6F2EA' : current ? '#E4F2F0' : '#EFEDE6') + '; color: ' + (all ? '#146B43' : current ? '#0B7F77' : '#7A828A') + ';',
+            dotStyle: 'position: absolute; left: -26px; top: 3px; width: 15px; height: 15px; border-radius: 50%; background: ' + (all ? '#0B8F86' : current ? '#FFFFFF' : '#FFFFFF') + '; border: 2.5px solid ' + (all || current ? '#0B8F86' : '#DFDCD3') + '; box-shadow: ' + (current ? '0 0 0 4px rgba(11,143,134,.16)' : 'none') + ';',
+            topics: mo.topics.map(t => {
+              const d = S.topicDone(code, mo.n, t[0]);
+              return {
+                name: t[0], date: t[1], mark: d ? '✓' : '',
+                style: 'display: flex; align-items: center; gap: 10px; padding: 7px 11px; border-radius: 8px; background: ' + (d ? '#FBFAF6' : 'transparent') + ';',
+                markStyle: 'display: grid; place-items: center; min-width: 16px; height: 16px; border-radius: 4px; font-size: 9.5px; font-weight: 700; background: ' + (d ? '#0B8F86' : 'transparent') + '; color: #FFFFFF; border: 1.5px solid ' + (d ? '#0B8F86' : '#DFDCD3') + ';',
+                textColor: d ? '#4A555E' : '#8B949C'
+              };
+            })
+          };
+        })
+      });
+    }
+
+    return out;
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes rIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes rFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes rPop { from { opacity: 0; transform: translateY(16px) scale(.97); } to { opacity: 1; transform: none; } }
+  @keyframes rSpin { to { transform: rotate(360deg); } }
+  @keyframes rTick { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+  @keyframes rDash { to { stroke-dashoffset: -18; } }
+</style>
+</helmet>
+
+<div style="max-width: 1560px;">
+  <div style="background: #131A1F; border-radius: 16px; padding: clamp(20px, 2.4vw, 28px); color: #EDEAE3; position: relative; overflow: hidden;">
+    <div style="position: absolute; inset: 0; background: radial-gradient(52% 120% at 88% 0%, rgba(18,179,166,.24), transparent 68%), radial-gradient(40% 90% at 12% 100%, rgba(28,143,90,.16), transparent 70%);"></div>
+    <div style="position: relative; display: grid; grid-template-columns: {{ headCols }}; gap: 26px; align-items: end;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="display: flex; align-items: center; gap: 7px; padding: 4px 11px; background: rgba(28,143,90,.18); border: 1px solid rgba(28,143,90,.4); border-radius: 30px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #7FDCAA;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #35C77E; animation: rTick 1.8s ease-in-out infinite;"></span>Window Open
+          </span>
+          <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8FA0A4;">07 Sep – 18 Sep 2026</span>
+        </div>
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(30px, 3.6vw, 42px); font-weight: 400; letter-spacing: -.02em; line-height: 1.06; margin-top: 14px;">Semester IV Registration</div>
+        <p style="margin: 10px 0 0; font-size: 13.5px; color: #A9B6B8; line-height: 1.6; max-width: 56ch; text-wrap: pretty;">Computer Engineering · Division A. Add, drop or swap sections until the window closes. Every action is checked against prerequisites, your timetable and the credit ceiling.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(122px, 1fr)); gap: 18px;">
+        <div>
+          <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">Credits</div>
+          <div style="display: flex; align-items: baseline; gap: 5px; margin-top: 5px;">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 27px; font-weight: 600;">{{ credits }}</span>
+            <span style="font-size: 13px; color: #8FA0A4;">/ 24</span>
+          </div>
+          <div style="display: flex; gap: 2px; margin-top: 9px;">
+            <sc-for list="{{ creditPips }}" as="p" hint-placeholder-count="24">
+              <span style="{{ p.style }}"></span>
+            </sc-for>
+          </div>
+          <div style="font-size: 10.5px; color: #8FA0A4; margin-top: 7px;">{{ creditNote }}</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">Deadline</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 27px; font-weight: 600; margin-top: 5px;">{{ daysLeft }}d</div>
+          <div style="font-size: 11px; color: #8FA0A4; margin-top: 9px;">18 September 2026<br />23:59 IST</div>
+        </div>
+        <div>
+          <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">Plan status</div>
+          <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+            <span style="{{ statusDot }}"></span>
+            <span style="font-size: 14.5px; font-weight: 700; line-height: 1.25;">{{ statusLabel }}</span>
+          </div>
+          <button type="button" onClick="{{ openGraph }}" style="margin-top: 12px; padding: 8px 12px; background: rgba(237,234,227,.08); border: 1px solid rgba(237,234,227,.22); border-radius: 8px; color: #EDEAE3; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background .2s, border-color .2s;" style-hover="background: rgba(18,179,166,.18); border-color: #12B3A6;">View Prerequisite Map</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: {{ bodyCols }}; gap: 18px; margin-top: 18px; align-items: start;">
+    <div style="min-width: 0;">
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px;">
+        <sc-for list="{{ cats }}" as="c" hint-placeholder-count="6">
+          <button type="button" onClick="{{ c.go }}" style="{{ c.style }}">
+            {{ c.label }}<span style="{{ c.countStyle }}">{{ c.count }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="display: grid; grid-template-columns: {{ cardCols }}; gap: 14px;">
+        <sc-for list="{{ courses }}" as="c" hint-placeholder-count="6">
+          <div id="{{ c.anchor }}" style="{{ c.cardStyle }}">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+              <div style="min-width: 0;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: {{ c.codeColor }};">{{ c.code }}</span>
+                  <span style="{{ c.catStyle }}">{{ c.cat }}</span>
+                </div>
+                <div style="font-size: 16px; font-weight: 700; letter-spacing: -.01em; line-height: 1.28; margin-top: 6px;">{{ c.name }}</div>
+              </div>
+              <div style="text-align: right; flex-shrink: 0;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600; line-height: 1;">{{ c.credits }}</div>
+                <div style="font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #9AA2A9; margin-top: 2px;">credits</div>
+              </div>
+            </div>
+
+            <div style="display: grid; gap: 7px; margin-top: 14px; padding-top: 13px; border-top: 1px solid #F0EDE6;">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #4A555E;">
+                <span style="min-width: 52px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #9AA2A9;">Faculty</span>{{ c.facName }}
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; color: #4A555E;">
+                <span style="min-width: 52px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #9AA2A9; padding-top: 2px;">Schedule</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; line-height: 1.6;">{{ c.schedule }}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px;">
+                <span style="min-width: 52px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #9AA2A9;">Seats</span>
+                <span style="{{ c.seatStyle }}">{{ c.seatLabel }}</span>
+                <sc-if value="{{ c.multiSection }}">
+                  <span style="font-size: 11px; color: #8B949C;">· {{ c.sectionCount }} sections</span>
+                </sc-if>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px;">
+                <span style="min-width: 52px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #9AA2A9; padding-top: 2px;">Prereq</span>
+                <span style="{{ c.prereqStyle }}">{{ c.prereqLabel }}</span>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 15px;">
+              <button type="button" onClick="{{ c.action }}" style="{{ c.btnStyle }}">{{ c.btnLabel }}</button>
+              <sc-if value="{{ c.showWhy }}">
+                <button type="button" onClick="{{ c.why }}" style="padding: 10px 12px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12px; font-weight: 700; color: #4A555E; cursor: pointer; white-space: nowrap; transition: border-color .2s, color .2s;" style-hover="border-color: #B4801C; color: #8A6114;">Why not?</button>
+              </sc-if>
+              <sc-if value="{{ c.registered }}">
+                <span style="margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; color: #146B43;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #1C8F5A;"></span>Section {{ c.section }}</span>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ noCourses }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 22px; background: #FFFFFF; border: 1px dashed #D6D0C4; border-radius: 14px; text-align: center;">
+          <div style="width: 38px; height: 38px; border: 1.5px dashed #D6D0C4; border-radius: 10px;"></div>
+          <div style="font-size: 15.5px; font-weight: 700;">No courses in this category</div>
+          <p style="margin: 0; max-width: 46ch; font-size: 13px; color: #6B757E; line-height: 1.6;">The Computer Engineering catalogue for Semester IV has no offerings under this heading this term.</p>
+        </div>
+      </sc-if>
+    </div>
+
+    <aside style="{{ panelStyle }}">
+      <div style="padding: 18px 20px; border-bottom: 1px solid #F0EDE6;">
+        <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Registration Plan</div>
+        <div style="{{ readyStyle }}">
+          <span style="{{ readyDot }}"></span>
+          <span style="font-size: 14px; font-weight: 800; letter-spacing: .01em;">{{ readyLabel }}</span>
+        </div>
+      </div>
+
+      <div style="padding: 16px 20px; display: grid; gap: 13px; border-bottom: 1px solid #F0EDE6;">
+        <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="4">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <span style="font-size: 12.5px; color: #6B757E;">{{ m.label }}</span>
+            <span style="display: flex; align-items: center; gap: 7px;">
+              <sc-if value="{{ m.changed }}">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #9AA2A9; text-decoration: line-through;">{{ m.from }}</span>
+              </sc-if>
+              <span style="{{ m.valueStyle }}">{{ m.value }}</span>
+            </span>
+          </div>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ hasIssues }}">
+        <div style="padding: 14px 20px; border-bottom: 1px solid #F0EDE6;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8A6114;">Needs attention</div>
+          <div style="display: grid; gap: 7px; margin-top: 11px;">
+            <sc-for list="{{ issues }}" as="i" hint-placeholder-count="1">
+              <button type="button" onClick="{{ i.go }}" style="display: flex; align-items: flex-start; gap: 9px; width: 100%; padding: 10px 12px; background: #F8EFDC; border: 1px solid #EADDBC; border-radius: 9px; text-align: left; cursor: pointer; transition: transform .16s;" style-hover="transform: translateX(2px);">
+                <span style="min-width: 6px; height: 6px; margin-top: 6px; border-radius: 50%; background: #B4801C;"></span>
+                <span style="flex: 1;">
+                  <span style="display: block; font-size: 12.5px; font-weight: 700; color: #6E4C10; line-height: 1.4;">{{ i.title }}</span>
+                  <span style="display: block; font-size: 11.5px; color: #8A6114; margin-top: 2px; line-height: 1.45;">{{ i.body }}</span>
+                </span>
+                <span style="color: #B4801C; font-size: 13px;">→</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="padding: 16px 20px;">
+        <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Registered · {{ regCount }}</div>
+        <div style="display: grid; gap: 6px; margin-top: 12px;">
+          <sc-for list="{{ registered }}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 9px; padding: 9px 11px; background: #FBFAF6; border-radius: 8px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #0B8F86; min-width: 46px;">{{ r.code }}</span>
+              <span style="flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; line-height: 1.35;">{{ r.name }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6B757E;">{{ r.credits }}</span>
+              <sc-if value="{{ r.canDrop }}">
+                <button type="button" onClick="{{ r.drop }}" aria-label="Drop course" style="width: 20px; height: 20px; display: grid; place-items: center; background: transparent; border: 1px solid #E3DFD6; border-radius: 5px; color: #9AA2A9; font-size: 11px; cursor: pointer; transition: all .18s;" style-hover="border-color: #B8483A; color: #B8483A;">✕</button>
+              </sc-if>
+              <sc-if value="{{ r.locked }}">
+                <span title="Mandatory course — cannot be dropped" style="font-size: 10px; color: #9AA2A9;">◆</span>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top: 14px; padding-top: 13px; border-top: 1px dashed #EAE6DE; font-size: 11.5px; color: #8B949C; line-height: 1.6;">◆ Mandatory courses are locked by the department and cannot be dropped.</div>
+      </div>
+    </aside>
+  </div>
+
+  <sc-if value="{{ modalOpen }}">
+    <div onClick="{{ closeModal }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: rFade .2s both; overflow-y: auto;">
+      <div onClick="{{ stop }}" style="{{ modalStyle }}">
+
+        <sc-if value="{{ isRunModal }}">
+          <div style="padding: 26px 28px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Registering</div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: 27px; font-weight: 400; margin-top: 7px; letter-spacing: -.01em;">{{ runName }}</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #0B8F86; margin-top: 4px;">{{ runCode }} · {{ runCredits }} credits · Section {{ runSection }}</div>
+
+            <div style="display: grid; gap: 3px; margin-top: 22px;">
+              <sc-for list="{{ runSteps }}" as="s" hint-placeholder-count="4">
+                <div style="{{ s.rowStyle }}">
+                  <span style="{{ s.iconStyle }}">{{ s.icon }}</span>
+                  <span style="flex: 1; font-size: 13.5px; font-weight: {{ s.weight }}; color: {{ s.color }};">{{ s.label }}</span>
+                  <sc-if value="{{ s.detail }}">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B949C;">{{ s.detail }}</span>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{ runDone }}">
+              <div style="margin-top: 20px; padding: 18px 20px; background: #E6F2EA; border: 1px solid #CBE4D6; border-radius: 12px; animation: rPop .3s both;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #1C8F5A; color: #FFFFFF; font-size: 12px; font-weight: 700;">✓</span>
+                  <span style="font-size: 17px; font-weight: 800; color: #12503A;">Successfully Registered</span>
+                </div>
+                <div style="font-size: 12.5px; color: #146B43; margin-top: 9px; line-height: 1.6;">{{ runDoneBody }}</div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ runFailed }}">
+              <div style="margin-top: 20px; animation: rPop .3s both;">
+                <div style="{{ failBoxStyle }}">
+                  <div style="font-size: 16px; font-weight: 800;">{{ failTitle }}</div>
+                  <div style="font-size: 12.5px; margin-top: 7px; line-height: 1.6;">{{ failBody }}</div>
+                </div>
+
+                <sc-if value="{{ showRuleTree }}">
+                  <div style="margin-top: 16px; padding: 16px 18px; background: #FAF8F4; border: 1px solid #EAE6DE; border-radius: 12px;">
+                    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8B949C;">Prerequisite rule</div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #4A555E; background: #FFFFFF; border: 1px solid #EAE6DE; border-radius: 8px; padding: 11px 13px; margin-top: 10px; line-height: 1.7; overflow-x: auto;">{{ ruleText }}</div>
+                    <div style="display: grid; gap: 2px; margin-top: 14px;">
+                      <sc-for list="{{ ruleRows }}" as="n" hint-placeholder-count="4">
+                        <div style="{{ n.style }}">
+                          <span style="{{ n.markStyle }}">{{ n.mark }}</span>
+                          <span style="flex: 1; font-size: 13px; font-weight: {{ n.weight }}; color: {{ n.color }};">{{ n.label }}</span>
+                          <sc-if value="{{ n.note }}">
+                            <span style="font-size: 11.5px; color: {{ n.noteColor }};">{{ n.note }}</span>
+                          </sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="margin-top: 14px; padding: 16px 18px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 12px;">
+                    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8B949C;">Path to eligibility</div>
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px;">
+                      <sc-for list="{{ pathNodes }}" as="p" hint-placeholder-count="2">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <div style="{{ p.style }}">
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: .75;">{{ p.code }}</div>
+                            <div style="font-size: 12.5px; font-weight: 700; margin-top: 2px;">{{ p.name }}</div>
+                            <div style="font-size: 10.5px; margin-top: 3px; opacity: .8;">{{ p.status }}</div>
+                          </div>
+                          <sc-if value="{{ p.arrow }}">
+                            <span style="color: #C3BDB0; font-size: 15px;">→</span>
+                          </sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+
+                <sc-if value="{{ showConflict }}">
+                  <div style="margin-top: 16px; padding: 16px 18px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 12px;">
+                    <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8B949C;">The clash</div>
+                    <div style="display: grid; grid-template-columns: {{ clashCols }}; align-items: center; gap: 14px; margin-top: 13px;">
+                      <div style="padding: 13px 15px; background: #E4F2F0; border: 1px solid #CADFDB; border-radius: 10px;">
+                        <div style="font-size: 13.5px; font-weight: 700; color: #0B6F68;">{{ clashAName }}</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #0B8F86; margin-top: 5px;">{{ clashADay }} · {{ clashATime }}</div>
+                        <div style="font-size: 11px; color: #4A7C77; margin-top: 3px;">{{ clashARoom }}</div>
+                      </div>
+                      <div style="text-align: center; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #B8483A;">conflicts<br />with</div>
+                      <div style="padding: 13px 15px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 10px;">
+                        <div style="font-size: 13.5px; font-weight: 700; color: #96382C;">{{ clashBName }}</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #B8483A; margin-top: 5px;">{{ clashBDay }} · {{ clashBTime }}</div>
+                        <div style="font-size: 11px; color: #8C574E; margin-top: 3px;">{{ clashBRoom }}</div>
+                      </div>
+                    </div>
+                    <div style="position: relative; height: 46px; margin-top: 16px; background: #FAF8F4; border: 1px solid #EAE6DE; border-radius: 8px; overflow: hidden;">
+                      <div style="{{ barAStyle }}">{{ clashATime }}</div>
+                      <div style="{{ barBStyle }}">{{ clashBTime }}</div>
+                      <div style="{{ overlapStyle }}"></div>
+                    </div>
+                    <div style="font-size: 11px; color: #8B949C; margin-top: 7px;">{{ overlapNote }}</div>
+                  </div>
+
+                  <sc-if value="{{ hasAlternatives }}">
+                    <div style="margin-top: 14px; padding: 16px 18px; background: #E6F2EA; border: 1px solid #CBE4D6; border-radius: 12px;">
+                      <div style="font-size: 13.5px; font-weight: 800; color: #12503A;">{{ altCount }} alternative section{{ altPlural }} available</div>
+                      <div style="display: grid; gap: 8px; margin-top: 12px;">
+                        <sc-for list="{{ alternatives }}" as="a" hint-placeholder-count="2">
+                          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 11px 13px; background: #FFFFFF; border: 1px solid #CBE4D6; border-radius: 9px;">
+                            <span style="display: grid; place-items: center; min-width: 26px; height: 26px; background: #E6F2EA; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; color: #146B43;">{{ a.id }}</span>
+                            <span style="flex: 1; min-width: 150px;">
+                              <span style="display: block; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #4A555E;">{{ a.schedule }}</span>
+                              <span style="display: block; font-size: 11.5px; color: #6B757E; margin-top: 3px;">{{ a.fac }} · {{ a.seats }} seats free</span>
+                            </span>
+                            <button type="button" onClick="{{ a.pick }}" style="padding: 8px 13px; background: #1C8F5A; border: none; border-radius: 7px; color: #FFFFFF; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: transform .16s, background .2s;" style-hover="background: #157A4C; transform: translateY(-1px);">Register in {{ a.id }}</button>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ noAlternatives }}">
+                    <div style="margin-top: 14px; padding: 16px 18px; background: #FAF8F4; border: 1px dashed #D6D0C4; border-radius: 12px;">
+                      <div style="font-size: 13.5px; font-weight: 700;">No conflict-free section available</div>
+                      <div style="font-size: 12.5px; color: #6B757E; margin-top: 5px; line-height: 1.6;">Every remaining section of this course overlaps something already in your plan. Dropping {{ clashBName }} would free the slot.</div>
+                    </div>
+                  </sc-if>
+                </sc-if>
+              </div>
+            </sc-if>
+
+            <div style="display: flex; justify-content: flex-end; gap: 9px; margin-top: 22px;">
+              <button type="button" onClick="{{ closeModal }}" style="{{ closeBtnStyle }}">{{ closeBtnLabel }}</button>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isGraphModal }}">
+          <div style="padding: 22px 26px 18px; border-bottom: 1px solid #F0EDE6;">
+            <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px;">
+              <div>
+                <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Prerequisite Map</div>
+                <div style="font-family: Newsreader, Georgia, serif; font-size: 26px; font-weight: 400; margin-top: 6px; letter-spacing: -.01em;">Computer Engineering · Semesters I – V</div>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 14px;">
+                <sc-for list="{{ graphLegend }}" as="l" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: #4A555E;">
+                    <span style="{{ l.swatch }}"></span>{{ l.label }}
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="font-size: 12.5px; color: #6B757E; margin-top: 10px; line-height: 1.6;">{{ graphHint }}</div>
+          </div>
+          <div style="padding: 18px 20px; overflow: auto; max-height: 62vh; background: #FBFAF6;">
+            <div style="{{ graphCanvasStyle }}">
+              <svg viewBox="{{ graphViewBox }}" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none;">
+                <sc-for list="{{ graphEdges }}" as="e" hint-placeholder-count="0">
+                  <path d="{{ e.d }}" fill="none" stroke="{{ e.stroke }}" stroke-width="{{ e.width }}" stroke-dasharray="{{ e.dash }}" style="{{ e.style }}"></path>
+                </sc-for>
+              </svg>
+              <sc-for list="{{ graphCols }}" as="col" hint-placeholder-count="5">
+                <div style="{{ col.headStyle }}">{{ col.label }}</div>
+              </sc-for>
+              <sc-for list="{{ graphNodes }}" as="n" hint-placeholder-count="0">
+                <button type="button" onClick="{{ n.pick }}" onMouseEnter="{{ n.enter }}" onMouseLeave="{{ n.leave }}" style="{{ n.style }}">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 9.5px; opacity: .8;">{{ n.code }}</span>
+                  <span style="font-size: 11.5px; font-weight: 700; line-height: 1.25; margin-top: 2px;">{{ n.name }}</span>
+                  <sc-if value="{{ n.badge }}">
+                    <span style="{{ n.badgeStyle }}">{{ n.badge }}</span>
+                  </sc-if>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 26px; border-top: 1px solid #F0EDE6;">
+            <div style="font-size: 12.5px; color: #6B757E; max-width: 70ch; line-height: 1.6;">{{ graphSelection }}</div>
+            <button type="button" onClick="{{ closeModal }}" style="padding: 10px 16px; background: #131A1F; border: none; border-radius: 8px; color: #FFFFFF; font-size: 12.5px; font-weight: 700; cursor: pointer;">Close map</button>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:1000},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+const CATS = ['All', 'Mandatory', 'Professional Core', 'Professional Elective', 'Open Elective', 'Skill Enhancement'];
+const LOCKED = ['Mandatory', 'Professional Core'];
+
+class Component extends DCLogic {
+  state = {
+    cat: 'All', modal: null, run: null, graphSel: null, graphHover: null,
+    baseline: null, w: typeof window !== 'undefined' ? window.innerWidth : 1440
+  };
+
+  componentDidMount() {
+    const boot = () => {
+      this.unsub = window.VIT.subscribe(() => this.forceUpdate());
+      this.setState({ baseline: { credits: window.VIT.credits(), hours: window.VIT.weeklyHours(), conflicts: window.VIT.planConflicts().length } });
+    };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); this.timers && this.timers.forEach(clearTimeout); }
+
+  // run the four registration checks as a timed sequence
+  startRegister = (code, sectionId) => {
+    const S = window.VIT;
+    const c = S.byCode[code];
+    const section = sectionId || (c.sections[0] || {}).id;
+    this.timers = (this.timers || []); this.timers.forEach(clearTimeout); this.timers = [];
+    this.setState({ modal: 'run', run: { code, section, step: 0, status: 'running', fail: null } });
+
+    const at = (ms, fn) => this.timers.push(setTimeout(fn, ms));
+    const fail = (kind, payload) => this.setState(s => ({ run: Object.assign({}, s.run, { status: 'failed', fail: Object.assign({ kind }, payload) }) }));
+
+    at(520, () => {
+      const ev = S.evalFor(code);
+      if (!ev.ok) { fail('prereq', {}); return; }
+      this.setState(s => ({ run: Object.assign({}, s.run, { step: 1 }) }));
+      at(520, () => {
+        const cf = S.conflictsFor(code, section);
+        if (cf.length) { fail('conflict', { conflict: cf[0] }); return; }
+        this.setState(s => ({ run: Object.assign({}, s.run, { step: 2 }) }));
+        at(480, () => {
+          if (S.credits() + c.credits > 24) { fail('credits', {}); return; }
+          this.setState(s => ({ run: Object.assign({}, s.run, { step: 3 }) }));
+          at(480, () => {
+            const sec = c.sections.find(x => x.id === section) || {};
+            if (!sec.seats) { fail('seats', {}); return; }
+            this.setState(s => ({ run: Object.assign({}, s.run, { step: 4, status: 'done' }) }));
+            S.register(code, section);
+            S.toast({ title: 'Registered — ' + c.name, body: S.credits() + ' of 24 credits · timetable updated', kind: 'ok' });
+            S.notify({ title: 'Registration confirmed — ' + c.code + ' ' + c.name, body: 'Section ' + section + ' · ' + c.credits + ' credits. Your timetable and degree audit have been updated.', kind: 'registration' });
+          });
+        });
+      });
+    });
+  };
+
+  // flatten an annotated prerequisite tree into indented display rows
+  ruleRows(node, depth, rows) {
+    rows = rows || [];
+    if (!node) return rows;
+    if (node.type === 'course') {
+      const label = node.name + (node.minGrade ? ' — minimum grade ' + node.minGrade : '');
+      let note = '', mark = '✓', ok = node.ok;
+      if (node.status === 'met') note = 'Grade ' + node.grade;
+      else if (node.status === 'grade') { note = 'You scored ' + node.grade + ', below ' + node.minGrade; mark = '✕'; }
+      else if (node.status === 'progress') { note = 'In progress — result pending'; mark = '◔'; }
+      else { note = 'Not completed'; mark = '✕'; }
+      rows.push({ kind: 'leaf', depth, label, note, mark, ok, status: node.status });
+    } else if (node.type === 'all' || node.type === 'any') {
+      rows.push({ kind: 'op', depth, label: node.type === 'all' ? 'ALL of the following' : 'ANY ONE of the following', ok: node.ok, mark: node.ok ? '✓' : '✕' });
+      node.children.forEach(ch => this.ruleRows(ch, depth + 1, rows));
+    }
+    return rows;
+  }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, w = st.w;
+    const nav = this.props.nav || (() => {});
+    const credits = S.credits(), hours = S.weeklyHours(), conflicts = S.planConflicts();
+    const base = st.baseline || { credits, hours, conflicts: conflicts.length };
+    const daysLeft = Math.max(0, Math.ceil((new Date('2026-09-18T23:59:00') - new Date()) / 86400000));
+    const catalogue = S.courses.filter(c => c.sem === 4);
+    const shown = st.cat === 'All' ? catalogue : catalogue.filter(c => c.cat === st.cat);
+    const issues = [];
+    conflicts.forEach(cf => issues.push({
+      title: 'Timetable clash on ' + cf.day,
+      body: cf.aName + ' and ' + cf.bName + ' overlap at ' + cf.am.start + '.',
+      go: () => { this.setState({ cat: 'All' }); const el = document.getElementById('course-' + cf.b); if (el) el.scrollIntoView ? window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' }) : null; }
+    }));
+    if (credits < 16) issues.push({ title: 'Below the minimum credit load', body: credits + ' of the required 16 credits registered.', go: () => this.setState({ cat: 'Professional Elective' }) });
+
+    const scrollTo = (code) => { const el = document.getElementById('course-' + code); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' }); };
+
+    const out = {
+      headCols: w < 900 ? '1fr' : 'minmax(0, 1.15fr) minmax(0, 1fr)',
+      bodyCols: w < 1120 ? 'minmax(0, 1fr)' : 'minmax(0, 1fr) 314px',
+      cardCols: w < 700 ? '1fr' : w < 1120 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(292px, 1fr))',
+      credits, daysLeft,
+      creditPips: Array.from({ length: 24 }, (_, i) => ({
+        style: 'flex: 1; height: 5px; border-radius: 2px; background: ' + (i < credits ? '#12B3A6' : i < 16 ? 'rgba(237,234,227,.3)' : 'rgba(237,234,227,.13)') + '; transition: background .4s ' + (i * 12) + 'ms;'
+      })),
+      creditNote: credits < 16 ? (16 - credits) + ' below the minimum load' : credits >= 24 ? 'Credit ceiling reached' : (24 - credits) + ' credits still available',
+      statusDot: 'width: 9px; height: 9px; border-radius: 50%; background: ' + (issues.length ? '#E8B84B' : '#35C77E') + ';',
+      statusLabel: issues.length ? issues.length + ' issue' + (issues.length === 1 ? '' : 's') : 'Ready to register',
+      openGraph: () => this.setState({ modal: 'graph', graphSel: null }),
+
+      cats: CATS.map(label => {
+        const n = label === 'All' ? catalogue.length : catalogue.filter(c => c.cat === label).length;
+        const active = st.cat === label;
+        return {
+          label, count: n, go: () => this.setState({ cat: label }),
+          style: 'display: flex; align-items: center; gap: 7px; padding: 8px 13px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#4A555E') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 30px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;',
+          countStyle: 'font-family: \'JetBrains Mono\', monospace; font-size: 10.5px; padding: 1px 6px; border-radius: 10px; background: ' + (active ? 'rgba(237,234,227,.14)' : '#F4F1EA') + '; color: ' + (active ? '#8FE9DE' : '#8B949C') + ';'
+        };
+      }),
+      noCourses: shown.length === 0,
+
+      courses: shown.map(c => {
+        const registered = S.isRegistered(c.code);
+        const ev = S.evalFor(c.code);
+        const sec = c.sections[0] || { seats: 0, capacity: 0, meetings: [] };
+        const cf = registered ? [] : S.conflictsFor(c.code, sec.id);
+        const locked = LOCKED.indexOf(c.cat) >= 0 && registered;
+        const blocked = !ev.ok;
+        const full = sec.seats === 0;
+        const catCol = c.cat === 'Professional Elective' ? ['#E4F2F0', '#0B6F68'] : c.cat === 'Open Elective' ? ['#F8EFDC', '#8A6114'] : c.cat === 'Skill Enhancement' ? ['#EFE6F0', '#6B4A72'] : ['#EFEDE6', '#5A6570'];
+        return {
+          anchor: 'course-' + c.code, code: c.code, name: c.name, credits: c.credits, cat: c.cat,
+          codeColor: registered ? '#0B8F86' : '#6B757E',
+          catStyle: 'padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .03em; background: ' + catCol[0] + '; color: ' + catCol[1] + ';',
+          facName: S.faculty[c.fac].name,
+          schedule: sec.meetings.map(m => m.day + ' ' + m.start + '–' + m.end).join('  ·  ') || 'To be announced',
+          seatLabel: full ? (sec.waitlist ? 'Full · ' + sec.waitlist + ' waitlisted' : 'Full') : sec.seats + ' of ' + sec.capacity + ' remaining',
+          seatStyle: 'font-weight: 700; font-size: 12px; color: ' + (full ? '#96382C' : sec.seats < 10 ? '#8A6114' : '#146B43') + ';',
+          multiSection: c.sections.length > 1, sectionCount: c.sections.length,
+          prereqLabel: !c.prereq ? 'None' : (ev.ok ? 'Satisfied ✓' : 'Not satisfied ✕') + ' — ' + S.exprToText(c.prereq).replace(/^\(|\)$/g, ''),
+          prereqStyle: 'font-size: 11.5px; line-height: 1.55; font-weight: ' + (blocked ? 600 : 500) + '; color: ' + (!c.prereq ? '#9AA2A9' : ev.ok ? '#146B43' : '#96382C') + ';',
+          registered, section: S.sectionOf(c.code),
+          cardStyle: 'background: #FFFFFF; border: 1px solid ' + (registered ? '#CBE4D6' : blocked ? '#EADDBC' : '#E3DFD6') + '; border-left: 3px solid ' + (registered ? '#1C8F5A' : blocked ? '#B4801C' : '#E3DFD6') + '; border-radius: 13px; padding: 17px 19px; scroll-margin-top: 90px; transition: transform .18s, box-shadow .2s, border-color .2s;',
+          showWhy: blocked && !registered,
+          why: () => this.setState({ modal: 'run', run: { code: c.code, section: sec.id, step: 0, status: 'failed', fail: { kind: 'prereq' } } }),
+          btnLabel: registered ? (locked ? 'Mandatory · Locked' : 'Drop Course') : blocked ? 'Cannot Register' : full ? 'Join Waitlist' : cf.length ? 'Register · check clash' : 'Register',
+          btnStyle: 'flex: 1; padding: 10px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: ' + (locked ? 'not-allowed' : 'pointer') + '; transition: transform .16s, box-shadow .2s, background .2s; ' + (
+            registered
+              ? (locked ? 'background: #F4F1EA; color: #9AA2A9; border: 1px solid #EAE6DE;' : 'background: #FFFFFF; color: #96382C; border: 1px solid #EDCFC9;')
+              : blocked ? 'background: #F8EFDC; color: #8A6114; border: 1px solid #EADDBC;'
+              : 'background: #131A1F; color: #FFFFFF; border: none;'
+          ),
+          action: () => {
+            if (registered) {
+              if (locked) { S.toast({ title: 'Cannot drop ' + c.code, body: 'Mandatory and professional-core courses are locked by the department.', kind: 'warn' }); return; }
+              S.drop(c.code);
+              S.toast({ title: 'Dropped ' + c.name, body: S.credits() + ' of 24 credits remaining', kind: 'warn' });
+            } else if (blocked) {
+              this.setState({ modal: 'run', run: { code: c.code, section: sec.id, step: 0, status: 'failed', fail: { kind: 'prereq' } } });
+            } else {
+              this.startRegister(c.code, sec.id);
+            }
+          }
+        };
+      }),
+
+      panelStyle: (w < 1120 ? '' : 'position: sticky; top: 78px; ') + 'background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 2px rgba(20,26,31,.04);',
+      readyStyle: 'display: flex; align-items: center; gap: 9px; margin-top: 11px; padding: 11px 13px; border-radius: 10px; background: ' + (issues.length ? '#F8EFDC' : '#E6F2EA') + '; border: 1px solid ' + (issues.length ? '#EADDBC' : '#CBE4D6') + '; color: ' + (issues.length ? '#6E4C10' : '#12503A') + ';',
+      readyDot: 'width: 9px; height: 9px; border-radius: 50%; background: ' + (issues.length ? '#B4801C' : '#1C8F5A') + ';',
+      readyLabel: issues.length ? issues.length + ' ISSUE' + (issues.length === 1 ? '' : 'S') + ' NEED ATTENTION' : 'READY TO REGISTER ✓',
+      metrics: [
+        { label: 'Credits', from: base.credits, value: credits + ' / 24', changed: base.credits !== credits, color: credits > 24 ? '#B8483A' : '#0B8F86' },
+        { label: 'Weekly contact hours', from: base.hours + 'h', value: hours + 'h', changed: base.hours !== hours, color: '#161D22' },
+        { label: 'Timetable conflicts', from: base.conflicts, value: conflicts.length, changed: base.conflicts !== conflicts.length, color: conflicts.length ? '#B8483A' : '#1C8F5A' },
+        { label: 'Prerequisites', from: '', value: 'All satisfied', changed: false, color: '#1C8F5A' }
+      ].map(m => ({ label: m.label, from: m.from, value: m.value, changed: m.changed, valueStyle: 'font-family: \'JetBrains Mono\', monospace; font-size: 13px; font-weight: 600; color: ' + m.color + ';' })),
+      hasIssues: issues.length > 0, issues,
+      regCount: S.state.registered.length,
+      registered: S.state.registered.map(r => {
+        const c = S.byCode[r.code], locked = LOCKED.indexOf(c.cat) >= 0;
+        return {
+          code: r.code, name: c.name, credits: c.credits, canDrop: !locked, locked,
+          drop: () => { S.drop(r.code); S.toast({ title: 'Dropped ' + c.name, body: S.credits() + ' of 24 credits remaining', kind: 'warn' }); }
+        };
+      }),
+
+      modalOpen: !!st.modal, closeModal: () => this.setState({ modal: null, run: null }), stop: (e) => e.stopPropagation(),
+      isRunModal: st.modal === 'run', isGraphModal: st.modal === 'graph',
+      modalStyle: 'width: 100%; max-width: ' + (st.modal === 'graph' ? '1080px' : '620px') + '; margin: auto; background: #FFFFFF; border-radius: 16px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: rPop .28s cubic-bezier(.2,.8,.2,1) both; overflow: hidden;'
+    };
+
+    // ——— registration run modal ———
+    if (st.modal === 'run' && st.run) {
+      const r = st.run, c = S.byCode[r.code];
+      const labels = ['Checking prerequisites…', 'Checking timetable…', 'Checking credit limit…', 'Confirming seat…'];
+      const doneLabels = ['Prerequisites satisfied', 'No timetable conflict', 'Within credit ceiling', 'Seat confirmed'];
+      const failIdx = r.status === 'failed' ? { prereq: 0, conflict: 1, credits: 2, seats: 3 }[r.fail.kind] : -1;
+      const sec = c.sections.find(x => x.id === r.section) || c.sections[0] || {};
+      const details = ['', '', S.credits() + ' + ' + c.credits + ' cr', (sec.seats || 0) + ' free'];
+
+      const steps = labels.map((l, i) => {
+        const isFail = failIdx === i;
+        const passed = r.step > i || r.status === 'done';
+        const active = r.step === i && r.status === 'running';
+        return {
+          label: isFail ? l.replace('…', ' — failed') : passed ? doneLabels[i] : l,
+          icon: isFail ? '✕' : passed ? '✓' : active ? '◌' : '',
+          weight: active || isFail ? 700 : 500,
+          color: isFail ? '#96382C' : passed ? '#146B43' : active ? '#161D22' : '#B7BDC2',
+          detail: passed && details[i] ? details[i] : '',
+          rowStyle: 'display: flex; align-items: center; gap: 11px; padding: 11px 13px; border-radius: 9px; background: ' + (isFail ? '#F8E9E6' : active ? '#FBFAF6' : 'transparent') + '; transition: background .3s;',
+          iconStyle: 'display: grid; place-items: center; min-width: 20px; height: 20px; border-radius: 50%; font-size: 10px; font-weight: 700; background: ' + (isFail ? '#B8483A' : passed ? '#1C8F5A' : active ? '#FFFFFF' : '#F4F1EA') + '; color: ' + (isFail || passed ? '#FFFFFF' : '#8B949C') + '; border: ' + (active ? '1.6px solid #0B8F86' : 'none') + '; ' + (active ? 'animation: rSpin 1s linear infinite;' : '')
+        };
+      });
+
+      const ev = S.evalFor(r.code);
+      const bl = S.blockers(ev);
+      const cfl = r.fail && r.fail.conflict;
+      const alts = cfl ? S.alternatives(r.code).filter(a => a.id !== r.section) : [];
+      const failCopy = {
+        prereq: ['Cannot Register', c.name + ' has a prerequisite rule that your record does not satisfy yet.'],
+        conflict: ['Schedule Conflict', 'This section overlaps a course already in your registration plan.'],
+        credits: ['Credit Ceiling Reached', 'Adding ' + c.credits + ' credits would take you to ' + (S.credits() + c.credits) + ', above the Semester IV maximum of 24.'],
+        seats: ['Section Full', 'All ' + (sec.capacity || 0) + ' seats in section ' + r.section + ' are taken' + (sec.waitlist ? ', with ' + sec.waitlist + ' students waitlisted' : '') + '.']
+      }[r.fail ? r.fail.kind : 'prereq'];
+
+      const minsPct = (t) => (S.toMin(t) - 480) / 600 * 100;
+      const ovStart = cfl ? Math.max(S.toMin(cfl.a.start), S.toMin(cfl.b.start)) : 0;
+      const ovEnd = cfl ? Math.min(S.toMin(cfl.a.end), S.toMin(cfl.b.end)) : 0;
+
+      Object.assign(out, {
+        runName: c.name, runCode: c.code, runCredits: c.credits, runSection: r.section,
+        runSteps: steps, runDone: r.status === 'done', runFailed: r.status === 'failed',
+        runDoneBody: 'Section ' + r.section + ' confirmed. You are now at ' + S.credits() + ' of 24 credits and ' + S.weeklyHours() + ' contact hours a week. The timetable, degree audit and career recommendations have all been updated.',
+        failTitle: failCopy[0], failBody: failCopy[1],
+        failBoxStyle: 'padding: 16px 18px; border-radius: 12px; background: ' + (r.fail && r.fail.kind === 'conflict' ? '#F8E9E6' : '#F8EFDC') + '; border: 1px solid ' + (r.fail && r.fail.kind === 'conflict' ? '#EDCFC9' : '#EADDBC') + '; color: ' + (r.fail && r.fail.kind === 'conflict' ? '#96382C' : '#6E4C10') + ';',
+        showRuleTree: r.fail && r.fail.kind === 'prereq',
+        ruleText: S.exprToText(c.prereq) || 'No prerequisite',
+        ruleRows: this.ruleRows(ev, 0).map(n => ({
+          label: n.label, note: n.note, mark: n.mark,
+          weight: n.kind === 'op' ? 700 : 500,
+          color: n.kind === 'op' ? '#161D22' : n.ok ? '#146B43' : n.status === 'progress' ? '#8A6114' : '#96382C',
+          noteColor: n.ok ? '#146B43' : n.status === 'progress' ? '#8A6114' : '#96382C',
+          style: 'display: flex; align-items: center; gap: 10px; padding: ' + (n.kind === 'op' ? '9px 11px' : '8px 11px') + '; margin-left: ' + (n.depth * 18) + 'px; border-radius: 8px; background: ' + (n.kind === 'op' ? '#EFEDE6' : n.ok ? '#E6F2EA' : n.status === 'progress' ? '#F8EFDC' : '#F8E9E6') + ';',
+          markStyle: 'display: grid; place-items: center; min-width: 17px; height: 17px; border-radius: ' + (n.kind === 'op' ? '4px' : '50%') + '; font-size: 9.5px; font-weight: 700; background: ' + (n.ok ? '#1C8F5A' : n.status === 'progress' ? '#B4801C' : '#B8483A') + '; color: #FFFFFF;'
+        })),
+        pathNodes: bl.map((b, i) => ({
+          code: b.code, name: b.name,
+          status: b.status === 'progress' ? 'In progress' : b.status === 'grade' ? 'Grade ' + b.grade + ', needs ' + b.minGrade : 'Not taken',
+          arrow: true,
+          style: 'padding: 11px 14px; border-radius: 10px; background: ' + (b.status === 'progress' ? '#F8EFDC' : '#F4F1EA') + '; border: 1px solid ' + (b.status === 'progress' ? '#EADDBC' : '#E3DFD6') + '; color: #4A555E;'
+        })).concat([{ code: c.code, name: c.name, status: 'Unlocks after the above', arrow: false, style: 'padding: 11px 14px; border-radius: 10px; background: #131A1F; color: #EDEAE3;' }]),
+        showConflict: r.fail && r.fail.kind === 'conflict',
+        clashCols: w < 620 ? '1fr' : '1fr 84px 1fr',
+        clashAName: c.name, clashADay: cfl ? cfl.day : '', clashATime: cfl ? cfl.a.start + ' – ' + cfl.a.end : '', clashARoom: cfl ? 'Room ' + cfl.a.room : '',
+        clashBName: cfl ? cfl.withName : '', clashBDay: cfl ? cfl.day : '', clashBTime: cfl ? cfl.b.start + ' – ' + cfl.b.end : '', clashBRoom: cfl ? 'Room ' + cfl.b.room : '',
+        barAStyle: cfl ? 'position: absolute; top: 6px; height: 15px; left: ' + minsPct(cfl.a.start) + '%; width: ' + (minsPct(cfl.a.end) - minsPct(cfl.a.start)) + '%; background: #0B8F86; border-radius: 4px; color: #FFFFFF; font-family: \'JetBrains Mono\', monospace; font-size: 8.5px; display: grid; place-items: center; white-space: nowrap; overflow: hidden;' : 'display: none;',
+        barBStyle: cfl ? 'position: absolute; bottom: 6px; height: 15px; left: ' + minsPct(cfl.b.start) + '%; width: ' + (minsPct(cfl.b.end) - minsPct(cfl.b.start)) + '%; background: #B8483A; border-radius: 4px; color: #FFFFFF; font-family: \'JetBrains Mono\', monospace; font-size: 8.5px; display: grid; place-items: center; white-space: nowrap; overflow: hidden;' : 'display: none;',
+        overlapStyle: cfl ? 'position: absolute; top: 0; bottom: 0; left: ' + ((ovStart - 480) / 600 * 100) + '%; width: ' + ((ovEnd - ovStart) / 600 * 100) + '%; background: repeating-linear-gradient(45deg, rgba(184,72,58,.16) 0 5px, transparent 5px 10px); border-left: 1px dashed #B8483A; border-right: 1px dashed #B8483A;' : 'display: none;',
+        overlapNote: cfl ? (ovEnd - ovStart) + ' minutes of overlap on ' + cfl.day + ' · timeline shown 08:00 to 18:00' : '',
+        hasAlternatives: alts.length > 0, noAlternatives: !!cfl && alts.length === 0,
+        altCount: alts.length, altPlural: alts.length === 1 ? '' : 's',
+        alternatives: alts.map(a => ({
+          id: a.id, seats: a.seats, fac: S.faculty[a.fac] ? S.faculty[a.fac].short : '',
+          schedule: a.meetings.map(m => m.day + ' ' + m.start + '–' + m.end).join(' · '),
+          pick: () => this.startRegister(r.code, a.id)
+        })),
+        closeBtnLabel: r.status === 'done' ? 'Done' : r.status === 'failed' ? 'Close' : 'Cancel',
+        closeBtnStyle: 'padding: 11px 20px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; ' + (r.status === 'done' ? 'background: #1C8F5A; color: #FFFFFF; border: none;' : 'background: #FFFFFF; color: #4A555E; border: 1px solid #E3DFD6;')
+      });
+    }
+
+    // ——— prerequisite graph ———
+    if (st.modal === 'graph') {
+      const nodes = S.courses.filter(c => c.sem <= 5 && (c.code.indexOf('CS') === 0 || c.code.indexOf('MA') === 0));
+      const cols = [1, 2, 3, 4, 5];
+      const COLW = 196, COLGAP = 44, ROWH = 74, TOP = 40;
+      const pos = {};
+      cols.forEach((s, ci) => {
+        nodes.filter(n => n.sem === s).forEach((n, ri) => { pos[n.code] = { x: ci * (COLW + COLGAP), y: TOP + ri * ROWH, ci, ri }; });
+      });
+      const width = cols.length * (COLW + COLGAP) - COLGAP;
+      const maxRows = Math.max.apply(null, cols.map(s => nodes.filter(n => n.sem === s).length));
+      const height = TOP + maxRows * ROWH + 10;
+
+      const leaves = (expr, acc) => { acc = acc || []; if (!expr) return acc; if (expr.course) acc.push(expr.course); (expr.all || expr.any || []).forEach(e => leaves(e, acc)); return acc; };
+      const edges = [];
+      nodes.forEach(n => leaves(n.prereq).forEach(p => { if (pos[p] && pos[n.code]) edges.push({ from: p, to: n.code }); }));
+
+      const sel = st.graphSel || st.graphHover;
+      const ancestors = (code, acc) => { acc = acc || {}; edges.filter(e => e.to === code).forEach(e => { if (!acc[e.from]) { acc[e.from] = 1; ancestors(e.from, acc); } }); return acc; };
+      const descendants = (code, acc) => { acc = acc || {}; edges.filter(e => e.from === code).forEach(e => { if (!acc[e.to]) { acc[e.to] = 1; descendants(e.to, acc); } }); return acc; };
+      const anc = sel ? ancestors(sel) : {}, desc = sel ? descendants(sel) : {};
+
+      const stateOf = (n) => {
+        if (S.state.completed[n.code]) return 'done';
+        if (S.isRegistered(n.code)) return 'now';
+        return S.evalFor(n.code).ok ? 'open' : 'locked';
+      };
+      const COLORS = {
+        done: ['#0B8F86', '#FFFFFF', '#0B8F86'],
+        now: ['#FFFFFF', '#161D22', '#0B8F86'],
+        open: ['#E6F2EA', '#12503A', '#1C8F5A'],
+        locked: ['#F4F1EA', '#8B949C', '#DFDCD3']
+      };
+
+      Object.assign(out, {
+        graphLegend: [
+          { label: 'Completed', swatch: 'width: 12px; height: 12px; border-radius: 3px; background: #0B8F86;' },
+          { label: 'In progress', swatch: 'width: 12px; height: 12px; border-radius: 3px; background: #FFFFFF; border: 2px solid #0B8F86;' },
+          { label: 'Eligible now', swatch: 'width: 12px; height: 12px; border-radius: 3px; background: #E6F2EA; border: 1.5px solid #1C8F5A;' },
+          { label: 'Locked', swatch: 'width: 12px; height: 12px; border-radius: 3px; background: #F4F1EA; border: 1.5px solid #DFDCD3;' }
+        ],
+        graphHint: 'Hover or click a course to trace what it depends on and what it unlocks. ' + nodes.length + ' courses, ' + edges.length + ' prerequisite edges.',
+        graphCanvasStyle: 'position: relative; width: ' + width + 'px; height: ' + height + 'px; min-width: ' + width + 'px;',
+        graphViewBox: '0 0 ' + width + ' ' + height,
+        graphCols: cols.map((s, ci) => ({
+          label: 'Semester ' + ['', 'I', 'II', 'III', 'IV', 'V'][s],
+          headStyle: 'position: absolute; left: ' + (ci * (COLW + COLGAP)) + 'px; top: 0; width: ' + COLW + 'px; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #9AA2A9; text-align: center;'
+        })),
+        graphEdges: edges.map(e => {
+          const a = pos[e.from], b = pos[e.to];
+          const x1 = a.x + COLW, y1 = a.y + 26, x2 = b.x, y2 = b.y + 26;
+          const mid = (x1 + x2) / 2;
+          const lit = sel && (e.from === sel || e.to === sel || (anc[e.from] && (anc[e.to] || e.to === sel)) || (desc[e.to] && (desc[e.from] || e.from === sel)));
+          return {
+            d: 'M ' + x1 + ' ' + y1 + ' C ' + mid + ' ' + y1 + ', ' + mid + ' ' + y2 + ', ' + x2 + ' ' + y2,
+            stroke: lit ? '#0B8F86' : sel ? '#E8E4DB' : '#D8D3C8',
+            width: lit ? 2.2 : 1.2,
+            dash: lit ? '0' : '4 4',
+            style: lit ? 'animation: rDash 1.2s linear infinite; stroke-dasharray: 9 9;' : ''
+          };
+        }),
+        graphNodes: nodes.map(n => {
+          const p = pos[n.code], s = stateOf(n), col = COLORS[s];
+          const dim = sel && n.code !== sel && !anc[n.code] && !desc[n.code];
+          const isSel = n.code === sel;
+          return {
+            code: n.code, name: n.name,
+            badge: isSel ? 'selected' : anc[n.code] ? 'required first' : desc[n.code] ? 'unlocked by this' : '',
+            badgeStyle: 'margin-top: 5px; font-size: 9px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background: ' + (isSel ? 'rgba(255,255,255,.2)' : anc[n.code] ? '#F8EFDC' : '#E6F2EA') + '; color: ' + (isSel ? '#FFFFFF' : anc[n.code] ? '#8A6114' : '#146B43') + ';',
+            style: 'position: absolute; left: ' + p.x + 'px; top: ' + p.y + 'px; width: ' + COLW + 'px; display: flex; flex-direction: column; align-items: flex-start; padding: 9px 11px; text-align: left; border-radius: 10px; cursor: pointer; background: ' + (isSel ? '#131A1F' : col[0]) + '; color: ' + (isSel ? '#EDEAE3' : col[1]) + '; border: ' + (s === 'now' ? '2px' : '1.5px') + ' solid ' + (isSel ? '#131A1F' : col[2]) + '; opacity: ' + (dim ? .32 : 1) + '; transform: scale(' + (isSel ? 1.04 : 1) + '); box-shadow: ' + (isSel ? '0 10px 26px rgba(20,26,31,.22)' : 'none') + '; transition: all .26s cubic-bezier(.2,.8,.2,1); z-index: ' + (isSel ? 5 : 2) + ';',
+            pick: () => this.setState({ graphSel: st.graphSel === n.code ? null : n.code }),
+            enter: () => this.setState({ graphHover: n.code }),
+            leave: () => this.setState({ graphHover: null })
+          };
+        }),
+        graphSelection: sel
+          ? S.courseName(sel) + ' — depends on ' + (Object.keys(anc).length || 'no') + ' course' + (Object.keys(anc).length === 1 ? '' : 's') + ', unlocks ' + (Object.keys(desc).length || 'no') + ' further course' + (Object.keys(desc).length === 1 ? '' : 's') + '.'
+          : 'Nothing selected. Solid teal nodes are complete; the outlined node is a course you are taking now.'
+      });
+    }
+
+    return out;
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes fIn { from { opacity: 0; transform: translateY(11px); } to { opacity: 1; transform: none; } }
+  @keyframes fFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes fPop { from { opacity: 0; transform: scale(.96) translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes fTick { 0%, 100% { opacity: .4; } 50% { opacity: 1; } }
+</style>
+</helmet>
+
+<div style="max-width: 1520px;">
+
+  <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+    <div key="fdash" style="display: flex; flex-direction: column; gap: 18px; animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(26px, 3vw, 36px); font-weight: 400; letter-spacing: -.015em; line-height: 1.1;">{{ greeting }}</div>
+          <div style="font-size: 13.5px; color: #6B757E; margin-top: 7px;">{{ facMeta }}</div>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 9px;">
+          <button type="button" onClick="{{ goMark }}" style="display: flex; align-items: center; gap: 9px; white-space: nowrap; padding: 11px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .16s, box-shadow .2s, background .2s;" style-hover="background: #0B8F86; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(11,143,134,.26);">
+            Mark Attendance
+            <sc-if value="{{ hasPending }}">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; background: rgba(255,255,255,.16); border-radius: 4px; padding: 2px 5px;">{{ pendingCount }} due</span>
+            </sc-if>
+          </button>
+          <button type="button" onClick="{{ goLesson }}" style="white-space: nowrap; padding: 11px 15px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .16s, border-color .2s;" style-hover="border-color: #0B8F86; transform: translateY(-1px);">Update Lesson Plan</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: {{ statCols }}; gap: 14px;">
+        <sc-for list="{{ stats }}" as="s" hint-placeholder-count="5">
+          <div style="{{ s.style }}">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: {{ s.labelColor }};">{{ s.label }}</div>
+            <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 7px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 27px; font-weight: 600; letter-spacing: -.02em;">{{ s.value }}</span>
+              <span style="font-size: 12.5px; color: {{ s.unitColor }};">{{ s.unit }}</span>
+            </div>
+            <div style="font-size: 11.5px; color: {{ s.noteColor }}; margin-top: 6px; line-height: 1.5;">{{ s.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: grid; grid-template-columns: {{ dashCols }}; gap: 18px; align-items: start;">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0;">
+          <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #F0EDE6;">
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Today's Classes</span>
+            <span style="font-size: 11.5px; color: #6B757E;">{{ todayLabel }}</span>
+          </div>
+          <sc-if value="{{ hasToday }}" hint-placeholder-val="{{ true }}">
+            <div>
+              <sc-for list="{{ todayClasses }}" as="c" hint-placeholder-count="3">
+                <div style="{{ c.rowStyle }}">
+                  <div style="min-width: 62px;">
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: {{ c.timeColor }};">{{ c.start }}</div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #9AA2A9;">{{ c.end }}</div>
+                  </div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 14.5px; font-weight: 700; letter-spacing: -.005em;">{{ c.name }}</div>
+                    <div style="font-size: 12px; color: #6B757E; margin-top: 3px;">{{ c.meta }}</div>
+                  </div>
+                  <div style="{{ c.statusStyle }}">{{ c.status }}</div>
+                  <button type="button" onClick="{{ c.go }}" style="{{ c.btnStyle }}">{{ c.btnLabel }}</button>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <sc-if value="{{ noToday }}">
+            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 34px 20px;">
+              <div style="width: 32px; height: 32px; border: 1.5px dashed #D6D0C4; border-radius: 9px;"></div>
+              <div style="font-size: 14.5px; font-weight: 700;">No classes scheduled today</div>
+              <p style="margin: 0; font-size: 12.5px; color: #6B757E; line-height: 1.6; max-width: 44ch;">{{ noTodayBody }}</p>
+              <button type="button" onClick="{{ goTimetable }}" style="padding: 8px 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer;">View teaching schedule</button>
+            </div>
+          </sc-if>
+
+          <div style="padding: 16px 20px; border-top: 1px solid #F0EDE6; background: #FBFAF6;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Upcoming this week</div>
+            <div style="display: grid; gap: 7px; margin-top: 11px;">
+              <sc-for list="{{ upcoming }}" as="u" hint-placeholder-count="4">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 9px 11px; background: #FFFFFF; border: 1px solid #EAE6DE; border-radius: 8px;">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86; min-width: 74px;">{{ u.when }}</span>
+                  <span style="flex: 1; min-width: 130px; font-size: 12.5px; font-weight: 600;">{{ u.name }}</span>
+                  <span style="font-size: 11.5px; color: #6B757E;">{{ u.room }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 14px;">
+          <div style="background: #131A1F; border-radius: 14px; padding: 20px 22px; color: #EDEAE3; position: relative; overflow: hidden;">
+            <div style="position: absolute; inset: 0; background: radial-gradient(70% 100% at 90% 0%, rgba(18,179,166,.22), transparent 68%);"></div>
+            <div style="position: relative;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #7E8C90;">Attendance pending</div>
+              <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+                <div>
+                  <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 36px; font-weight: 600; line-height: 1;">{{ pendingCount }}</span>
+                    <span style="font-size: 13px; color: #8FA0A4;">sessions unrecorded</span>
+                  </div>
+                  <div style="display: grid; gap: 6px; margin-top: 16px;">
+                    <sc-for list="{{ pending }}" as="p" hint-placeholder-count="2">
+                      <button type="button" onClick="{{ p.go }}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; background: rgba(237,234,227,.07); border: 1px solid rgba(237,234,227,.16); border-radius: 9px; cursor: pointer; text-align: left; transition: background .2s, transform .16s;" style-hover="background: rgba(18,179,166,.16); transform: translateX(2px);">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #6FE3D6; min-width: 44px;">{{ p.code }}</span>
+                        <span style="flex: 1; font-size: 12.5px; font-weight: 600; color: #EDEAE3;">{{ p.name }}</span>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8FA0A4;">{{ p.when }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noPending }}">
+                <div style="padding: 14px 0 4px;">
+                  <div style="font-size: 17px; font-weight: 700;">All sessions recorded ✓</div>
+                  <p style="margin: 7px 0 0; font-size: 12.5px; color: #A9B6B8; line-height: 1.6;">Every class you have taught this week has attendance submitted.</p>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+
+          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 18px 20px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Registration requests</div>
+            <div style="display: grid; gap: 7px; margin-top: 12px;">
+              <sc-for list="{{ requests }}" as="r" hint-placeholder-count="3">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 10px 12px; background: #FBFAF6; border-radius: 9px;">
+                  <span style="flex: 1; min-width: 120px;">
+                    <span style="display: block; font-size: 12.5px; font-weight: 700;">{{ r.student }}</span>
+                    <span style="display: block; font-size: 11.5px; color: #6B757E; margin-top: 2px;">{{ r.detail }}</span>
+                  </span>
+                  <span style="{{ r.tagStyle }}">{{ r.tag }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <button type="button" onClick="{{ goRequests }}" style="width: 100%; margin-top: 12px; padding: 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12.5px; font-weight: 700; color: #4A555E; cursor: pointer; transition: border-color .2s;" style-hover="border-color: #0B8F86; color: #0B8F86;">Review all requests</button>
+          </div>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasSubmissions }}">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
+          <div style="padding: 15px 20px; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Recently submitted by you</div>
+          <sc-for list="{{ submissions }}" as="s" hint-placeholder-count="0">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 13px 20px; border-bottom: 1px solid #F4F1EA;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86; min-width: 48px;">{{ s.code }}</span>
+              <span style="flex: 1; min-width: 140px; font-size: 13px; font-weight: 600;">{{ s.name }}</span>
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E;">{{ s.date }}</span>
+              <span style="font-size: 12px; font-weight: 700; color: #146B43;">{{ s.present }} present</span>
+              <span style="font-size: 11.5px; color: #8B949C;">of {{ s.total }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isAttendance }}">
+    <div key="fatt" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: grid; grid-template-columns: {{ attCols }}; gap: 16px; align-items: start;">
+        <div style="display: grid; gap: 10px;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Your sections</div>
+          <sc-for list="{{ courseList }}" as="c" hint-placeholder-count="4">
+            <button type="button" onClick="{{ c.go }}" style="{{ c.style }}">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 9px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: {{ c.codeColor }};">{{ c.code }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: {{ c.codeColor }};">{{ c.students }}</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; margin-top: 4px; text-align: left; line-height: 1.35;">{{ c.name }}</div>
+              <div style="font-size: 11px; margin-top: 4px; text-align: left; color: {{ c.metaColor }};">{{ c.meta }}</div>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0;">
+          <div style="padding: 20px 22px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6;">
+            <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px;">
+              <div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #0B8F86;">{{ markCode }} · SE Computer Engineering · Division A</div>
+                <div style="font-family: Newsreader, Georgia, serif; font-size: 26px; font-weight: 400; margin-top: 5px; letter-spacing: -.01em;">{{ markName }}</div>
+                <div style="font-size: 12.5px; color: #6B757E; margin-top: 6px;">{{ markSession }}</div>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 9px;">
+                <input type="date" value="{{ markDate }}" onChange="{{ setDate }}" aria-label="Session date" style="height: 36px; padding: 0 10px; font-size: 12.5px; font-family: 'JetBrains Mono', monospace; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px;" />
+                <button type="button" onClick="{{ markAll }}" style="height: 36px; padding: 0 14px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12.5px; font-weight: 700; color: #4A555E; cursor: pointer; white-space: nowrap; transition: border-color .2s, color .2s;" style-hover="border-color: #1C8F5A; color: #146B43;">Mark All Present</button>
+              </div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 18px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #EAE6DE;">
+              <div>
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Present</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600; color: #146B43; margin-top: 3px;">{{ countPresent }}</div>
+              </div>
+              <div>
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Absent</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600; color: #96382C; margin-top: 3px;">{{ countAbsent }}</div>
+              </div>
+              <div>
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Late</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600; color: #8A6114; margin-top: 3px;">{{ countLate }}</div>
+              </div>
+              <div style="flex: 1; min-width: 170px;">
+                <div style="font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Session attendance</div>
+                <div style="display: flex; align-items: center; gap: 9px; margin-top: 7px;">
+                  <div style="flex: 1; height: 6px; background: #EFEDE6; border-radius: 3px; overflow: hidden;"><div style="{{ sessionBar }}"></div></div>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: #0B8F86;">{{ sessionPct }}%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="max-height: 520px; overflow-y: auto;">
+            <sc-for list="{{ roster }}" as="r" hint-placeholder-count="12">
+              <div style="{{ r.rowStyle }}">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA2A9; min-width: 52px;">{{ r.roll }}</span>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 13px; font-weight: 600; letter-spacing: .01em;">{{ r.name }}</div>
+                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #9AA2A9; margin-top: 2px;">PRN {{ r.prn }}</div>
+                </div>
+                <sc-if value="{{ r.isDemo }}">
+                  <span style="font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #0B8F86; background: #E4F2F0; border-radius: 5px; padding: 3px 7px; white-space: nowrap;">live record</span>
+                </sc-if>
+                <div style="display: flex; gap: 4px;">
+                  <sc-for list="{{ r.options }}" as="o" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ o.go }}" style="{{ o.style }}">{{ o.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 22px; border-top: 1px solid #F0EDE6; background: #FBFAF6;">
+            <div style="font-size: 12px; color: #6B757E; line-height: 1.55; max-width: 56ch;">{{ submitHint }}</div>
+            <button type="button" onClick="{{ submit }}" style="{{ submitStyle }}">Submit Attendance</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isLesson }}">
+    <div key="flp" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: grid; grid-template-columns: {{ attCols }}; gap: 16px; align-items: start;">
+        <div style="display: grid; gap: 10px;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Your courses</div>
+          <sc-for list="{{ lessonList }}" as="c" hint-placeholder-count="4">
+            <button type="button" onClick="{{ c.go }}" style="{{ c.style }}">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 9px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: {{ c.codeColor }};">{{ c.code }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: {{ c.codeColor }};">{{ c.pct }}%</span>
+              </div>
+              <div style="font-size: 13px; font-weight: 700; margin-top: 4px; text-align: left; line-height: 1.35;">{{ c.name }}</div>
+              <div style="height: 4px; margin-top: 9px; background: #EFEDE6; border-radius: 2px; overflow: hidden;"><div style="{{ c.barStyle }}"></div></div>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0;">
+          <div style="padding: 20px 22px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6;">
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #0B8F86;">{{ lpCode }} · lesson plan</div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: 26px; font-weight: 400; margin-top: 5px; letter-spacing: -.01em;">{{ lpName }}</div>
+            <div style="font-size: 12.5px; color: #6B757E; margin-top: 7px; line-height: 1.6;">{{ lpNote }}</div>
+          </div>
+          <div style="overflow-x: auto;">
+            <table style="width: 100%; min-width: 620px; border-collapse: collapse;">
+              <thead>
+                <tr style="background: #FBFAF6;">
+                  <th style="padding: 10px 22px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Module</th>
+                  <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Topic</th>
+                  <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Planned</th>
+                  <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Status</th>
+                  <th style="padding: 10px 22px; text-align: right; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Completed</th>
+                </tr>
+              </thead>
+              <tbody>
+                <sc-for list="{{ lpRows }}" as="r" hint-placeholder-count="12">
+                  <tr style="{{ r.style }}">
+                    <td style="padding: 11px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6B757E; white-space: nowrap;">{{ r.module }}</td>
+                    <td style="padding: 11px 14px; font-size: 13px; font-weight: 600;">{{ r.topic }}</td>
+                    <td style="padding: 11px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E; white-space: nowrap;">{{ r.date }}</td>
+                    <td style="padding: 11px 14px;"><span style="{{ r.pillStyle }}">{{ r.status }}</span></td>
+                    <td style="padding: 11px 22px; text-align: right;">
+                      <button type="button" onClick="{{ r.toggle }}" aria-label="Toggle completion" style="{{ r.boxStyle }}">{{ r.mark }}</button>
+                    </td>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding: 15px 22px; border-top: 1px solid #F0EDE6; background: #FBFAF6; font-size: 12px; color: #6B757E; line-height: 1.6;">Marking a topic complete updates the student-facing lesson plan and the module timeline immediately.</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isCourses }}">
+    <div key="fco" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="margin-bottom: 16px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Courses Taught</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Semester IV · Academic Year 2026–27</div>
+      </div>
+      <div style="display: grid; grid-template-columns: {{ courseCardCols }}; gap: 14px;">
+        <sc-for list="{{ courseCards }}" as="c" hint-placeholder-count="3">
+          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 19px 21px; transition: transform .18s, box-shadow .2s;" style-hover="transform: translateY(-2px); box-shadow: 0 10px 26px rgba(20,26,31,.08);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;">
+              <div style="min-width: 0;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #0B8F86;">{{ c.code }} · Section {{ c.section }}</div>
+                <div style="font-size: 16.5px; font-weight: 700; letter-spacing: -.01em; margin-top: 5px; line-height: 1.3;">{{ c.name }}</div>
+                <div style="font-size: 12px; color: #6B757E; margin-top: 5px;">{{ c.cat }} · {{ c.credits }} credits</div>
+              </div>
+              <div style="text-align: right;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 600;">{{ c.students }}</div>
+                <div style="font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; color: #9AA2A9;">students</div>
+              </div>
+            </div>
+            <div style="display: grid; gap: 9px; margin-top: 15px; padding-top: 14px; border-top: 1px solid #F0EDE6;">
+              <div style="display: flex; align-items: flex-start; gap: 9px; font-size: 12px;">
+                <span style="min-width: 62px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: #9AA2A9; padding-top: 2px;">Schedule</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #4A555E; line-height: 1.6;">{{ c.schedule }}</span>
+              </div>
+              <div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between; font-size: 11.5px;">
+                  <span style="color: #6B757E;">Class attendance</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: {{ c.attColor }};">{{ c.att }}%</span>
+                </div>
+                <div style="height: 5px; margin-top: 6px; background: #EFEDE6; border-radius: 3px; overflow: hidden;"><div style="{{ c.attBar }}"></div></div>
+              </div>
+              <div>
+                <div style="display: flex; align-items: baseline; justify-content: space-between; font-size: 11.5px;">
+                  <span style="color: #6B757E;">Lesson plan coverage</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #0B8F86;">{{ c.lp }}%</span>
+                </div>
+                <div style="height: 5px; margin-top: 6px; background: #EFEDE6; border-radius: 3px; overflow: hidden;"><div style="{{ c.lpBar }}"></div></div>
+              </div>
+            </div>
+            <div style="display: flex; gap: 7px; margin-top: 16px;">
+              <button type="button" onClick="{{ c.goMark }}" style="flex: 1; padding: 10px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: background .2s;" style-hover="background: #0B8F86;">Mark attendance</button>
+              <button type="button" onClick="{{ c.goPlan }}" style="flex: 1; padding: 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12px; font-weight: 700; color: #4A555E; cursor: pointer; transition: border-color .2s;" style-hover="border-color: #0B8F86; color: #0B8F86;">Lesson plan</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isStudents }}">
+    <div key="fst" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 16px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Class Roster</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">SE Computer Engineering · Division A · {{ rosterCount }} students</div>
+        </div>
+        <input type="text" value="{{ search }}" onChange="{{ setSearch }}" placeholder="Search name or PRN…" style="min-width: 220px; padding: 10px 13px; font-size: 13px; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.12); outline: none;" />
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; min-width: 620px; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #FBFAF6;">
+                <th style="padding: 10px 22px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Roll</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Student</th>
+                <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">PRN</th>
+                <th style="padding: 10px 22px; text-align: right; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Attendance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <sc-for list="{{ students }}" as="s" hint-placeholder-count="12">
+                <tr style="{{ s.style }}">
+                  <td style="padding: 11px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #9AA2A9;">{{ s.roll }}</td>
+                  <td style="padding: 11px 14px; font-size: 13px; font-weight: 600;">{{ s.name }}</td>
+                  <td style="padding: 11px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E;">{{ s.prn }}</td>
+                  <td style="padding: 11px 22px; text-align: right;">
+                    <span style="display: inline-flex; align-items: center; gap: 9px;">
+                      <span style="display: inline-block; width: 62px; height: 5px; background: #EFEDE6; border-radius: 3px; overflow: hidden;"><span style="{{ s.barStyle }}"></span></span>
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: {{ s.color }}; min-width: 34px;">{{ s.pct }}%</span>
+                    </span>
+                  </td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+        </div>
+        <sc-if value="{{ noStudents }}">
+          <div style="padding: 40px 22px; text-align: center;">
+            <div style="width: 32px; height: 32px; margin: 0 auto 12px; border: 1.5px dashed #D6D0C4; border-radius: 9px;"></div>
+            <div style="font-size: 14.5px; font-weight: 700;">No students match that search</div>
+            <p style="margin: 6px 0 0; font-size: 12.5px; color: #6B757E;">Try a partial name or the first digits of a PRN.</p>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isTimetable }}">
+    <div key="ftt" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="margin-bottom: 16px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Teaching Schedule</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ ttSummary }}</div>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 18px; overflow-x: auto;">
+        <div style="min-width: 640px;">
+          <div style="display: grid; grid-template-columns: 62px repeat(6, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px;">
+            <div></div>
+            <sc-for list="{{ ttDays }}" as="d" hint-placeholder-count="6">
+              <div style="text-align: center; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">{{ d }}</div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: 62px repeat(6, minmax(0, 1fr)); gap: 6px;">
+            <sc-for list="{{ ttCells }}" as="c" hint-placeholder-count="63">
+              <div style="{{ c.style }}">
+                <sc-if value="{{ c.hasClass }}">
+                  <div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 9.5px; opacity: .85;">{{ c.code }}</div>
+                    <div style="font-size: 11.5px; font-weight: 700; line-height: 1.25; margin-top: 2px;">{{ c.name }}</div>
+                    <div style="font-size: 10px; opacity: .85; margin-top: 3px;">{{ c.room }} · {{ c.type }}</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ c.isLabel }}">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #9AA2A9;">{{ c.label }}</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isExams }}">
+    <div key="fex" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="margin-bottom: 16px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Examinations</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">In-semester examination I · 14 – 19 September 2026</div>
+      </div>
+      <div style="display: grid; grid-template-columns: {{ examCols }}; gap: 16px; align-items: start;">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
+          <div style="padding: 15px 20px; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Your papers &amp; invigilation</div>
+          <sc-for list="{{ examRows }}" as="e" hint-placeholder-count="4">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid #F4F1EA;">
+              <div style="min-width: 78px;">
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 12.5px; font-weight: 600;">{{ e.date }}</div>
+                <div style="font-size: 10.5px; color: #9AA2A9;">{{ e.day }}</div>
+              </div>
+              <div style="flex: 1; min-width: 150px;">
+                <div style="font-size: 13.5px; font-weight: 700;">{{ e.name }}</div>
+                <div style="font-size: 11.5px; color: #6B757E; margin-top: 3px;">{{ e.meta }}</div>
+              </div>
+              <span style="{{ e.roleStyle }}">{{ e.role }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display: grid; gap: 14px;">
+          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Marks entry</div>
+            <div style="display: grid; gap: 10px; margin-top: 14px;">
+              <sc-for list="{{ marksRows }}" as="m" hint-placeholder-count="3">
+                <div>
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+                    <span style="font-size: 12.5px; font-weight: 600;">{{ m.name }}</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: {{ m.color }};">{{ m.label }}</span>
+                  </div>
+                  <div style="height: 5px; margin-top: 6px; background: #EFEDE6; border-radius: 3px; overflow: hidden;"><div style="{{ m.barStyle }}"></div></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top: 14px; padding: 11px 13px; background: #F8EFDC; border: 1px solid #EADDBC; border-radius: 9px; font-size: 11.5px; color: #6E4C10; line-height: 1.6;">Marks entry opens after the last paper of each course. Deadline for CS401: 26 September 2026.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isRequests }}">
+    <div key="freq" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="margin-bottom: 16px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Registration Requests</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Seat approvals and prerequisite waivers for courses you coordinate.</div>
+      </div>
+      <div style="display: grid; gap: 12px;">
+        <sc-for list="{{ requestCards }}" as="r" hint-placeholder-count="3">
+          <div style="{{ r.cardStyle }}">
+            <div style="display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px;">
+              <div style="flex: 1; min-width: 200px;">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 9px;">
+                  <span style="font-size: 15px; font-weight: 700;">{{ r.student }}</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B949C;">PRN {{ r.prn }}</span>
+                  <span style="{{ r.tagStyle }}">{{ r.tag }}</span>
+                </div>
+                <div style="font-size: 13px; color: #4A555E; margin-top: 7px; line-height: 1.6; max-width: 76ch;">{{ r.reason }}</div>
+              </div>
+              <div style="display: flex; gap: 7px;">
+                <button type="button" onClick="{{ r.approve }}" style="{{ r.approveStyle }}">{{ r.approveLabel }}</button>
+                <button type="button" onClick="{{ r.deny }}" style="{{ r.denyStyle }}">{{ r.denyLabel }}</button>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <sc-if value="{{ noRequests }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 56px 22px; background: #FFFFFF; border: 1px dashed #D6D0C4; border-radius: 14px; text-align: center;">
+          <div style="width: 36px; height: 36px; border: 1.5px dashed #D6D0C4; border-radius: 10px;"></div>
+          <div style="font-size: 15.5px; font-weight: 700;">No pending requests</div>
+          <p style="margin: 0; max-width: 46ch; font-size: 13px; color: #6B757E; line-height: 1.6;">Every seat and waiver request for your courses has been actioned.</p>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isNotifications }}">
+    <div key="fnt" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 16px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Notifications</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Department circulars and your own activity log.</div>
+        </div>
+        <button type="button" onClick="{{ announce }}" style="padding: 11px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Post announcement to class</button>
+      </div>
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
+        <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="4">
+          <div style="{{ n.style }}">
+            <span style="{{ n.dotStyle }}"></span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 14px; font-weight: 700; line-height: 1.4;">{{ n.title }}</div>
+              <div style="font-size: 12.5px; color: #6B757E; line-height: 1.6; margin-top: 4px; max-width: 84ch;">{{ n.body }}</div>
+            </div>
+            <span style="font-size: 11px; color: #9AA2A9; white-space: nowrap;">{{ n.time }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960},&quot;page&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;f-dashboard&quot;,&quot;f-courses&quot;,&quot;f-attendance&quot;,&quot;f-lesson&quot;,&quot;f-timetable&quot;,&quot;f-students&quot;,&quot;f-exams&quot;,&quot;f-registration&quot;,&quot;f-notifications&quot;],&quot;default&quot;:&quot;f-dashboard&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+const FAC_ID = 'F01';
+const MY_COURSES = ['CS401', 'CS412', 'CS511', 'CS512'];
+const TAUGHT = ['CS401', 'CS412'];
+
+class Component extends DCLogic {
+  state = {
+    markCode: 'CS401', markDate: new Date().toISOString().slice(0, 10), marks: null,
+    lpCode: 'CS401', search: '', requests: null, mount: false,
+    w: typeof window !== 'undefined' ? window.innerWidth : 1440
+  };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    requestAnimationFrame(() => requestAnimationFrame(() => this.setState({ mount: true })));
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  marksFor() {
+    const S = window.VIT;
+    if (this.state.marks) return this.state.marks;
+    const m = {};
+    S.roster.forEach((r, i) => { m[r.prn] = (i === 6 || i === 17) ? 'Absent' : 'Present'; });
+    return m;
+  }
+
+  // deterministic per-student attendance for the roster view
+  rosterPct(prn, i) {
+    const S = window.VIT;
+    if (prn === S.student.prn) {
+      const a = S.attendance().find(x => x.code === 'CS401');
+      return a ? a.pct : 0;
+    }
+    return 64 + ((i * 37) % 34);
+  }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, w = st.w, mount = st.mount;
+    const nav = this.props.nav || (() => {});
+    const page = this.props.page || 'f-dashboard';
+    const fac = S.faculty[FAC_ID];
+    const now = new Date();
+    const dayName = S.dayName();
+
+    // sessions this faculty teaches today
+    const myMeetings = (code) => {
+      const c = S.byCode[code]; if (!c) return [];
+      const out = [];
+      c.sections.forEach(sec => { if (sec.fac === FAC_ID) sec.meetings.forEach(m => out.push(Object.assign({}, m, { code, name: c.name, section: sec.id }))); });
+      return out;
+    };
+    const allMeetings = TAUGHT.reduce((acc, c) => acc.concat(myMeetings(c)), []);
+    const today = allMeetings.filter(m => m.day === dayName).sort((a, b) => S.toMin(a.start) - S.toMin(b.start));
+    const submitted = S.state.facultySubmissions;
+    const isSubmitted = (code) => submitted.some(s => s.code === code && s.date === now.toISOString().slice(0, 10));
+    const pending = today.filter(m => S.toMin(m.end) <= now.getHours() * 60 + now.getMinutes() && !isSubmitted(m.code));
+
+    const out = {
+      isDashboard: page === 'f-dashboard', isCourses: page === 'f-courses', isAttendance: page === 'f-attendance',
+      isLesson: page === 'f-lesson', isTimetable: page === 'f-timetable', isStudents: page === 'f-students',
+      isExams: page === 'f-exams', isRequests: page === 'f-registration', isNotifications: page === 'f-notifications',
+      attCols: w < 900 ? '1fr' : '232px minmax(0, 1fr)',
+      courseCardCols: w < 720 ? '1fr' : w < 1180 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
+      examCols: w < 1000 ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr)'
+    };
+
+    if (page === 'f-dashboard') {
+      const att401 = S.attendance().find(a => a.code === 'CS401');
+      Object.assign(out, {
+        greeting: 'Good ' + (now.getHours() < 12 ? 'morning' : now.getHours() < 17 ? 'afternoon' : 'evening') + ', ' + fac.name.replace(/^(Prof\.|Dr\.)\s/, '') + '.',
+        facMeta: fac.desig + ' · ' + fac.dept + ' · Cabin ' + fac.cabin + ' | ' + now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }),
+        statCols: w < 640 ? '1fr 1fr' : w < 1100 ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)',
+        stats: [
+          { label: "Today's classes", value: today.length, unit: 'sessions', note: today.length ? today.map(t => t.code).join(', ') : 'Nothing scheduled' },
+          { label: 'Courses taught', value: TAUGHT.length, unit: 'this term', note: 'CS401 Design Systems, CS412 Web Systems' },
+          { label: 'Students', value: 96, unit: 'across sections', note: '28 in SE-A, 40 + 28 in electives' },
+          { label: 'Attendance pending', value: pending.length, unit: 'sessions', note: pending.length ? 'Submit before the day closes' : 'Fully up to date', warn: pending.length > 0 },
+          { label: 'CS401 class average', value: att401 ? att401.pct : 0, unit: '%', note: 'Division A attendance to date' }
+        ].map(s => ({
+          label: s.label, value: s.value, unit: s.unit, note: s.note,
+          style: 'padding: 18px 20px; border-radius: 13px; ' + (s.warn ? 'background: #F8EFDC; border: 1px solid #EADDBC;' : 'background: #FFFFFF; border: 1px solid #E3DFD6;'),
+          labelColor: s.warn ? '#8A6114' : '#8B949C',
+          unitColor: s.warn ? '#8A6114' : '#8B949C',
+          noteColor: s.warn ? '#6E4C10' : '#6B757E'
+        })),
+        dashCols: w < 1020 ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr)',
+        todayLabel: dayName ? dayName + ' · ' + now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Sunday',
+        hasToday: today.length > 0, noToday: today.length === 0,
+        noTodayBody: dayName ? 'You have no sessions against CS401 or CS412 today.' : 'Sunday is a holiday. Your next session is Monday.',
+        todayClasses: today.map(m => {
+          const past = S.toMin(m.end) <= now.getHours() * 60 + now.getMinutes();
+          const done = isSubmitted(m.code);
+          return {
+            start: m.start, end: m.end, name: m.name,
+            meta: m.code + ' · Section ' + m.section + ' · ' + m.room + ' · ' + m.type,
+            timeColor: past ? '#8B949C' : '#161D22',
+            status: done ? 'Recorded' : past ? 'Pending' : 'Upcoming',
+            statusStyle: 'font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 4px 9px; border-radius: 20px; white-space: nowrap; background: ' + (done ? '#E6F2EA' : past ? '#F8EFDC' : '#EFEDE6') + '; color: ' + (done ? '#146B43' : past ? '#8A6114' : '#5A6570') + ';',
+            btnLabel: done ? 'View' : 'Mark',
+            btnStyle: 'padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; ' + (done ? 'background: #FFFFFF; border: 1px solid #E3DFD6; color: #4A555E;' : 'background: #131A1F; border: none; color: #FFFFFF;'),
+            rowStyle: 'display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 15px 20px; border-bottom: 1px solid #F4F1EA; background: ' + (!past ? '#FBFAF6' : '#FFFFFF') + ';',
+            go: () => { this.setState({ markCode: m.code }); nav('f-attendance'); }
+          };
+        }),
+        upcoming: allMeetings.filter(m => m.day !== dayName).slice(0, 5).map(m => ({ when: m.day + ' ' + m.start, name: m.name, room: m.room })),
+        hasPending: pending.length > 0, noPending: pending.length === 0, pendingCount: pending.length,
+        pending: pending.map(m => ({ code: m.code, name: m.name, when: m.start, go: () => { this.setState({ markCode: m.code }); nav('f-attendance'); } })),
+        requests: [
+          { student: 'Ishaan Gupta', detail: 'CS412 · seat request, section A full', tag: 'Seat' },
+          { student: 'Nidhi Rane', detail: 'CS401 · prerequisite waiver for OE301', tag: 'Waiver' },
+          { student: 'Om Prabhu', detail: 'CS412 · section swap B → A', tag: 'Swap' }
+        ].map(r => ({ student: r.student, detail: r.detail, tag: r.tag, tagStyle: 'font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; background: ' + (r.tag === 'Waiver' ? '#F8EFDC' : '#E4F2F0') + '; color: ' + (r.tag === 'Waiver' ? '#8A6114' : '#0B6F68') + ';' })),
+        hasSubmissions: submitted.length > 0,
+        submissions: submitted.slice(0, 5).map(s => ({
+          code: s.code, name: S.courseName(s.code), present: s.present, total: s.total,
+          date: new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+        })),
+        goMark: () => nav('f-attendance'), goLesson: () => nav('f-lesson'),
+        goTimetable: () => nav('f-timetable'), goRequests: () => nav('f-registration')
+      });
+    }
+
+    if (page === 'f-attendance') {
+      const code = st.markCode;
+      const c = S.byCode[code];
+      const marks = this.marksFor();
+      const present = Object.values(marks).filter(v => v === 'Present').length;
+      const late = Object.values(marks).filter(v => v === 'Late').length;
+      const absent = Object.values(marks).filter(v => v === 'Absent').length;
+      const total = S.roster.length;
+      const setMark = (prn, v) => { const m = Object.assign({}, marks); m[prn] = v; this.setState({ marks: m }); };
+      const sess = myMeetings(code).find(m => m.day === dayName) || myMeetings(code)[0];
+
+      Object.assign(out, {
+        courseList: TAUGHT.map(cc => {
+          const active = cc === code, co = S.byCode[cc];
+          return {
+            code: cc, name: co.name, students: cc === 'CS401' ? 28 : 40,
+            meta: (co.sections[0] || {}).meetings.map(m => m.day).join(' · '),
+            go: () => this.setState({ markCode: cc, marks: null }),
+            style: 'display: block; width: 100%; padding: 13px 15px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#161D22') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 11px; cursor: pointer; transition: all .2s;',
+            codeColor: active ? '#6FE3D6' : '#8B949C',
+            metaColor: active ? '#8FA0A4' : '#8B949C'
+          };
+        }),
+        markCode: code, markName: c.name, markDate: st.markDate,
+        markSession: sess ? sess.day + ' ' + sess.start + ' – ' + sess.end + ' · ' + sess.room + ' · ' + sess.type : 'No scheduled session',
+        setDate: (e) => this.setState({ markDate: e.target.value }),
+        markAll: () => { const m = {}; S.roster.forEach(r => { m[r.prn] = 'Present'; }); this.setState({ marks: m }); },
+        countPresent: present, countAbsent: absent, countLate: late,
+        sessionPct: total ? Math.round((present + late) / total * 100) : 0,
+        sessionBar: 'height: 100%; width: ' + (total ? (present + late) / total * 100 : 0) + '%; background: #0B8F86; border-radius: 3px; transition: width .4s cubic-bezier(.2,.8,.2,1);',
+        roster: S.roster.map((r, i) => {
+          const v = marks[r.prn];
+          return {
+            roll: r.roll, name: r.name, prn: r.prn, isDemo: r.prn === S.student.prn,
+            rowStyle: 'display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 11px 22px; border-bottom: 1px solid #F4F1EA; background: ' + (r.prn === S.student.prn ? '#FBFAF6' : i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
+            options: [['Present', '✓'], ['Absent', '✕'], ['Late', 'L']].map(([val, label]) => {
+              const on = v === val;
+              const col = val === 'Present' ? ['#1C8F5A', '#E6F2EA', '#146B43'] : val === 'Absent' ? ['#B8483A', '#F8E9E6', '#96382C'] : ['#B4801C', '#F8EFDC', '#8A6114'];
+              return {
+                label, go: () => setMark(r.prn, val),
+                style: 'min-width: 34px; height: 28px; display: grid; place-items: center; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .16s; background: ' + (on ? col[0] : col[1]) + '; color: ' + (on ? '#FFFFFF' : col[2]) + '; border: 1px solid ' + (on ? col[0] : 'transparent') + '; transform: scale(' + (on ? 1.04 : 1) + ');'
+              };
+            })
+          };
+        }),
+        submitHint: 'Submitting writes one row per student into the attendance log. Vaishnavi Bhagwat\'s record is the live student account — her percentage in the student portal will change immediately.',
+        submitStyle: 'padding: 12px 20px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .2s, transform .16s;',
+        submit: () => {
+          const normalised = {};
+          Object.keys(marks).forEach(prn => { normalised[prn] = marks[prn] === 'Late' ? 'Present' : marks[prn]; });
+          S.submitAttendance(code, st.markDate, normalised, FAC_ID);
+          const a = S.attendance().find(x => x.code === code);
+          S.toast({
+            title: 'Attendance submitted · ' + code,
+            body: present + late + ' of ' + total + ' present' + (a ? ' · student record now ' + a.pct + '%' : ''),
+            kind: 'ok'
+          });
+          this.setState({ marks: null });
+        }
+      });
+    }
+
+    if (page === 'f-lesson') {
+      const code = TAUGHT.indexOf(st.lpCode) >= 0 ? st.lpCode : TAUGHT[0];
+      const plan = S.lessonPlans[code] || { modules: [] };
+      const prog = S.lessonProgress(code);
+      const rows = [];
+      plan.modules.forEach(mo => mo.topics.forEach(t => {
+        const done = S.topicDone(code, mo.n, t[0]);
+        rows.push({ mod: mo.n, modTitle: mo.title, topic: t[0], date: t[1], done });
+      }));
+
+      Object.assign(out, {
+        lessonList: TAUGHT.map(cc => {
+          const active = cc === code, p = S.lessonProgress(cc);
+          return {
+            code: cc, name: S.courseName(cc), pct: p.pct, go: () => this.setState({ lpCode: cc }),
+            style: 'display: block; width: 100%; padding: 13px 15px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#161D22') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 11px; cursor: pointer; transition: all .2s;',
+            codeColor: active ? '#6FE3D6' : '#8B949C',
+            barStyle: 'height: 100%; width: ' + p.pct + '%; background: ' + (active ? '#12B3A6' : '#0B8F86') + '; border-radius: 2px; transition: width .5s cubic-bezier(.2,.8,.2,1);'
+          };
+        }),
+        lpCode: code, lpName: S.courseName(code),
+        lpNote: prog.done + ' of ' + prog.total + ' planned topics marked complete (' + prog.pct + '%). Students see this coverage on their own lesson-plan timeline.',
+        lpRows: rows.map((r, i) => ({
+          module: 'M' + String(r.mod).padStart(2, '0'), topic: r.topic, date: r.date,
+          status: r.done ? 'Covered' : 'Planned', mark: r.done ? '✓' : '',
+          style: 'border-bottom: 1px solid #F4F1EA; background: ' + (i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
+          pillStyle: 'display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; background: ' + (r.done ? '#E6F2EA' : '#EFEDE6') + '; color: ' + (r.done ? '#146B43' : '#5A6570') + ';',
+          boxStyle: 'width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .18s; background: ' + (r.done ? '#1C8F5A' : '#FFFFFF') + '; color: #FFFFFF; border: 1.5px solid ' + (r.done ? '#1C8F5A' : '#DFDCD3') + ';',
+          toggle: () => {
+            S.toggleTopic(code, r.mod, r.topic);
+            S.toast({ title: (r.done ? 'Reopened' : 'Marked complete') + ' — ' + r.topic, body: S.courseName(code) + ' · student lesson plan updated', kind: r.done ? 'warn' : 'ok' });
+          }
+        }))
+      });
+    }
+
+    if (page === 'f-courses') {
+      Object.assign(out, {
+        courseCards: MY_COURSES.map(cc => {
+          const c = S.byCode[cc]; if (!c) return null;
+          const taught = TAUGHT.indexOf(cc) >= 0;
+          const attRec = S.attendance().find(a => a.code === cc);
+          const att = attRec ? attRec.pct : cc === 'CS412' ? 91 : 88;
+          const lp = S.lessonProgress(cc).pct || (cc === 'CS412' ? 46 : 0);
+          const sec = c.sections[0] || { meetings: [], id: 'A' };
+          return {
+            code: cc, name: c.name, section: sec.id, cat: c.cat, credits: c.credits,
+            students: cc === 'CS401' ? 28 : cc === 'CS412' ? 40 : cc === 'CS511' ? 22 : 18,
+            schedule: sec.meetings.map(m => m.day + ' ' + m.start + '–' + m.end).join('  ·  ') || 'Semester V offering',
+            att, attColor: att < 75 ? '#B4801C' : '#146B43',
+            attBar: 'height: 100%; width: ' + (mount ? att : 0) + '%; background: ' + (att < 75 ? '#B4801C' : '#1C8F5A') + '; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1) .15s;',
+            lp, lpBar: 'height: 100%; width: ' + (mount ? lp : 0) + '%; background: #0B8F86; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1) .25s;',
+            goMark: () => { if (taught) { this.setState({ markCode: cc, marks: null }); nav('f-attendance'); } else S.toast({ title: cc + ' is a Semester V offering', body: 'Attendance opens when the term begins in January 2027.', kind: 'info' }); },
+            goPlan: () => { if (taught) { this.setState({ lpCode: cc }); nav('f-lesson'); } else S.toast({ title: 'Lesson plan not published', body: cc + ' syllabus is approved but the plan is drafted closer to the term.', kind: 'info' }); }
+          };
+        }).filter(Boolean)
+      });
+    }
+
+    if (page === 'f-students') {
+      const q = st.search.trim().toLowerCase();
+      const list = S.roster.filter(r => !q || r.name.toLowerCase().indexOf(q) >= 0 || r.prn.indexOf(q) >= 0);
+      Object.assign(out, {
+        rosterCount: S.roster.length, search: st.search,
+        setSearch: (e) => this.setState({ search: e.target.value }),
+        noStudents: list.length === 0,
+        students: list.map((r, i) => {
+          const pct = this.rosterPct(r.prn, S.roster.indexOf(r));
+          return {
+            roll: r.roll, name: r.name, prn: r.prn, pct,
+            color: pct < 75 ? '#B4801C' : '#146B43',
+            style: 'border-bottom: 1px solid #F4F1EA; background: ' + (r.prn === S.student.prn ? '#FBFAF6' : i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
+            barStyle: 'display: block; height: 100%; width: ' + (mount ? pct : 0) + '%; background: ' + (pct < 75 ? '#B4801C' : '#1C8F5A') + '; transition: width .8s cubic-bezier(.2,.8,.2,1);'
+          };
+        })
+      });
+    }
+
+    if (page === 'f-timetable') {
+      const hours = ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'];
+      const cells = [];
+      hours.forEach(h => {
+        cells.push({ isLabel: true, label: h, hasClass: false, style: 'display: flex; align-items: flex-start; justify-content: flex-end; padding-top: 6px; padding-right: 4px; min-height: 56px;' });
+        S.DAYS.forEach(d => {
+          const m = allMeetings.find(x => x.day === d && S.toMin(x.start) <= S.toMin(h) && S.toMin(x.end) > S.toMin(h));
+          cells.push({
+            hasClass: !!m, isLabel: false,
+            code: m ? m.code : '', name: m ? m.name : '', room: m ? m.room : '', type: m ? m.type : '',
+            style: 'min-height: 56px; padding: ' + (m ? '8px 10px' : '0') + '; border-radius: 9px; background: ' + (m ? (m.code === 'CS401' ? '#131A1F' : '#0B8F86') : '#FBFAF6') + '; color: ' + (m ? '#EDEAE3' : 'transparent') + '; border: 1px solid ' + (m ? 'transparent' : '#F0EDE6') + '; overflow: hidden;'
+          });
+        });
+      });
+      Object.assign(out, {
+        ttSummary: allMeetings.length + ' sessions a week across ' + TAUGHT.length + ' courses · ' + S.faculty[FAC_ID].dept,
+        ttDays: S.DAYS, ttCells: cells
+      });
+    }
+
+    if (page === 'f-exams') {
+      Object.assign(out, {
+        examRows: S.hallTicket.papers.map(p => {
+          const mine = TAUGHT.indexOf(p.code) >= 0;
+          return {
+            date: new Date(p.date.split(' ').reverse().join('-') + '').toLocaleDateString ? p.date.split(' ').slice(0, 2).join(' ') : p.date,
+            day: p.day, name: S.courseName(p.code),
+            meta: p.code + ' · ' + p.time + ' · ' + p.venue,
+            role: mine ? 'Paper setter' : 'Invigilation',
+            roleStyle: 'font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; white-space: nowrap; background: ' + (mine ? '#E4F2F0' : '#EFEDE6') + '; color: ' + (mine ? '#0B6F68' : '#5A6570') + ';'
+          };
+        }),
+        marksRows: [
+          { name: 'CS401 Design Systems — IS-I', done: 0, total: 28 },
+          { name: 'CS412 Web Systems — IS-I', done: 0, total: 40 },
+          { name: 'CS401 Continuous assessment', done: 28, total: 28 }
+        ].map(m => ({
+          name: m.name,
+          label: m.done + ' / ' + m.total + ' entered',
+          color: m.done === m.total ? '#146B43' : '#8A6114',
+          barStyle: 'height: 100%; width: ' + (mount ? m.done / m.total * 100 : 0) + '%; background: ' + (m.done === m.total ? '#1C8F5A' : '#B4801C') + '; border-radius: 3px; transition: width .8s cubic-bezier(.2,.8,.2,1);'
+        }))
+      });
+    }
+
+    if (page === 'f-registration') {
+      const actioned = st.requests || {};
+      const reqs = [
+        { id: 'r1', student: 'Ishaan Gupta', prn: '12310481', tag: 'Seat request', reason: 'CS412 section A is full (0 of 40 free). Student has CS303 with grade A and a timetable that only fits section A. Approving raises the section cap to 41.' },
+        { id: 'r2', student: 'Nidhi Rane', prn: '12310487', tag: 'Prerequisite waiver', reason: 'CS401 requires CS202 AND OE301. Student has CS202 (A) but not OE301; requests a waiver on the basis of a completed design internship and the OE301 audit certificate.' },
+        { id: 'r3', student: 'Om Prabhu', prn: '12310490', tag: 'Section swap', reason: 'CS412 section B → A. Section A has a clash with the student\'s CS305 tutorial on Monday, so the swap would create a conflict — recommend denial with the section C alternative.' }
+      ].filter(r => !actioned[r.id]);
+
+      Object.assign(out, {
+        noRequests: reqs.length === 0,
+        requestCards: reqs.map(r => ({
+          student: r.student, prn: r.prn, tag: r.tag, reason: r.reason,
+          cardStyle: 'background: #FFFFFF; border: 1px solid #E3DFD6; border-left: 3px solid ' + (r.tag === 'Prerequisite waiver' ? '#B4801C' : '#0B8F86') + '; border-radius: 13px; padding: 18px 20px;',
+          tagStyle: 'font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; background: ' + (r.tag === 'Prerequisite waiver' ? '#F8EFDC' : '#E4F2F0') + '; color: ' + (r.tag === 'Prerequisite waiver' ? '#8A6114' : '#0B6F68') + ';',
+          approveLabel: 'Approve', denyLabel: 'Deny',
+          approveStyle: 'padding: 10px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;',
+          denyStyle: 'padding: 10px 15px; background: #FFFFFF; color: #96382C; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;',
+          approve: () => { this.setState({ requests: Object.assign({}, actioned, { [r.id]: 'approved' }) }); S.toast({ title: 'Approved · ' + r.student, body: r.tag + ' granted. The student has been notified.', kind: 'ok' }); },
+          deny: () => { this.setState({ requests: Object.assign({}, actioned, { [r.id]: 'denied' }) }); S.toast({ title: 'Denied · ' + r.student, body: r.tag + ' declined with a written reason.', kind: 'warn' }); }
+        }))
+      });
+    }
+
+    if (page === 'f-notifications') {
+      Object.assign(out, {
+        announce: () => S.notify({ title: 'Announcement from ' + fac.name, body: 'CS401 Design Systems: the governance and adoption-metrics topic moves to 04 September. Bring your component audit drafts.', kind: 'academic' }) || S.toast({ title: 'Announcement posted', body: 'Sent to 28 students in SE Computer Engineering, Division A.', kind: 'ok' }),
+        notifications: S.state.notifications.map(n => ({
+          title: n.title, body: n.body, time: n.time,
+          style: 'display: flex; align-items: flex-start; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #F4F1EA; background: ' + (n.read ? '#FFFFFF' : '#FBFAF6') + ';',
+          dotStyle: 'min-width: 8px; height: 8px; margin-top: 6px; border-radius: 50%; background: ' + (n.kind === 'warning' ? '#B4801C' : n.kind === 'registration' ? '#0B8F86' : n.kind === 'accounts' ? '#B8483A' : '#1C8F5A') + ';'
+        }))
+      });
+    }
+
+    return out;
+  }
+}
+
+</script>
+</body>
+</html>

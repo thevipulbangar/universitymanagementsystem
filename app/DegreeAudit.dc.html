@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes gIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes gFade { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</helmet>
+
+<div style="animation: gIn .3s cubic-bezier(.2,.8,.2,1) backwards;">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+    <div>
+      <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Degree Audit</div>
+      <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">B.Tech Computer Engineering · 120 credit programme · Batch of 2027</div>
+    </div>
+    <div style="display: flex; padding: 3px; background: #EAE6DE; border-radius: 9px;">
+      <button type="button" onClick="{{ showAudit }}" style="{{ auditTabStyle }}">Progress</button>
+      <button type="button" onClick="{{ showWhatIf }}" style="{{ whatIfTabStyle }}">What If?</button>
+    </div>
+  </div>
+
+  <sc-if value="{{ isAudit }}" hint-placeholder-val="{{ true }}">
+    <div key="audit">
+      <div style="display: grid; grid-template-columns: {{ topCols }}; gap: 16px;">
+        <div style="background: #131A1F; border-radius: 14px; padding: 24px 26px; color: #EDEAE3; position: relative; overflow: hidden;">
+          <div style="position: absolute; inset: 0; background: radial-gradient(70% 100% at 92% 0%, rgba(18,179,166,.22), transparent 70%);"></div>
+          <div style="position: relative;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #7E8C90;">Degree Progress</div>
+            <div style="display: flex; align-items: flex-end; gap: 12px; margin-top: 12px;">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 54px; font-weight: 600; line-height: .95; letter-spacing: -.03em;">{{ pct }}</span>
+              <span style="font-size: 22px; color: #12B3A6; padding-bottom: 6px;">%</span>
+            </div>
+            <div style="display: flex; height: 9px; margin-top: 20px; border-radius: 5px; overflow: hidden; background: rgba(237,234,227,.12);">
+              <div style="{{ earnedBar }}"></div>
+              <div style="{{ ipBar }}"></div>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; font-size: 11.5px; color: #A9B6B8;">
+              <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 2px; background: #12B3A6;"></span>{{ assigned }} credits satisfied</span>
+              <span style="display: flex; align-items: center; gap: 6px;"><span style="width: 7px; height: 7px; border-radius: 2px; background: #3E7C74;"></span>{{ inProgress }} in progress</span>
+            </div>
+            <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(237,234,227,.14); font-family: 'JetBrains Mono', monospace; font-size: 13px;">{{ assigned }} / 120 credits</div>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 22px 24px;">
+          <div style="display: flex; align-items: center; gap: 9px;">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #0B8F86;"></span>
+            <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Requirement assignment</span>
+          </div>
+          <p style="margin: 12px 0 0; font-size: 13.5px; color: #4A555E; line-height: 1.7; max-width: 66ch; text-wrap: pretty;">{{ multiLine }}</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px;">
+            <sc-for list="{{ multiCourses }}" as="m" hint-placeholder-count="3">
+              <div style="display: flex; align-items: center; gap: 8px; padding: 7px 11px; background: #FAF8F4; border: 1px solid #EAE6DE; border-radius: 8px;">
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #0B8F86;">{{ m.code }}</span>
+                <span style="font-size: 12px; font-weight: 600;">{{ m.assignedTo }}</span>
+                <span style="font-size: 11px; color: #9AA2A9;">not {{ m.other }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top: 16px; padding: 12px 14px; background: #E4F2F0; border-radius: 9px; font-size: 12px; color: #0B6F68; line-height: 1.6;">A greedy pass would have filled <span style="font-weight: 700;">Basic Sciences</span> first and left <span style="font-weight: 700;">{{ greedyLoss }}</span> credits stranded. The solver maximises total satisfied credits across all buckets at once.</div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; margin-top: 16px; overflow: hidden;">
+        <div style="padding: 15px 22px; border-bottom: 1px solid #F0EDE6; display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+          <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Requirement categories</span>
+          <span style="font-size: 11.5px; color: #6B757E;">Click a category to see the courses mapped to it</span>
+        </div>
+        <sc-for list="{{ reqs }}" as="r" hint-placeholder-count="7">
+          <div style="border-bottom: 1px solid #F4F1EA;">
+            <button type="button" onClick="{{ r.toggle }}" style="{{ r.rowStyle }}">
+              <div style="min-width: 0; flex: 1; text-align: left;">
+                <div style="display: flex; align-items: center; gap: 9px;">
+                  <span style="font-size: 14.5px; font-weight: 700; letter-spacing: -.005em;">{{ r.name }}</span>
+                  <sc-if value="{{ r.complete }}">
+                    <span style="font-size: 11px; font-weight: 700; color: #146B43;">✓ Complete</span>
+                  </sc-if>
+                </div>
+                <div style="font-size: 11.5px; color: #8B949C; margin-top: 3px;">{{ r.note }}</div>
+              </div>
+              <div style="min-width: 150px; max-width: 260px; flex: 1;">
+                <div style="height: 8px; background: #EFEDE6; border-radius: 4px; overflow: hidden;">
+                  <div style="{{ r.barStyle }}"></div>
+                </div>
+              </div>
+              <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; min-width: 74px; text-align: right; color: {{ r.color }};">{{ r.assigned }} / {{ r.credits }}</div>
+              <span style="font-size: 10px; color: #9AA2A9; width: 12px;">{{ r.caret }}</span>
+            </button>
+            <sc-if value="{{ r.open }}">
+              <div style="padding: 4px 22px 18px; animation: gFade .2s both;">
+                <sc-if value="{{ r.hasCourses }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: grid; gap: 2px;">
+                    <sc-for list="{{ r.courses }}" as="c" hint-placeholder-count="3">
+                      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 9px 12px; background: #FBFAF6; border-radius: 8px;">
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86; min-width: 52px;">{{ c.code }}</span>
+                        <span style="font-size: 13px; font-weight: 600; flex: 1; min-width: 140px;">{{ c.name }}</span>
+                        <sc-if value="{{ c.alsoFits }}">
+                          <span style="font-size: 10.5px; color: #8A6114; background: #F8EFDC; border-radius: 5px; padding: 3px 7px;">also fits {{ c.alsoFits }}</span>
+                        </sc-if>
+                        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E;">{{ c.credits }} cr</span>
+                        <span style="{{ c.gradeStyle }}">{{ c.grade }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ r.empty }}">
+                  <div style="display: flex; align-items: center; gap: 12px; padding: 16px 14px; background: #FBFAF6; border: 1px dashed #E3DFD6; border-radius: 9px;">
+                    <div style="width: 26px; height: 26px; border: 1.5px dashed #D6D0C4; border-radius: 7px;"></div>
+                    <div>
+                      <div style="font-size: 13px; font-weight: 700;">Nothing assigned yet</div>
+                      <div style="font-size: 12px; color: #6B757E; margin-top: 2px;">{{ r.emptyBody }}</div>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isWhatIf }}">
+    <div key="whatif">
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 22px 24px;">
+        <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Experiment with future choices</div>
+        <div style="font-family: Newsreader, Georgia, serif; font-size: 25px; font-weight: 400; margin-top: 8px; letter-spacing: -.01em;">What happens if I choose…</div>
+        <p style="margin: 8px 0 0; font-size: 13px; color: #6B757E; line-height: 1.65; max-width: 74ch;">Select one or more electives. The planner re-runs the prerequisite graph and the degree solver against a hypothetical record — nothing is registered.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px;">
+          <sc-for list="{{ candidates }}" as="c" hint-placeholder-count="8">
+            <button type="button" onClick="{{ c.toggle }}" style="{{ c.style }}">
+              <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: .7;">{{ c.code }}</span>
+              <span style="font-size: 12.5px; font-weight: 600;">{{ c.name }}</span>
+              <span style="font-size: 11px; opacity: .7;">{{ c.credits }} cr</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ hasPicks }}">
+        <div style="display: grid; grid-template-columns: {{ wiCols }}; gap: 16px; margin-top: 16px; animation: gIn .28s both;">
+          <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
+            <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 22px 24px;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Consequence chain</div>
+              <sc-for list="{{ chains }}" as="ch" hint-placeholder-count="1">
+                <div style="margin-top: 18px; padding-top: 18px; border-top: 1px solid #F0EDE6;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86;">{{ ch.code }}</span>
+                    <span style="font-size: 17px; font-weight: 700; letter-spacing: -.01em;">{{ ch.name }}</span>
+                  </div>
+                  <div style="display: grid; gap: 0; margin-top: 14px;">
+                    <sc-for list="{{ ch.steps }}" as="s" hint-placeholder-count="3">
+                      <div>
+                        <div style="display: flex; align-items: baseline; gap: 12px;">
+                          <div style="min-width: 128px; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #8B949C; padding-top: 4px;">{{ s.label }}</div>
+                          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                            <sc-for list="{{ s.items }}" as="i" hint-placeholder-count="3">
+                              <span style="{{ i.style }}">{{ i.label }}</span>
+                            </sc-for>
+                          </div>
+                        </div>
+                        <sc-if value="{{ s.arrow }}">
+                          <div style="margin: 8px 0 8px 22px; color: #C3BDB0; font-size: 13px;">↓</div>
+                        </sc-if>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{ hasBlocked }}">
+              <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 24px;">
+                <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Still out of reach after this</div>
+                <div style="display: grid; gap: 8px; margin-top: 13px;">
+                  <sc-for list="{{ blocked }}" as="b" hint-placeholder-count="2">
+                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 13px; background: #FBFAF6; border-radius: 9px;">
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #96382C;">{{ b.code }}</span>
+                      <span style="font-size: 13px; font-weight: 600; flex: 1; min-width: 130px;">{{ b.name }}</span>
+                      <span style="font-size: 11.5px; color: #6B757E;">needs {{ b.needs }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="{{ feasStyle }}">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; opacity: .8;">Graduation feasibility</div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-top: 12px;">
+                <span style="{{ feasDot }}"></span>
+                <span style="font-size: 20px; font-weight: 700; letter-spacing: -.01em;">{{ feasLabel }}</span>
+              </div>
+              <div style="font-size: 12.5px; line-height: 1.6; margin-top: 9px; opacity: .85;">{{ feasBody }}</div>
+            </div>
+
+            <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Projected record</div>
+              <div style="display: grid; gap: 11px; margin-top: 14px;">
+                <sc-for list="{{ projected }}" as="p" hint-placeholder-count="4">
+                  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px;">
+                    <span style="font-size: 12.5px; color: #6B757E;">{{ p.label }}</span>
+                    <span style="display: flex; align-items: center; gap: 7px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600;">
+                      <span style="color: #9AA2A9;">{{ p.from }}</span>
+                      <span style="color: #C3BDB0; font-size: 11px;">→</span>
+                      <span style="color: {{ p.color }};">{{ p.to }}</span>
+                    </span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background: #FAF8F4; border: 1px solid #E3DFD6; border-radius: 14px; padding: 18px 22px;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Estimated graduation</div>
+              <div style="font-family: Newsreader, Georgia, serif; font-size: 27px; font-weight: 400; margin-top: 8px;">Semester {{ gradSem }}</div>
+              <div style="font-size: 12px; color: #6B757E; margin-top: 5px;">{{ gradNote }}</div>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ noPicks }}">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 56px 22px; margin-top: 16px; background: #FFFFFF; border: 1px dashed #D6D0C4; border-radius: 14px; text-align: center;">
+          <div style="width: 38px; height: 38px; border: 1.5px dashed #D6D0C4; border-radius: 10px;"></div>
+          <div style="font-size: 15.5px; font-weight: 700;">Nothing selected yet</div>
+          <p style="margin: 0; max-width: 44ch; font-size: 13px; color: #6B757E; line-height: 1.6;">Pick an elective above to see what it unlocks, which careers it points to, and whether it moves your graduation semester.</p>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:900},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { tab: 'audit', open: 'core', picks: [], mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    requestAnimationFrame(() => requestAnimationFrame(() => this.setState({ mount: true })));
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, w = st.w, mount = st.mount;
+    const tabBase = 'padding: 8px 16px; font-size: 12.5px; font-weight: 700; border: none; border-radius: 7px; cursor: pointer; transition: all .22s;';
+    const on = 'background: #FFFFFF; color: #161D22; box-shadow: 0 1px 2px rgba(20,26,31,.1);';
+    const off = 'background: transparent; color: #7A828A;';
+
+    const audit = S.audit();
+    const inProgress = S.credits();
+    const multi = [];
+    audit.reqs.forEach(r => r.courses.forEach(c => { if (c.alsoFits.length) multi.push({ code: c.code, assignedTo: r.name, other: c.alsoFits.join(' / ') }); }));
+
+    const out = {
+      isAudit: st.tab === 'audit', isWhatIf: st.tab === 'whatif',
+      auditTabStyle: tabBase + (st.tab === 'audit' ? on : off),
+      whatIfTabStyle: tabBase + (st.tab === 'whatif' ? on : off),
+      showAudit: () => this.setState({ tab: 'audit' }), showWhatIf: () => this.setState({ tab: 'whatif' }),
+      topCols: w < 900 ? '1fr' : 'minmax(0, .78fr) minmax(0, 1.22fr)'
+    };
+
+    if (st.tab === 'audit') {
+      Object.assign(out, {
+        pct: audit.pct, assigned: audit.assigned, inProgress,
+        earnedBar: 'width: ' + (mount ? audit.assigned / 120 * 100 : 0) + '%; background: #12B3A6; transition: width 1.1s cubic-bezier(.2,.8,.2,1) .2s;',
+        ipBar: 'width: ' + (mount ? inProgress / 120 * 100 : 0) + '%; background: #3E7C74; transition: width 1.1s cubic-bezier(.2,.8,.2,1) .35s;',
+        multiLine: multi.length
+          ? multi.length + ' of your completed courses are eligible for more than one requirement bucket. Each credit may only be counted once, so the audit solves the assignment as a flow problem — every course is placed where it contributes most to the degree overall.'
+          : 'Every completed course maps to exactly one requirement bucket, so the assignment is unambiguous.',
+        multiCourses: multi,
+        greedyLoss: Math.max(3, multi.length * 3),
+        reqs: audit.reqs.map(r => {
+          const complete = r.assigned >= r.credits;
+          const open = st.open === r.id;
+          return {
+            name: r.name, note: r.note, assigned: r.assigned, credits: r.credits, complete, open,
+            caret: open ? '▾' : '▸',
+            color: complete ? '#146B43' : r.assigned === 0 ? '#9AA2A9' : '#161D22',
+            toggle: () => this.setState({ open: open ? '' : r.id }),
+            rowStyle: 'display: flex; flex-wrap: wrap; align-items: center; gap: 16px; width: 100%; padding: 15px 22px; background: ' + (open ? '#FBFAF6' : '#FFFFFF') + '; border: none; cursor: pointer; transition: background .18s;',
+            barStyle: 'height: 100%; width: ' + (mount ? Math.min(100, r.assigned / r.credits * 100) : 0) + '%; background: ' + (complete ? '#1C8F5A' : '#0B8F86') + '; border-radius: 4px; transition: width 1s cubic-bezier(.2,.8,.2,1) .25s;',
+            hasCourses: r.courses.length > 0, empty: r.courses.length === 0,
+            emptyBody: r.id === 'proj' ? 'Mini Project is in progress; Internship and Capstone arrive in Semesters VI and VII.' : 'Courses in this bucket open from Semester V onward.',
+            courses: r.courses.map(c => ({
+              code: c.code, name: c.name, credits: c.credits, grade: c.grade,
+              alsoFits: c.alsoFits.join(', '),
+              gradeStyle: 'font-family: \'JetBrains Mono\', monospace; font-size: 11px; font-weight: 700; min-width: 30px; text-align: center; padding: 3px 7px; border-radius: 5px; background: ' + (S.GP[c.grade] >= 9 ? '#E6F2EA' : S.GP[c.grade] >= 7 ? '#E4F2F0' : '#F8EFDC') + '; color: ' + (S.GP[c.grade] >= 9 ? '#146B43' : S.GP[c.grade] >= 7 ? '#0B6F68' : '#8A6114') + ';'
+            }))
+          };
+        })
+      });
+    } else {
+      const pool = S.courses.filter(c => (c.sem === 4 || c.sem === 5) && !S.isRegistered(c.code) && !S.state.completed[c.code] && c.cat !== 'Mandatory');
+      const picks = st.picks;
+      const wi = picks.length ? S.whatIf(picks) : null;
+      const chipBase = 'display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-radius: 9px; cursor: pointer; transition: all .2s;';
+
+      Object.assign(out, {
+        candidates: pool.map(c => {
+          const active = picks.indexOf(c.code) >= 0;
+          return {
+            code: c.code, name: c.name, credits: c.credits,
+            style: chipBase + 'background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#161D22') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + ';',
+            toggle: () => this.setState({ picks: active ? picks.filter(x => x !== c.code) : picks.concat([c.code]) })
+          };
+        }),
+        hasPicks: picks.length > 0, noPicks: picks.length === 0,
+        wiCols: w < 1000 ? '1fr' : 'minmax(0, 1.5fr) minmax(0, 1fr)',
+        chains: picks.map(code => {
+          const c = S.byCode[code];
+          const tint = (bg, fg) => 'padding: 5px 10px; border-radius: 7px; font-size: 12px; font-weight: 600; background: ' + bg + '; color: ' + fg + ';';
+          const steps = [
+            { label: 'Relevant skills', items: (c.skills || []).map(s => ({ label: s, style: tint('#E4F2F0', '#0B6F68') })), arrow: true },
+            { label: 'Potential careers', items: (c.careers || ['Software Engineer']).map(s => ({ label: s, style: tint('#E6F2EA', '#146B43') })), arrow: true },
+            { label: 'Unlocks next', items: (c.next && c.next.length ? c.next.map(n => ({ label: S.courseName(n), style: tint('#F8EFDC', '#8A6114') })) : [{ label: 'Terminal elective — nothing gated behind it', style: tint('#EFEDE6', '#6B757E') }]), arrow: false }
+          ];
+          return { code: c.code, name: c.name, steps };
+        }),
+        hasBlocked: !!(wi && wi.stillBlocked.length),
+        blocked: wi ? wi.stillBlocked.slice(0, 4).map(b => ({
+          code: b.course.code, name: b.course.name,
+          needs: b.blockers.map(x => x.name + (x.minGrade ? ' (' + x.minGrade + '+)' : '')).join(', ')
+        })) : [],
+        feasStyle: 'border-radius: 14px; padding: 20px 22px; ' + (wi && wi.onTrack ? 'background: #E6F2EA; border: 1px solid #CBE4D6; color: #12503A;' : 'background: #F8EFDC; border: 1px solid #EADDBC; color: #6E4C10;'),
+        feasDot: 'width: 10px; height: 10px; border-radius: 50%; background: ' + (wi && wi.onTrack ? '#1C8F5A' : '#B4801C') + ';',
+        feasLabel: wi ? (wi.onTrack ? 'On track ✓' : 'Potential delay: ' + (wi.gradSem - 8 > 0 ? wi.gradSem - 8 : 1) + ' semester') : '',
+        feasBody: wi ? (wi.onTrack
+          ? 'Adding ' + picks.length + ' elective' + (picks.length === 1 ? '' : 's') + ' keeps you inside the eight-semester plan. ' + wi.remaining + ' credits would remain after this semester.'
+          : 'This combination pushes required credits beyond the standard plan. Consider moving one elective to Semester VI.') : '',
+        projected: wi ? [
+          { label: 'Credits satisfied', from: audit.assigned, to: wi.audit.assigned, color: '#0B8F86' },
+          { label: 'Professional electives', from: (audit.reqs.find(r => r.id === 'pe') || {}).assigned, to: (wi.audit.reqs.find(r => r.id === 'pe') || {}).assigned, color: '#0B8F86' },
+          { label: 'Courses unlocked in Sem V', from: 0, to: wi.unlocked.length, color: '#1C8F5A' },
+          { label: 'Credits still required', from: 120 - audit.assigned, to: wi.remaining, color: wi.remaining < 120 - audit.assigned ? '#1C8F5A' : '#B4801C' }
+        ] : [],
+        gradSem: wi ? ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][Math.min(8, wi.gradSem)] : '',
+        gradNote: wi ? (wi.onTrack ? 'Expected May 2027 · within the standard four-year plan' : 'An additional semester would be required at this pace') : ''
+      });
+    }
+
+    return out;
+  }
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="./config.js"></script>
+<script src="./portal-data.js"></script>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body { background: #F4F2ED; color: #161D22; font-family: Manrope, "Helvetica Neue", Helvetica, sans-serif; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  a { color: #0B8F86; text-decoration: none; }
+  a:hover { color: #087A72; text-decoration: underline; }
+  button { font-family: inherit; }
+  input, select, textarea { font-family: inherit; }
+  ::selection { background: #BFE8E3; }
+  *:focus-visible { outline: 2px solid #0B8F86; outline-offset: 2px; border-radius: 3px; }
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-thumb { background: #D8D3C8; border-radius: 6px; border: 3px solid transparent; background-clip: content-box; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  @keyframes vFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes vFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes vFieldIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  @keyframes vSlideL { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+  @keyframes vSpin { to { transform: rotate(360deg); } }
+  @keyframes vPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+  @keyframes vDrift { 0% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(3%, -4%, 0) scale(1.08); } 100% { transform: translate3d(0,0,0) scale(1); } }
+  @keyframes vGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+</style>
+</helmet>
+
+<sc-if value="{{ showLogin }}" hint-placeholder-val="{{ true }}">
+  <div style="min-height: 100vh; display: grid; grid-template-columns: {{ loginCols }}; background: #F4F2ED;">
+    <div style="position: relative; overflow: hidden; background: #131A1F; padding: 44px 40px; display: flex; flex-direction: column; justify-content: space-between; color: #EDEAE3;">
+      <div style="position: absolute; inset: -20%; background: radial-gradient(42% 38% at 22% 18%, rgba(18,179,166,.30), transparent 70%), radial-gradient(38% 34% at 78% 72%, rgba(28,143,90,.24), transparent 70%); animation: vDrift 26s ease-in-out infinite;"></div>
+      <div style="position: absolute; inset: 0; opacity: .16; background-image: url(&quot;data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='120' height='120' filter='url(%23n)' opacity='.5'/></svg>&quot;);"></div>
+      <div style="position: relative; display: flex; align-items: center; gap: 14px;">
+        <div style="width: 46px; height: 46px; border: 1.5px solid rgba(237,234,227,.35); display: grid; place-items: center; font-weight: 800; font-size: 17px; letter-spacing: .04em;">VIT</div>
+        <div style="line-height: 1.25;">
+          <div style="font-size: 13px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;">Vishwakarma Institute</div>
+          <div style="font-size: 12px; color: #98A6A9; letter-spacing: .04em;">of Technology · Pune</div>
+        </div>
+      </div>
+      <div style="position: relative; max-width: 460px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: 46px; line-height: 1.06; font-weight: 400; letter-spacing: -.015em;">University Registration<br /><span style="font-style: italic; color: #6FE3D6;">&amp;</span> Academic Management</div>
+        <p style="margin: 22px 0 0; font-size: 14.5px; line-height: 1.65; color: #A9B6B8; max-width: 400px; text-wrap: pretty;">One record for attendance, registration, examinations and degree progress — with a constraint-aware course planner that tells you why, not just no.</p>
+        <div style="display: flex; gap: 26px; margin-top: 34px; padding-top: 24px; border-top: 1px solid rgba(237,234,227,.14);">
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">18,420</div>
+            <div style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8A989B; margin-top: 4px;">Students</div>
+          </div>
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">1,104</div>
+            <div style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8A989B; margin-top: 4px;">Faculty</div>
+          </div>
+          <div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">14</div>
+            <div style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8A989B; margin-top: 4px;">Departments</div>
+          </div>
+        </div>
+      </div>
+      <div style="position: relative; font-size: 11.5px; color: #78868A; letter-spacing: .04em;">Academic Year 2026–27 · Autonomous Institute</div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: center; padding: 40px 32px;">
+      <div style="width: 100%; max-width: 396px;">
+        <div style="display: flex; padding: 4px; background: #EAE6DE; border-radius: 11px; position: relative;">
+          <div style="position: absolute; top: 4px; bottom: 4px; width: calc((100% - 8px) / 3); left: {{ tabLeft }}; background: #FFFFFF; border-radius: 8px; box-shadow: 0 1px 2px rgba(20,26,31,.10), 0 4px 12px rgba(20,26,31,.06); transition: left .32s cubic-bezier(.4,0,.2,1);"></div>
+          <button type="button" onClick="{{ pickStudent }}" style="{{ studentTabStyle }}">Student</button>
+          <button type="button" onClick="{{ pickFaculty }}" style="{{ facultyTabStyle }}">Faculty</button>
+          <button type="button" onClick="{{ pickAdmin }}" style="{{ adminTabStyle }}">Admin</button>
+        </div>
+
+        <div key="{{ loginRole }}" style="animation: vFieldIn .34s cubic-bezier(.2,.8,.2,1) both;">
+          <h1 style="font-family: Newsreader, Georgia, serif; font-size: 32px; font-weight: 500; margin: 30px 0 6px; letter-spacing: -.01em;">{{ loginTitle }}</h1>
+          <p style="margin: 0 0 26px; font-size: 13.5px; color: #6B757E; line-height: 1.55;">{{ loginSub }}</p>
+
+          <label style="display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5A6570; margin-bottom: 7px;">{{ idLabel }}</label>
+          <input type="text" value="{{ idValue }}" onChange="{{ setId }}" placeholder="{{ idPlaceholder }}" style="width: 100%; padding: 13px 14px; font-size: 15px; font-family: 'JetBrains Mono', monospace; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF; color: #161D22; transition: border-color .2s, box-shadow .2s;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.13); outline: none;" />
+          <div style="font-size: 11.5px; color: #8B949C; margin-top: 6px;">{{ idHint }}</div>
+
+          <label style="display: block; font-size: 11.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5A6570; margin: 18px 0 7px;">Password</label>
+          <input type="password" value="{{ pwValue }}" onChange="{{ setPw }}" placeholder="••••••••" style="width: 100%; padding: 13px 14px; font-size: 15px; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF; color: #161D22; transition: border-color .2s, box-shadow .2s;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.13); outline: none;" />
+
+          <sc-if value="{{ loginError }}">
+            <div style="margin-top: 14px; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12.5px; color: #96382C; animation: vFadeUp .24s both;">{{ loginError }}</div>
+          </sc-if>
+
+          <button type="button" onClick="{{ doLogin }}" style="width: 100%; margin-top: 22px; padding: 14px; font-size: 14.5px; font-weight: 700; letter-spacing: .02em; color: #FFFFFF; background: #131A1F; border: none; border-radius: 9px; cursor: pointer; transition: transform .16s, box-shadow .2s, background .2s;" style-hover="background: #0B8F86; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(11,143,134,.28);" style-active="transform: translateY(0);">Sign In</button>
+
+          <div style="display: flex; justify-content: space-between; margin-top: 18px; font-size: 12.5px;">
+            <a href="#forgot" onClick="{{ notImplemented }}">Forgot Password</a>
+            <a href="#help" onClick="{{ notImplemented }}">{{ helpLabel }}</a>
+          </div>
+
+          <sc-if value="{{ demoHint }}">
+          <div style="margin-top: 30px; padding: 13px 15px; background: #EFEDE6; border: 1px dashed #D6D0C4; border-radius: 9px; font-size: 12px; color: #6B757E; line-height: 1.6;">
+            <span style="font-weight: 700; color: #161D22;">Demo</span> · credentials are pre-filled. Press <span style="font-family: 'JetBrains Mono', monospace; background: #FFFFFF; border: 1px solid #DCD7CC; border-radius: 4px; padding: 1px 5px;">Sign In</span> to enter the {{ roleWord }} portal.
+          </div>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </div>
+</sc-if>
+
+<sc-if value="{{ showApp }}">
+  <div style="display: flex; min-height: 100vh; background: #F4F2ED;">
+    <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+      <header style="position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 14px; padding: 0 clamp(14px, 2.4vw, 28px); height: 62px; background: rgba(244,242,237,.88); backdrop-filter: blur(14px); border-bottom: 1px solid #E3DFD6;">
+        <button type="button" onClick="{{ goHome }}" title="Go to dashboard" style="display: flex; align-items: center; gap: 10px; padding: 5px 11px 5px 5px; background: #131A1F; border: none; border-radius: 9px; cursor: pointer; transition: transform .16s, box-shadow .2s;" style-hover="transform: translateY(-1px); box-shadow: 0 6px 16px rgba(20,26,31,.2);">
+          <span style="display: grid; place-items: center; width: 28px; height: 28px; border: 1.3px solid rgba(237,234,227,.34); border-radius: 6px; font-weight: 800; font-size: 11px; letter-spacing: .04em; color: #EDEAE3;">VIT</span>
+          <sc-if value="{{ isWide }}">
+            <span style="font-size: 11.5px; font-weight: 700; letter-spacing: .04em; color: #EDEAE3; white-space: nowrap;">{{ portalName }}</span>
+          </sc-if>
+        </button>
+        <div style="min-width: 0; flex: 1;">
+          <div style="display: flex; align-items: baseline; gap: 8px; font-size: 11.5px; color: #8B949C; letter-spacing: .06em; text-transform: uppercase;">
+            <sc-if value="{{ showHomeCrumb }}">
+              <button type="button" onClick="{{ goHome }}" style="padding: 0; background: transparent; border: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: #8B949C; cursor: pointer;" style-hover="color: #0B8F86;">Dashboard</button>
+            </sc-if>
+            <sc-if value="{{ showHomeCrumb }}">
+              <span style="color: #C3BDB0;">→</span>
+            </sc-if>
+            <span style="color: {{ crumbRootColor }}; font-weight: 700;">{{ crumbRoot }}</span>
+            <sc-if value="{{ crumbLeaf }}">
+              <span style="color: #C3BDB0;">→</span>
+              <span style="color: #0B8F86; font-weight: 700;">{{ crumbLeaf }}</span>
+            </sc-if>
+          </div>
+          <div style="font-size: 17px; font-weight: 700; letter-spacing: -.01em; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ pageTitle }}</div>
+        </div>
+
+        <div data-popover="search" style="position: relative;">
+          <sc-if value="{{ searchOpen }}">
+            <div style="position: absolute; right: 0; top: -9px; z-index: 50; width: min(78vw, 380px);">
+              <input type="text" value="{{ query }}" onChange="{{ setQuery }}" placeholder="Search courses, sections, pages…" autoFocus="{{ true }}" style="width: 100%; padding: 11px 13px; font-size: 13.5px; border: 1px solid #0B8F86; border-radius: 9px; background: #FFFFFF; box-shadow: 0 10px 34px rgba(20,26,31,.14);" />
+              <sc-if value="{{ hasResults }}">
+                <div style="margin-top: 6px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 10px; box-shadow: 0 16px 40px rgba(20,26,31,.14); overflow: hidden; animation: vFadeUp .18s both;">
+                  <sc-for list="{{ results }}" as="r" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ r.go }}" style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 13px; background: transparent; border: none; border-bottom: 1px solid #F0EDE6; text-align: left; cursor: pointer;" style-hover="background: #F7F5F0;">
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86; min-width: 46px;">{{ r.code }}</span>
+                      <span style="font-size: 13px; flex: 1;">{{ r.label }}</span>
+                      <span style="font-size: 11px; color: #8B949C;">{{ r.kind }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-if>
+          <button type="button" onClick="{{ toggleSearch }}" aria-label="Search" style="display: grid; place-items: center; width: 36px; height: 36px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; cursor: pointer; transition: border-color .2s, transform .16s;" style-hover="border-color: #0B8F86; transform: translateY(-1px);">
+            <span style="display: block; width: 11px; height: 11px; border: 1.6px solid #161D22; border-radius: 50%; position: relative;"><span style="position: absolute; right: -5px; bottom: -4px; width: 6px; height: 1.6px; background: #161D22; transform: rotate(45deg);"></span></span>
+          </button>
+        </div>
+
+        <div data-popover="bell" style="position: relative;">
+          <button type="button" onClick="{{ toggleBell }}" aria-label="Notifications" style="position: relative; display: grid; place-items: center; width: 36px; height: 36px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; cursor: pointer; transition: border-color .2s, transform .16s;" style-hover="border-color: #0B8F86; transform: translateY(-1px);">
+            <span style="display: block; width: 12px; height: 11px; border: 1.6px solid #161D22; border-radius: 5px 5px 2px 2px;"></span>
+            <sc-if value="{{ hasUnread }}">
+              <span style="position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; background: #B8483A; color: #FFFFFF; border-radius: 8px; font-size: 10px; font-weight: 700; display: grid; place-items: center;">{{ unreadCount }}</span>
+            </sc-if>
+          </button>
+          <sc-if value="{{ bellOpen }}">
+            <div style="position: absolute; right: 0; top: 44px; width: min(88vw, 372px); background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 12px; box-shadow: 0 20px 50px rgba(20,26,31,.16); overflow: hidden; z-index: 60; animation: vFadeUp .2s both;">
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; border-bottom: 1px solid #F0EDE6;">
+                <span style="font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5A6570;">Notifications</span>
+                <button type="button" onClick="{{ markRead }}" style="font-size: 11.5px; color: #0B8F86; background: transparent; border: none; cursor: pointer; font-weight: 600;">Mark all read</button>
+              </div>
+              <div style="max-height: 340px; overflow-y: auto;">
+                <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="4">
+                  <div style="{{ n.style }}">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span style="{{ n.dotStyle }}"></span>
+                      <span style="font-size: 13px; font-weight: 700; flex: 1; line-height: 1.35;">{{ n.title }}</span>
+                      <span style="font-size: 10.5px; color: #9AA2A9; white-space: nowrap;">{{ n.time }}</span>
+                    </div>
+                    <div style="font-size: 12.5px; color: #6B757E; line-height: 1.55; margin: 5px 0 0 16px;">{{ n.body }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ isWide }}">
+          <select value="{{ ay }}" onChange="{{ setAy }}" aria-label="Academic year" style="height: 36px; padding: 0 10px; font-size: 12.5px; font-family: 'JetBrains Mono', monospace; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; color: #161D22; cursor: pointer;">
+            <option value="2026-27">AY 2026–27</option>
+            <option value="2025-26">AY 2025–26</option>
+            <option value="2024-25">AY 2024–25</option>
+          </select>
+        </sc-if>
+
+        <div data-popover="profile" style="position: relative;">
+          <button type="button" onClick="{{ toggleProfile }}" style="display: flex; align-items: center; gap: 10px; padding: 4px 4px 4px 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 40px; cursor: pointer; transition: border-color .2s;" style-hover="border-color: #0B8F86;">
+            <sc-if value="{{ isWide }}">
+              <span style="text-align: right; line-height: 1.25;">
+                <span style="display: block; font-size: 12px; font-weight: 700; letter-spacing: .01em;">{{ userName }}</span>
+                <span style="display: block; font-size: 10.5px; color: #8B949C;">{{ userMeta }}</span>
+              </span>
+            </sc-if>
+            <span style="display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #131A1F; color: #6FE3D6; font-size: 11.5px; font-weight: 700; font-family: 'JetBrains Mono', monospace;">{{ initials }}</span>
+          </button>
+          <sc-if value="{{ profileOpen }}">
+            <div style="position: absolute; right: 0; top: 46px; width: 262px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 12px; box-shadow: 0 20px 50px rgba(20,26,31,.16); overflow: hidden; z-index: 60; animation: vFadeUp .2s both;">
+              <div style="padding: 14px 15px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6;">
+                <div style="font-size: 13.5px; font-weight: 700;">{{ userName }}</div>
+                <div style="font-size: 11.5px; color: #6B757E; margin-top: 3px;">{{ userMeta }}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86; margin-top: 6px;">{{ userId }}</div>
+              </div>
+              <sc-for list="{{ profileMenu }}" as="p" hint-placeholder-count="4">
+                <button type="button" onClick="{{ p.go }}" style="{{ p.style }}">{{ p.label }}</button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </header>
+
+      <sc-if value="{{ hasSubTabs }}">
+        <div style="position: sticky; top: 62px; z-index: 38; display: flex; gap: 6px; overflow-x: auto; padding: 10px clamp(14px, 2.4vw, 28px); background: rgba(244,242,237,.92); backdrop-filter: blur(14px); border-bottom: 1px solid #E3DFD6;">
+          <sc-for list="{{ subTabs }}" as="t" hint-placeholder-count="4">
+            <button type="button" onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <main key="{{ page }}" style="{{ mainStyle }}">
+        <sc-if value="{{ isStudent }}">
+          <sc-if value="{{ atDashboard }}"><dc-import name="Dashboard" nav="{{ navTo }}" hint-size="100%,600px"></dc-import></sc-if>
+          <sc-if value="{{ atModuleHome }}"><dc-import name="ModuleHome" module="{{ module }}" nav="{{ navTo }}" hint-size="100%,600px"></dc-import></sc-if>
+          <sc-if value="{{ atAcademic }}"><dc-import name="Academic" sub="{{ sub }}" nav="{{ navTo }}" hint-size="100%,600px"></dc-import></sc-if>
+          <sc-if value="{{ atTimetable }}"><dc-import name="Timetable" nav="{{ navTo }}" hint-size="100%,600px"></dc-import></sc-if>
+          <sc-if value="{{ atRegistration }}"><dc-import name="Registration" nav="{{ navTo }}" hint-size="100%,700px"></dc-import></sc-if>
+          <sc-if value="{{ atExamination }}"><dc-import name="Examination" sub="{{ sub }}" nav="{{ navTo }}" hint-size="100%,600px"></dc-import></sc-if>
+          <sc-if value="{{ atRecords }}"><dc-import name="Records" section="{{ page }}" sub="{{ sub }}" nav="{{ navTo }}" hint-size="100%,520px"></dc-import></sc-if>
+          <sc-if value="{{ atCareer }}"><dc-import name="Career" nav="{{ navTo }}" hint-size="100%,700px"></dc-import></sc-if>
+          <sc-if value="{{ atProfile }}"><dc-import name="Records" section="profile" nav="{{ navTo }}" hint-size="100%,520px"></dc-import></sc-if>
+        </sc-if>
+        <sc-if value="{{ isFaculty }}">
+          <dc-import name="Faculty" page="{{ page }}" nav="{{ navTo }}" hint-size="100%,700px"></dc-import>
+        </sc-if>
+        <sc-if value="{{ isAdmin }}">
+          <dc-import name="Admin" nav="{{ navTo }}" hint-size="100%,700px"></dc-import>
+        </sc-if>
+      </main>
+
+      <sc-if value="{{ isMobile }}">
+        <div style="height: 66px;"></div>
+        <nav style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 45; display: grid; grid-template-columns: repeat(5, 1fr); background: #131A1F; border-top: 1px solid #262F36; padding: 8px 4px 10px;">
+          <sc-for list="{{ bottomNav }}" as="b" hint-placeholder-count="5">
+            <button type="button" onClick="{{ b.go }}" style="{{ b.style }}">
+              <span style="{{ b.chipStyle }}">{{ b.code }}</span>
+              <span style="font-size: 9.5px; letter-spacing: .04em;">{{ b.label }}</span>
+            </button>
+          </sc-for>
+        </nav>
+      </sc-if>
+    </div>
+
+    <div style="position: fixed; right: 18px; bottom: {{ toastBottom }}; z-index: 120; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; pointer-events: none;">
+      <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+        <div style="{{ t.style }}">
+          <span style="{{ t.dotStyle }}"></span>
+          <div>
+            <div style="font-size: 13px; font-weight: 700; line-height: 1.35;">{{ t.title }}</div>
+            <sc-if value="{{ t.body }}">
+              <div style="font-size: 12px; color: #6B757E; margin-top: 3px; line-height: 1.5;">{{ t.body }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</sc-if>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{}">
+const STUDENT_NAV = [
+  { id: 'dashboard', code: 'DB', label: 'Dashboard' },
+  { id: 'academic', code: 'AC', label: 'Academic', subs: [
+    { id: 'academic', sub: 'calendar', label: 'Academic Calendar' },
+    { id: 'academic', sub: 'attendance', label: 'Attendance' },
+    { id: 'academic', sub: 'lesson', label: 'Lesson Plan' },
+    { id: 'academic', sub: 'degree', label: 'Degree Audit' }
+  ] },
+  { id: 'accounts', code: 'AT', label: 'Accounts', subs: [
+    { id: 'accounts', sub: 'receipt', label: 'Fee Receipt' },
+    { id: 'accounts', sub: 'payment', label: 'Payment Status' }
+  ] },
+  { id: 'certificates', code: 'CE', label: 'Certificates' },
+  { id: 'examination', code: 'EX', label: 'Examination', subs: [
+    { id: 'examination', sub: 'grade', label: 'Grade Card' },
+    { id: 'examination', sub: 'marksheet', label: 'Mark Sheet' },
+    { id: 'examination', sub: 'hall', label: 'Hall Ticket' },
+    { id: 'examination', sub: 'conversion', label: 'Conversion Certificate' }
+  ] },
+  { id: 'hostel', code: 'HO', label: 'Hostel' },
+  { id: 'timetable', code: 'TT', label: 'Timetable' },
+  { id: 'registration', code: 'SR', label: 'Subject Registration' },
+  { id: 'ppo', code: 'PP', label: 'PPO' },
+  { id: 'career', code: 'CC', label: 'Career Choices' }
+];
+
+const FACULTY_NAV = [
+  { id: 'f-dashboard', code: 'DB', label: 'Dashboard' },
+  { id: 'f-courses', code: 'CO', label: 'Courses' },
+  { id: 'f-attendance', code: 'AT', label: 'Attendance' },
+  { id: 'f-lesson', code: 'LP', label: 'Lesson Plans' },
+  { id: 'f-timetable', code: 'TT', label: 'Timetable' },
+  { id: 'f-students', code: 'ST', label: 'Students' },
+  { id: 'f-exams', code: 'EX', label: 'Examinations' },
+  { id: 'f-registration', code: 'SR', label: 'Registration' },
+  { id: 'f-notifications', code: 'NT', label: 'Notifications' }
+];
+
+const ADMIN_NAV = [{ id: 'admin', code: 'AD', label: 'Admin Console' }];
+
+const TITLES = {
+  admin: ['Admin Console', 'Database Management'],
+  dashboard: ['Dashboard', ''], academic: ['Academic', ''], accounts: ['Accounts', 'Fee Receipt & Payment Status'],
+  certificates: ['Certificates', 'Completed Certifications'], examination: ['Examination', ''], hostel: ['Hostel', 'Allotment & Contact'],
+  timetable: ['Timetable', 'Weekly Schedule'], registration: ['Subject Registration', 'Semester IV · Add / Drop'],
+  ppo: ['PPO', 'Pre-Placement Offers'], career: ['Career Choices', 'AI Career Copilot'], profile: ['My Profile', 'Academic Details'],
+  'f-dashboard': ['Faculty Dashboard', ''], 'f-courses': ['Courses', 'Courses Taught'], 'f-attendance': ['Attendance', 'Mark & Review'],
+  'f-lesson': ['Lesson Plans', 'Syllabus Progress'], 'f-timetable': ['Timetable', 'Teaching Schedule'], 'f-students': ['Students', 'Class Roster'],
+  'f-exams': ['Examinations', 'Invigilation & Marks'], 'f-registration': ['Registration', 'Requests & Seat Approvals'], 'f-notifications': ['Notifications', 'Announcements']
+};
+
+const SUB_LABEL = { calendar: 'Academic Calendar', attendance: 'Attendance', lesson: 'Lesson Plan', degree: 'Degree Audit', grade: 'Grade Card', marksheet: 'Mark Sheet', hall: 'Hall Ticket', conversion: 'Conversion Certificate', receipt: 'Fee Receipt', payment: 'Payment Status' };
+const MODULES = ['academic', 'examination', 'accounts'];
+
+class Component extends DCLogic {
+  state = {
+    ready: !!window.VIT, loginRole: 'student', id: 'vaishnavi.bhagwat23@vit.edu', pw: 'demo1234', loginError: '',
+    page: 'dashboard', sub: 'attendance', railOpen: true, expanded: '',
+    searchOpen: false, query: '', bellOpen: false, profileOpen: false, drawerOpen: false,
+    ay: '2026-27', w: typeof window !== 'undefined' ? window.innerWidth : 1440
+  };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.setState(window.VIT.live ? { ready: true, pw: '' } : { ready: true }); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    this.onKey = (e) => { if (e.key === 'Escape') this.setState({ searchOpen: false, bellOpen: false, profileOpen: false }); };
+    window.addEventListener('keydown', this.onKey);
+    // click anywhere outside an open popover to dismiss it
+    this.onDocDown = (e) => {
+      const s = this.state;
+      if (!s.searchOpen && !s.bellOpen && !s.profileOpen) return;
+      if (e.target.closest && e.target.closest('[data-popover]')) return;
+      this.setState({ searchOpen: false, bellOpen: false, profileOpen: false });
+    };
+    document.addEventListener('pointerdown', this.onDocDown, true);
+  }
+  componentWillUnmount() {
+    if (this.unsub) this.unsub();
+    window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('keydown', this.onKey);
+    document.removeEventListener('pointerdown', this.onDocDown, true);
+  }
+
+  go = (id, sub) => {
+    const st = { page: id, drawerOpen: false, searchOpen: false, bellOpen: false, profileOpen: false, query: '' };
+    if (sub !== undefined) st.sub = sub;
+    st.expanded = MODULES.indexOf(id) >= 0 ? id : '';
+    this.setState(st);
+    if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  renderVals() {
+    const S = window.VIT;
+    const w = this.state.w, isMobile = w < 900, isWide = w >= 1180;
+    if (!S) return { showLogin: true, showApp: false, loginTitle: 'Student Portal', loginSub: 'Loading academic records…' };
+
+    const role = S.state.role;
+    const st = this.state;
+    const facultyMode = role === 'faculty', adminMode = role === 'admin';
+    const nav = adminMode ? ADMIN_NAV : facultyMode ? FACULTY_NAV : STUDENT_NAV;
+    const page = adminMode ? 'admin' : (facultyMode && st.page.indexOf('f-') !== 0) ? 'f-dashboard' : (!facultyMode && st.page.indexOf('f-') === 0 ? 'dashboard' : st.page);
+
+    // ——— login ———
+    if (!role) {
+      const isStu = st.loginRole === 'student', isAdm = st.loginRole === 'admin';
+      const tabBase = 'flex: 1; position: relative; z-index: 1; padding: 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .02em; background: transparent; border: none; border-radius: 8px; cursor: pointer; transition: color .24s;';
+      return {
+        showLogin: true, showApp: false, loginRole: st.loginRole,
+        loginCols: w < 860 ? '1fr' : 'minmax(0, 1.02fr) minmax(0, 1fr)',
+        tabLeft: 'calc(4px + ' + (isStu ? 0 : isAdm ? 2 : 1) + ' * (100% - 8px) / 3)',
+        studentTabStyle: tabBase + 'color: ' + (isStu ? '#161D22' : '#7A828A') + ';',
+        facultyTabStyle: tabBase + 'color: ' + (st.loginRole === 'faculty' ? '#161D22' : '#7A828A') + ';',
+        adminTabStyle: tabBase + 'color: ' + (isAdm ? '#161D22' : '#7A828A') + ';',
+        pickStudent: () => this.setState({ loginRole: 'student', id: 'vaishnavi.bhagwat23@vit.edu', pw: S.live ? '' : 'demo1234', loginError: '' }),
+        pickFaculty: () => this.setState({ loginRole: 'faculty', id: 'anaya.deshmukh@vit.edu', pw: S.live ? '' : 'demo1234', loginError: '' }),
+        pickAdmin: () => this.setState({ loginRole: 'admin', id: '', pw: '', loginError: '' }),
+        demoHint: !S.live && !isAdm,
+        loginTitle: isStu ? 'Student Portal' : isAdm ? 'Admin Console' : 'Faculty Portal',
+        loginSub: isStu ? 'Sign in with your institute email to reach attendance, registration and results.' : isAdm ? 'Sign in as a portal administrator to manage records directly in the database.' : 'Sign in with your institute email to manage courses, attendance and lesson plans.',
+        idLabel: 'Email ID',
+        idHint: isStu ? 'Student email issued by the institute.' : isAdm ? 'Administrator email, e.g. admin@vit.edu.' : 'Institute email issued by the department.',
+        idPlaceholder: 'name@vit.edu',
+        idValue: st.id, pwValue: st.pw, roleWord: isStu ? 'student' : 'faculty',
+        helpLabel: isStu ? 'Help / Contact Support' : isAdm ? 'Admin Help' : 'Faculty Help',
+        setId: (e) => this.setState({ id: e.target.value, loginError: '' }),
+        setPw: (e) => this.setState({ pw: e.target.value, loginError: '' }),
+        loginError: st.loginError,
+        notImplemented: (e) => { e.preventDefault(); S.toast({ title: 'Contact the academic office', body: 'Password resets are handled by the Examination Cell, Room A-104.', kind: 'info' }); },
+        doLogin: () => {
+          if (!st.id.trim() || !st.pw.trim()) { this.setState({ loginError: 'Enter both email ID and password to continue.' }); return; }
+          if (st.id.indexOf('@') < 0) { this.setState({ loginError: 'Enter a valid institute email address.' }); return; }
+          this.setState({ page: isStu ? 'dashboard' : isAdm ? 'admin' : 'f-dashboard', sub: 'attendance', loginError: '' });
+          S.signIn(st.id.trim(), st.pw, st.loginRole).then(() => {
+            const f = S.state.role === 'faculty' && (S.faculty[S.state.facultyId] || S.faculty.F01);
+            const a = S.state.role === 'admin' && (S.state.admin || { name: 'Portal Administrator', email: st.id.trim() });
+            S.toast({ title: 'Signed in', body: a ? a.name + ' · ' + a.email : f ? f.name + ' · ' + f.dept : S.student.name + ' · ' + S.student.programme, kind: 'ok' });
+          }, (e) => this.setState({ loginError: e.message || 'Sign-in failed.' }));
+        }
+      };
+    }
+
+    // ——— shell ———
+    const chip = (active) => 'min-width: 26px; height: 22px; display: grid; place-items: center; font-family: \'JetBrains Mono\', monospace; font-size: 9.5px; font-weight: 600; letter-spacing: .04em; border-radius: 5px; transition: all .18s; ' + (active ? 'background: #12B3A6; color: #06231F; border: 1px solid #12B3A6;' : 'background: rgba(237,234,227,.06); color: #8FA0A4; border: 1px solid #2C353B;');
+
+    const t = TITLES[page] || ['', ''];
+    const isModule = MODULES.indexOf(page) >= 0;
+    const atModuleHome = isModule && !st.sub;
+    const subLabel = isModule ? (atModuleHome ? 'Overview' : SUB_LABEL[st.sub]) : t[1];
+
+    const navSelf = nav.find(n => n.id === page);
+    const unread = S.state.notifications.filter(n => !n.read).length;
+    const q = st.query.trim().toLowerCase();
+    const results = q ? S.courses.filter(c => (c.code + ' ' + c.name).toLowerCase().indexOf(q) >= 0).slice(0, 5).map(c => ({
+      code: c.code, label: c.name, kind: c.cat,
+      go: () => this.go(S.isRegistered(c.code) ? 'academic' : 'registration', 'lesson')
+    })).concat(nav.filter(n => n.label.toLowerCase().indexOf(q) >= 0).slice(0, 3).map(n => ({ code: n.code, label: n.label, kind: 'Page', go: () => this.go(n.id) }))) : [];
+
+    const student = S.student, fac = S.faculty[S.state.facultyId] || S.faculty.F01;
+    const adm = S.state.admin || { id: 'A01', name: 'Portal Administrator', email: 'admin@vit.edu' };
+    const toastStyle = (kind) => 'display: flex; gap: 10px; align-items: flex-start; min-width: 268px; max-width: 340px; padding: 13px 15px; background: #FFFFFF; border: 1px solid ' + (kind === 'err' ? '#EDCFC9' : kind === 'warn' ? '#EADDBC' : '#DCE9E6') + '; border-radius: 11px; box-shadow: 0 14px 40px rgba(20,26,31,.16); animation: vSlideL .28s cubic-bezier(.2,.8,.2,1) both; pointer-events: auto;';
+    const dotOf = (kind) => 'min-width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: ' + (kind === 'err' ? '#B8483A' : kind === 'warn' ? '#B4801C' : kind === 'ok' ? '#1C8F5A' : '#0B8F86') + ';';
+
+    return {
+      showLogin: false, showApp: true, page, sub: st.sub, isMobile, isWide,
+      portalName: adminMode ? 'Admin Console' : facultyMode ? 'Faculty Portal' : 'Academic Portal',
+      portalKicker: facultyMode ? 'Computer Engg.' : 'VIT Pune',
+      goHome: () => this.go(adminMode ? 'admin' : facultyMode ? 'f-dashboard' : 'dashboard'),
+      logout: () => { S.logout(); this.setState({ page: 'dashboard' }); },
+
+      hasSubTabs: !!(navSelf && navSelf.subs),
+      subTabs: (navSelf && navSelf.subs ? [{ id: navSelf.id, sub: '', label: 'Overview' }].concat(navSelf.subs) : []).map(s => {
+        const on = page === s.id && (s.sub ? st.sub === s.sub : atModuleHome);
+        return {
+          label: s.label,
+          go: () => this.go(s.id, s.sub),
+          style: 'white-space: nowrap; padding: 8px 14px; border-radius: 30px; font-size: 12.5px; font-weight: ' + (on ? 700 : 500) + '; cursor: pointer; transition: all .2s; background: ' + (on ? '#131A1F' : '#FFFFFF') + '; color: ' + (on ? '#EDEAE3' : '#4A555E') + '; border: 1px solid ' + (on ? '#131A1F' : '#E3DFD6') + ';'
+        };
+      }),
+
+      showHomeCrumb: page !== 'dashboard' && page !== 'f-dashboard' && !adminMode,
+      crumbRootColor: page === 'dashboard' || page === 'f-dashboard' ? '#8B949C' : '#161D22',
+      crumbRoot: adminMode ? 'Admin' : facultyMode ? 'Faculty' : (t[0] || 'Portal'),
+      crumbLeaf: page === 'dashboard' ? 'Semester IV' : (subLabel || ''),
+      pageTitle: page === 'dashboard' ? 'Academic Overview' : (page === 'f-dashboard' ? fac.name : t[0]),
+      mainStyle: 'flex: 1; min-width: 0; padding: clamp(16px, 2.2vw, 26px) clamp(14px, 2.4vw, 28px) 60px; animation: vFadeUp .3s cubic-bezier(.2,.8,.2,1) backwards;',
+
+      searchOpen: st.searchOpen, query: st.query, results, hasResults: results.length > 0,
+      toggleSearch: () => this.setState({ searchOpen: !st.searchOpen, bellOpen: false, profileOpen: false }),
+      setQuery: (e) => this.setState({ query: e.target.value }),
+
+      bellOpen: st.bellOpen, hasUnread: unread > 0, unreadCount: unread,
+      toggleBell: () => this.setState({ bellOpen: !st.bellOpen, searchOpen: false, profileOpen: false }),
+      markRead: () => S.markAllRead(),
+      notifications: S.state.notifications.map(n => ({
+        title: n.title, body: n.body, time: n.time,
+        style: 'padding: 12px 15px; border-bottom: 1px solid #F4F1EA; background: ' + (n.read ? '#FFFFFF' : '#FBFAF6') + ';',
+        dotStyle: 'min-width: 8px; height: 8px; border-radius: 50%; background: ' + (n.kind === 'warning' ? '#B4801C' : n.kind === 'registration' ? '#0B8F86' : n.kind === 'accounts' ? '#B8483A' : '#1C8F5A') + ';'
+      })),
+
+      ay: st.ay, setAy: (e) => { this.setState({ ay: e.target.value }); S.toast({ title: 'Academic year ' + e.target.value, body: e.target.value === '2026-27' ? 'Showing live records.' : 'Archived records are read-only.', kind: 'info' }); },
+
+      userName: adminMode ? adm.name : facultyMode ? fac.name : student.name,
+      userMeta: adminMode ? 'Administrator · ' + adm.id : facultyMode ? fac.desig + ' · ' + fac.dept : student.dept + ' · ' + student.year + ' • Division ' + student.division,
+      userId: adminMode ? adm.email : facultyMode ? fac.email : 'PRN ' + student.prn,
+      initials: adminMode ? 'AM' : facultyMode ? 'AD' : 'VB',
+      profileOpen: st.profileOpen,
+      toggleProfile: () => this.setState({ profileOpen: !st.profileOpen, bellOpen: false, searchOpen: false }),
+      profileMenu: (adminMode
+        ? [['Admin Console', () => this.go('admin')], ['Logout', 'logout']]
+        : facultyMode
+        ? [['My Profile', () => this.go('f-dashboard')], ['Courses Taught', () => this.go('f-courses')], ['Settings', null], ['Logout', 'logout']]
+        : [['My Profile', () => this.go('profile')], ['Academic Details', () => this.go('academic', 'degree')], ['Settings', null], ['Logout', 'logout']]
+      ).map(([label, fn]) => ({
+        label,
+        style: 'display: block; width: 100%; padding: 11px 15px; background: transparent; border: none; border-bottom: 1px solid #F4F1EA; text-align: left; font-size: 13px; font-weight: ' + (label === 'Logout' ? 700 : 500) + '; color: ' + (label === 'Logout' ? '#B8483A' : '#161D22') + '; cursor: pointer;',
+        go: fn === 'logout' ? () => { S.logout(); this.setState({ page: 'dashboard', profileOpen: false }); } : (fn || (() => S.toast({ title: 'Settings', body: 'Notification and display preferences are managed by the academic office.', kind: 'info' })))
+      })),
+
+      isStudent: !facultyMode && !adminMode, isFaculty: facultyMode, isAdmin: adminMode,
+      atModuleHome, module: page,
+      atDashboard: page === 'dashboard', atAcademic: page === 'academic' && !atModuleHome, atTimetable: page === 'timetable',
+      atRegistration: page === 'registration', atExamination: page === 'examination' && !atModuleHome,
+      atRecords: ['certificates', 'hostel', 'ppo'].indexOf(page) >= 0 || (page === 'accounts' && !atModuleHome),
+      atCareer: page === 'career', atProfile: page === 'profile',
+      navTo: (id, sub) => this.go(id, sub),
+
+      bottomNav: (adminMode ? ADMIN_NAV : facultyMode ? FACULTY_NAV.slice(0, 5) : ['registration', 'timetable', 'dashboard', 'academic', 'career'].map(id => STUDENT_NAV.find(n => n.id === id))).map(it => ({
+        code: it.code, label: it.label.split(' ')[0],
+        style: 'display: grid; justify-items: center; gap: 4px; padding: 4px; background: transparent; border: none; cursor: pointer; color: ' + (page === it.id ? '#12B3A6' : '#8A989B') + ';',
+        chipStyle: chip(page === it.id),
+        go: () => this.go(it.id, it.subs ? it.subs[0].sub : undefined)
+      })),
+
+      toastBottom: isMobile ? '82px' : '20px',
+      toasts: S.state.toasts.map(x => ({ title: x.title, body: x.body || '', style: toastStyle(x.kind), dotStyle: dotOf(x.kind) }))
+    };
+  }
+}
+
+</script>
+</body>
+</html>

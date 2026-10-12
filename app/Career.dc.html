@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes cIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  @keyframes cFade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes cPulse { 0%, 100% { opacity: .35; transform: scale(.9); } 50% { opacity: 1; transform: scale(1); } }
+  @keyframes cSpin { to { transform: rotate(360deg); } }
+</style>
+</helmet>
+
+<div style="max-width: 1520px;">
+  <div style="background: #131A1F; border-radius: 16px; padding: clamp(20px, 2.4vw, 28px); color: #EDEAE3; position: relative; overflow: hidden;">
+    <div style="position: absolute; inset: 0; background: radial-gradient(48% 110% at 86% 0%, rgba(18,179,166,.26), transparent 66%), radial-gradient(40% 90% at 8% 100%, rgba(28,143,90,.18), transparent 68%);"></div>
+    <div style="position: relative; display: grid; grid-template-columns: {{ headCols }}; gap: 24px; align-items: end;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 9px;">
+          <span style="display: flex; align-items: center; gap: 7px; padding: 4px 11px; background: rgba(18,179,166,.16); border: 1px solid rgba(18,179,166,.38); border-radius: 30px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6FE3D6;">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #12B3A6; animation: cPulse 1.8s ease-in-out infinite;"></span>Career Copilot
+          </span>
+          <span style="font-size: 11.5px; color: #8FA0A4;">reading your academic record</span>
+        </div>
+        <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(28px, 3.4vw, 40px); font-weight: 400; letter-spacing: -.02em; line-height: 1.07; margin-top: 14px;">Your Current Academic Direction</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px;">
+          <sc-for list="{{ direction }}" as="d" hint-placeholder-count="4">
+            <span style="padding: 6px 12px; background: rgba(237,234,227,.07); border: 1px solid rgba(237,234,227,.16); border-radius: 8px; font-size: 12.5px; font-weight: 600;">{{ d }}</span>
+          </sc-for>
+        </div>
+        <p style="margin: 16px 0 0; font-size: 13px; color: #A9B6B8; line-height: 1.65; max-width: 62ch; text-wrap: pretty;">{{ derivedFrom }}</p>
+      </div>
+      <div style="display: grid; gap: 12px;">
+        <div style="padding: 15px 17px; background: rgba(237,234,227,.05); border: 1px solid rgba(237,234,227,.14); border-radius: 12px;">
+          <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">Strongest signal</div>
+          <div style="font-size: 17px; font-weight: 700; margin-top: 6px;">{{ topSkill }}</div>
+          <div style="font-size: 11.5px; color: #8FA0A4; margin-top: 4px;">{{ topSkillWhy }}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div style="padding: 13px 15px; background: rgba(237,234,227,.05); border: 1px solid rgba(237,234,227,.14); border-radius: 12px;">
+            <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">Skills mapped</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; font-weight: 600; margin-top: 5px;">{{ skillCount }}</div>
+          </div>
+          <div style="padding: 13px 15px; background: rgba(237,234,227,.05); border: 1px solid rgba(237,234,227,.14); border-radius: 12px;">
+            <div style="font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: #7E8C90;">Top path fit</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; font-weight: 600; margin-top: 5px; color: #6FE3D6;">{{ topFit }}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 7px; margin: 18px 0 16px;">
+    <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="4">
+      <button type="button" onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}</button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ isPaths }}" hint-placeholder-val="{{ true }}">
+    <div key="paths" style="animation: cIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: grid; grid-template-columns: {{ pathCols }}; gap: 16px; align-items: start;">
+        <div style="display: grid; gap: 10px; min-width: 0;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Recommended career paths</div>
+          <sc-for list="{{ paths }}" as="p" hint-placeholder-count="6">
+            <button type="button" onClick="{{ p.pick }}" style="{{ p.style }}">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px;">
+                <span style="font-size: 15.5px; font-weight: 700; letter-spacing: -.005em;">{{ p.name }}</span>
+                <span style="{{ p.demandStyle }}">{{ p.demand }} demand</span>
+                <span style="margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: {{ p.fitColor }};">{{ p.fit }}% fit</span>
+              </div>
+              <div style="height: 5px; margin-top: 11px; background: #EFEDE6; border-radius: 3px; overflow: hidden;">
+                <div style="{{ p.barStyle }}"></div>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;">
+                <sc-for list="{{ p.chips }}" as="c" hint-placeholder-count="5">
+                  <span style="{{ c.style }}">{{ c.label }}</span>
+                </sc-for>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+
+        <div style="display: grid; gap: 14px;">
+          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Selected · {{ selName }}</div>
+            <div style="display: grid; gap: 12px; margin-top: 14px;">
+              <div>
+                <div style="font-size: 11.5px; font-weight: 700; color: #146B43;">You already have</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px;">
+                  <sc-for list="{{ selHave }}" as="h" hint-placeholder-count="3">
+                    <span style="padding: 5px 10px; background: #E6F2EA; border-radius: 7px; font-size: 12px; font-weight: 600; color: #146B43;">✓ {{ h }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <sc-if value="{{ hasMissing }}">
+                <div>
+                  <div style="font-size: 11.5px; font-weight: 700; color: #8A6114;">Gaps to close</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px;">
+                    <sc-for list="{{ selMiss }}" as="m" hint-placeholder-count="2">
+                      <span style="padding: 5px 10px; background: #F8EFDC; border-radius: 7px; font-size: 12px; font-weight: 600; color: #8A6114;">△ {{ m }}</span>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ noMissing }}">
+                <div style="padding: 12px 14px; background: #E6F2EA; border-radius: 9px; font-size: 12.5px; color: #146B43; line-height: 1.6;">Every skill this path expects is already represented in your record. Depth, not breadth, is the next move.</div>
+              </sc-if>
+              <div style="padding-top: 13px; border-top: 1px solid #F0EDE6;">
+                <div style="font-size: 11.5px; font-weight: 700; color: #4A555E;">Courses that close the gap</div>
+                <div style="display: grid; gap: 6px; margin-top: 9px;">
+                  <sc-for list="{{ selCourses }}" as="c" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ c.go }}" style="display: flex; align-items: center; gap: 9px; padding: 9px 11px; background: #FBFAF6; border: 1px solid #EAE6DE; border-radius: 8px; cursor: pointer; text-align: left; transition: border-color .2s, transform .16s;" style-hover="border-color: #0B8F86; transform: translateX(2px);">
+                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #0B8F86; min-width: 44px;">{{ c.code }}</span>
+                      <span style="flex: 1; font-size: 12.5px; font-weight: 600;">{{ c.name }}</span>
+                      <span style="{{ c.statusStyle }}">{{ c.status }}</span>
+                    </button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display: flex; align-items: baseline; justify-content: space-between; padding-top: 13px; border-top: 1px solid #F0EDE6;">
+                <span style="font-size: 12px; color: #6B757E;">Median entry package, 2026 cycle</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">{{ selMedian }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #FAF8F4; border: 1px solid #E3DFD6; border-radius: 14px; padding: 18px 20px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">How fit is computed</div>
+            <p style="margin: 10px 0 0; font-size: 12.5px; color: #4A555E; line-height: 1.7;">Each completed course contributes its skill tags, weighted by the grade you earned; registered courses contribute at a lower weight. Fit is the share of a path's expected skills your record covers — so registering a course visibly changes this page.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSubject }}">
+    <div key="subject" style="animation: cIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;">
+        <sc-for list="{{ subjectChips }}" as="s" hint-placeholder-count="6">
+          <button type="button" onClick="{{ s.go }}" style="{{ s.style }}">
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: .75;">{{ s.code }}</span>
+            <span style="font-size: 12.5px; font-weight: 600;">{{ s.name }}</span>
+          </button>
+        </sc-for>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
+        <div style="padding: 22px 26px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6;">
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #0B8F86;">{{ subjCode }} · {{ subjCredits }} credits · {{ subjCat }}</div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: 28px; font-weight: 400; margin-top: 6px; letter-spacing: -.01em;">{{ subjName }}</div>
+          <p style="margin: 9px 0 0; font-size: 13px; color: #4A555E; line-height: 1.65; max-width: 78ch; text-wrap: pretty;">{{ subjDesc }}</p>
+        </div>
+        <div style="padding: 24px 26px;">
+          <sc-for list="{{ subjSteps }}" as="s" hint-placeholder-count="3">
+            <div>
+              <div style="display: grid; grid-template-columns: {{ s.cols }}; gap: 16px; align-items: start;">
+                <div>
+                  <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C; padding-top: 5px;">{{ s.label }}</div>
+                  <div style="font-size: 11.5px; color: #B7BDC2; margin-top: 4px;">{{ s.hint }}</div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 7px;">
+                  <sc-for list="{{ s.items }}" as="i" hint-placeholder-count="4">
+                    <span style="{{ i.style }}">{{ i.label }}</span>
+                  </sc-for>
+                </div>
+              </div>
+              <sc-if value="{{ s.arrow }}">
+                <div style="margin: 14px 0 14px 6px; font-size: 15px; color: #C3BDB0;">↓</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isRoadmap }}">
+    <div key="roadmap" style="animation: cIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 16px;">
+        <div>
+          <div style="font-family: Newsreader, Georgia, serif; font-size: 27px; font-weight: 400; letter-spacing: -.01em;">Roadmap to {{ selName }}</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Built from your registered courses, the prerequisite graph and the gaps for this path.</div>
+        </div>
+      </div>
+      <div style="display: grid; grid-template-columns: {{ roadCols }}; gap: 14px;">
+        <sc-for list="{{ roadmap }}" as="r" hint-placeholder-count="4">
+          <div style="{{ r.cardStyle }}">
+            <div style="display: flex; align-items: center; gap: 9px;">
+              <span style="{{ r.dotStyle }}"></span>
+              <span style="font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: {{ r.kickerColor }};">{{ r.kicker }}</span>
+            </div>
+            <div style="font-size: 18px; font-weight: 700; margin-top: 9px; letter-spacing: -.01em;">{{ r.title }}</div>
+            <div style="font-size: 12px; color: {{ r.bodyColor }}; margin-top: 5px; line-height: 1.55;">{{ r.window }}</div>
+            <div style="display: grid; gap: 6px; margin-top: 14px;">
+              <sc-for list="{{ r.items }}" as="i" hint-placeholder-count="2">
+                <div style="{{ i.style }}">
+                  <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; opacity: .7;">{{ i.code }}</span>
+                  <span style="font-size: 12.5px; font-weight: 600; line-height: 1.35;">{{ i.label }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isAssistant }}">
+    <div key="ai" style="animation: cIn .3s cubic-bezier(.2,.8,.2,1) both;">
+      <div style="display: grid; grid-template-columns: {{ aiCols }}; gap: 16px; align-items: start;">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0; display: flex; flex-direction: column;">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 15px 20px; border-bottom: 1px solid #F0EDE6;">
+            <span style="display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: #131A1F; color: #6FE3D6; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;">AI</span>
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 13.5px; font-weight: 700;">Resume &amp; Skills Assistant</div>
+              <div style="font-size: 11.5px; color: #8B949C;">Grounded in your transcript, registration and certificates</div>
+            </div>
+            <select value="{{ target }}" onChange="{{ setTarget }}" aria-label="Target role" style="height: 32px; padding: 0 9px; font-size: 12px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; cursor: pointer;">
+              <sc-for list="{{ targetOptions }}" as="o" hint-placeholder-count="6">
+                <option value="{{ o }}">{{ o }}</option>
+              </sc-for>
+            </select>
+          </div>
+
+          <div style="display: flex; flex-wrap: wrap; gap: 7px; padding: 14px 20px; border-bottom: 1px solid #F0EDE6; background: #FBFAF6;">
+            <sc-for list="{{ actions }}" as="a" hint-placeholder-count="4">
+              <button type="button" onClick="{{ a.go }}" style="{{ a.style }}">{{ a.label }}</button>
+            </sc-for>
+          </div>
+
+          <div style="flex: 1; min-height: 280px; max-height: 520px; overflow-y: auto; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px;">
+            <sc-if value="{{ noMessages }}">
+              <div style="display: flex; flex-direction: column; gap: 11px; padding: 26px 4px;">
+                <div style="font-size: 15.5px; font-weight: 700;">Ask about your academic path</div>
+                <p style="margin: 0; max-width: 58ch; font-size: 13px; color: #6B757E; line-height: 1.65;">The assistant sees your CGPA, every registered subject, grades, attendance, certificates and the courses you are eligible for. Try one of the actions above, or ask something specific.</p>
+                <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px;">
+                  <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
+                    <button type="button" onClick="{{ s.go }}" style="padding: 8px 12px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 20px; font-size: 12px; color: #4A555E; cursor: pointer; text-align: left; transition: border-color .2s;" style-hover="border-color: #0B8F86; color: #0B8F86;">{{ s.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-for list="{{ messages }}" as="m" hint-placeholder-count="0">
+              <div style="{{ m.wrapStyle }}">
+                <sc-if value="{{ m.isUser }}">
+                  <div style="{{ m.bubbleStyle }}">{{ m.text }}</div>
+                </sc-if>
+                <sc-if value="{{ m.isAI }}">
+                  <div style="{{ m.bubbleStyle }}">
+                    <div style="font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8B949C; margin-bottom: 8px;">{{ m.heading }}</div>
+                    <sc-for list="{{ m.blocks }}" as="b" hint-placeholder-count="3">
+                      <div style="{{ b.style }}">{{ b.text }}</div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{ busy }}">
+              <div style="display: flex; align-items: center; gap: 10px; padding: 13px 15px; background: #FBFAF6; border: 1px solid #EAE6DE; border-radius: 11px; align-self: flex-start;">
+                <span style="display: block; width: 14px; height: 14px; border: 2px solid #E3DFD6; border-top-color: #0B8F86; border-radius: 50%; animation: cSpin .8s linear infinite;"></span>
+                <span style="font-size: 12.5px; color: #6B757E;">{{ busyLabel }}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ error }}">
+              <div style="padding: 12px 14px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 10px; font-size: 12.5px; color: #96382C; line-height: 1.6;">{{ error }}</div>
+            </sc-if>
+          </div>
+
+          <div style="display: flex; gap: 9px; padding: 14px 20px; border-top: 1px solid #F0EDE6;">
+            <input type="text" value="{{ draft }}" onChange="{{ setDraft }}" onKeyDown="{{ onKey }}" placeholder="Ask about electives, skill gaps, or a target role…" style="flex: 1; min-width: 0; padding: 11px 13px; font-size: 13px; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.12); outline: none;" />
+            <button type="button" onClick="{{ send }}" style="{{ sendStyle }}">Send</button>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 14px;">
+          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Target · {{ target }}</div>
+            <div style="display: grid; gap: 10px; margin-top: 14px;">
+              <div>
+                <div style="font-size: 11.5px; font-weight: 700; color: #146B43;">Current strengths</div>
+                <div style="display: grid; gap: 4px; margin-top: 7px;">
+                  <sc-for list="{{ selHave }}" as="h" hint-placeholder-count="3">
+                    <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #4A555E;"><span style="color: #1C8F5A; font-weight: 700;">✓</span>{{ h }}</div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="padding-top: 11px; border-top: 1px solid #F0EDE6;">
+                <div style="font-size: 11.5px; font-weight: 700; color: #8A6114;">Missing</div>
+                <sc-if value="{{ hasMissing }}" hint-placeholder-val="{{ true }}">
+                  <div style="display: grid; gap: 4px; margin-top: 7px;">
+                    <sc-for list="{{ selMiss }}" as="m" hint-placeholder-count="2">
+                      <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: #4A555E;"><span style="color: #B4801C; font-weight: 700;">△</span>{{ m }}</div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ noMissing }}">
+                  <div style="font-size: 12.5px; color: #6B757E; margin-top: 6px;">Nothing outstanding for this role.</div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+
+          <div style="background: #FAF8F4; border: 1px solid #E3DFD6; border-radius: 14px; padding: 18px 20px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Record sent with each request</div>
+            <div style="display: grid; gap: 7px; margin-top: 12px;">
+              <sc-for list="{{ contextRows }}" as="r" hint-placeholder-count="5">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-size: 12px;">
+                  <span style="color: #6B757E;">{{ r.label }}</span>
+                  <span style="font-family: 'JetBrains Mono', monospace; font-weight: 600; color: #161D22; text-align: right;">{{ r.value }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:980},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+const TABS = [['paths', 'Career Paths'], ['subject', 'Subject → Career'], ['roadmap', 'Roadmap'], ['assistant', 'Resume Assistant']];
+
+class Component extends DCLogic {
+  state = {
+    tab: 'paths', sel: null, subj: null, target: null,
+    messages: [], draft: '', busy: false, busyLabel: '', error: '',
+    mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440
+  };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+    this.onResize = () => this.setState({ w: window.innerWidth });
+    window.addEventListener('resize', this.onResize);
+    requestAnimationFrame(() => requestAnimationFrame(() => this.setState({ mount: true })));
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
+
+  academicContext() {
+    const S = window.VIT, g = S.gpa(), prof = S.profile(), att = S.attendance();
+    const completed = Object.keys(S.state.completed).map(c => S.byCode[c].code + ' ' + S.byCode[c].name + ' (grade ' + S.state.completed[c] + ')').join('; ');
+    const registered = S.state.registered.map(r => S.byCode[r.code].code + ' ' + S.byCode[r.code].name).join('; ');
+    const eligible = S.courses.filter(c => c.sem >= 4 && !S.isRegistered(c.code) && !S.state.completed[c.code] && S.evalFor(c.code).ok).map(c => c.code + ' ' + c.name).join('; ');
+    const certs = S.certificates.map(c => c.title).join('; ');
+    return [
+      'Student: ' + S.student.name + ', ' + S.student.programme + ', Semester ' + S.student.sem + ', Division ' + S.student.division + '.',
+      'CGPA ' + g.cgpa + ' of 10. Credits earned ' + g.credits + ' of 120. Currently registered for ' + S.credits() + ' credits.',
+      'Completed courses: ' + completed + '.',
+      'Currently registered: ' + registered + '.',
+      'Eligible but not registered: ' + (eligible || 'none') + '.',
+      'Certificates: ' + certs + '.',
+      'Top derived skills: ' + prof.skills.slice(0, 10).map(s => s.skill).join(', ') + '.',
+      'Attendance: ' + att.map(a => a.name + ' ' + a.pct + '%').join(', ') + '.'
+    ].join('\n');
+  }
+
+  ask = async (prompt, label, userLabel) => {
+    const S = window.VIT;
+    this.setState(s => ({
+      messages: s.messages.concat([{ role: 'user', text: userLabel || prompt }]),
+      busy: true, busyLabel: label || 'Reading your academic record…', error: '', draft: ''
+    }));
+    try {
+      const text = await window.ADVISOR_API.complete({
+        system: 'You are the career and academic advisor built into a university student portal (VIT Pune, B.Tech Computer Engineering). You have the student\'s real academic record below. Answer as an advisor who knows this specific student: cite their actual course codes, grades and CGPA. Be concrete and brief — at most 160 words. Use short plain-text lines; start a line with "- " for list items and "## " for a single short section heading if helpful. No markdown bold, no tables, no preamble, no sign-off.\n\nACADEMIC RECORD\n' + this.academicContext(),
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 700
+      });
+      this.setState(s => ({ messages: s.messages.concat([{ role: 'ai', text: String(text || '').trim(), heading: label || 'Advisor' }]), busy: false }));
+    } catch (e) {
+      this.setState({ busy: false, error: 'The assistant could not be reached just now. Your academic data is unaffected — try again in a moment.' });
+      if (S) S.toast({ title: 'Assistant unavailable', body: 'Could not reach the advisory service.', kind: 'warn' });
+    }
+  };
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, w = st.w, mount = st.mount;
+    const nav = this.props.nav || (() => {});
+    const prof = S.profile();
+    const paths = prof.paths;
+    const selName = st.sel || paths[0].name;
+    const sel = paths.find(p => p.name === selName) || paths[0];
+    const target = st.target || sel.name;
+    const g = S.gpa();
+
+    const reg = S.state.registered.map(r => r.code);
+    const subjCode = st.subj && S.byCode[st.subj] ? st.subj : (reg.find(c => S.byCode[c].careers) || reg[0]);
+    const subj = S.byCode[subjCode];
+
+    const tint = (bg, fg) => 'padding: 6px 11px; border-radius: 8px; font-size: 12.5px; font-weight: 600; background: ' + bg + '; color: ' + fg + ';';
+
+    const out = {
+      headCols: w < 900 ? '1fr' : 'minmax(0, 1.25fr) minmax(0, .75fr)',
+      direction: prof.direction.length ? prof.direction : ['Design Systems', 'Software Architecture'],
+      derivedFrom: 'Derived from ' + Object.keys(S.state.completed).length + ' completed courses, ' + S.state.registered.length + ' registered subjects, ' + S.certificates.length + ' certificates and your grade profile (CGPA ' + g.cgpa + ').',
+      topSkill: prof.skills[0] ? prof.skills[0].skill : '—',
+      topSkillWhy: prof.skills[0] ? 'Reinforced across ' + Math.max(2, Math.round(prof.skills[0].weight / 2)) + ' courses in your record' : '',
+      skillCount: prof.skills.length, topFit: paths[0].fit,
+
+      tabs: TABS.map(([id, label]) => ({
+        label, go: () => this.setState({ tab: id }),
+        style: 'padding: 9px 15px; background: ' + (st.tab === id ? '#131A1F' : '#FFFFFF') + '; color: ' + (st.tab === id ? '#EDEAE3' : '#4A555E') + '; border: 1px solid ' + (st.tab === id ? '#131A1F' : '#E3DFD6') + '; border-radius: 30px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;'
+      })),
+      isPaths: st.tab === 'paths', isSubject: st.tab === 'subject', isRoadmap: st.tab === 'roadmap', isAssistant: st.tab === 'assistant',
+      pathCols: w < 1020 ? '1fr' : 'minmax(0, 1.25fr) minmax(0, .95fr)',
+
+      paths: paths.map(p => {
+        const active = p.name === selName;
+        return {
+          name: p.name, fit: p.fit, demand: p.demand,
+          pick: () => this.setState({ sel: p.name, target: p.name }),
+          style: 'display: block; width: 100%; padding: 16px 18px; background: ' + (active ? '#FFFFFF' : '#FFFFFF') + '; border: 1px solid ' + (active ? '#0B8F86' : '#E3DFD6') + '; border-left: 3px solid ' + (active ? '#0B8F86' : '#E3DFD6') + '; border-radius: 13px; text-align: left; cursor: pointer; box-shadow: ' + (active ? '0 6px 20px rgba(11,143,134,.10)' : 'none') + '; transition: all .2s;',
+          fitColor: p.fit >= 80 ? '#146B43' : p.fit >= 55 ? '#0B8F86' : '#8A6114',
+          demandStyle: 'padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; background: ' + (p.demand === 'Very High' ? '#E6F2EA' : p.demand === 'High' ? '#E4F2F0' : '#EFEDE6') + '; color: ' + (p.demand === 'Very High' ? '#146B43' : p.demand === 'High' ? '#0B6F68' : '#5A6570') + ';',
+          barStyle: 'height: 100%; width: ' + (mount ? p.fit : 0) + '%; background: ' + (p.fit >= 80 ? '#1C8F5A' : '#0B8F86') + '; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1);',
+          chips: p.skills.map(s => ({
+            label: (p.have.indexOf(s) >= 0 ? '✓ ' : '△ ') + s,
+            style: 'padding: 4px 9px; border-radius: 6px; font-size: 11px; font-weight: 600; background: ' + (p.have.indexOf(s) >= 0 ? '#E6F2EA' : '#F4F1EA') + '; color: ' + (p.have.indexOf(s) >= 0 ? '#146B43' : '#8B949C') + ';'
+          }))
+        };
+      }),
+      selName: sel.name, selHave: sel.have, selMiss: sel.miss, selMedian: sel.median,
+      hasMissing: sel.miss.length > 0, noMissing: sel.miss.length === 0,
+      selCourses: (sel.next || []).map(code => {
+        const c = S.byCode[code]; if (!c) return null;
+        const done = !!S.state.completed[code], regd = S.isRegistered(code), ok = S.evalFor(code).ok;
+        return {
+          code, name: c.name,
+          status: done ? 'Completed' : regd ? 'Registered' : c.sem > 4 ? 'Semester ' + c.sem : ok ? 'Eligible now' : 'Locked',
+          statusStyle: 'font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 5px; background: ' + (done || regd ? '#E6F2EA' : ok && c.sem <= 4 ? '#E4F2F0' : '#F4F1EA') + '; color: ' + (done || regd ? '#146B43' : ok && c.sem <= 4 ? '#0B6F68' : '#8B949C') + ';',
+          go: () => nav(c.sem <= 4 ? 'registration' : 'academic', c.sem <= 4 ? undefined : 'degree')
+        };
+      }).filter(Boolean),
+
+      subjectChips: reg.map(code => {
+        const active = code === subjCode;
+        return {
+          code, name: S.courseName(code), go: () => this.setState({ subj: code }),
+          style: 'display: flex; align-items: center; gap: 8px; padding: 9px 12px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#161D22') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 9px; cursor: pointer; transition: all .2s;'
+        };
+      }),
+      subjCode: subj.code, subjName: subj.name, subjCredits: subj.credits, subjCat: subj.cat, subjDesc: subj.desc,
+      subjSteps: [
+        { label: 'Relevant skills', hint: 'tagged on this course', items: (subj.skills || []).map(s => ({ label: s, style: tint('#E4F2F0', '#0B6F68') })), arrow: true },
+        { label: 'Potential careers', hint: 'paths that ask for them', items: (subj.careers || ['Software Engineer']).map(s => ({ label: s, style: tint('#E6F2EA', '#146B43') })), arrow: true },
+        { label: 'Recommended next', hint: 'unlocked by this course', items: (subj.next && subj.next.length ? subj.next.map(n => ({ label: S.courseName(n), style: tint('#F8EFDC', '#8A6114') })) : [{ label: 'Nothing is gated behind this course', style: tint('#EFEDE6', '#6B757E') }]), arrow: false }
+      ].map(s => Object.assign(s, { cols: w < 760 ? '1fr' : '178px minmax(0, 1fr)' })),
+
+      roadCols: w < 700 ? '1fr' : w < 1100 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))',
+      roadmap: [
+        { kicker: 'Now', title: 'Semester IV', window: 'Jul – Dec 2026 · ' + S.credits() + ' credits registered', dark: true, items: S.state.registered.slice(0, 3).map(r => ({ code: r.code, label: S.courseName(r.code) })) },
+        { kicker: 'Next', title: 'Semester V', window: 'Jan – May 2027 · close the gaps for ' + sel.name, items: (sel.next || []).slice(0, 3).map(c => ({ code: c, label: S.courseName(c) })) },
+        { kicker: 'Then', title: 'Semester VI', window: 'Jul – Dec 2027 · industry internship', items: [{ code: 'CS601', label: 'Internship (4 credits)' }, { code: '—', label: 'Portfolio project in ' + (sel.skills[0] || 'systems') }] },
+        { kicker: 'Outcome', title: 'Graduation', window: 'May 2028 · B.Tech Computer Engineering', accent: true, items: [{ code: '→', label: sel.name }, { code: '~', label: 'Median ' + sel.median }] }
+      ].map(r => ({
+        kicker: r.kicker, title: r.title, window: r.window,
+        cardStyle: 'padding: 19px 20px; border-radius: 14px; ' + (r.dark ? 'background: #131A1F; color: #EDEAE3; border: 1px solid #131A1F;' : r.accent ? 'background: #E6F2EA; border: 1px solid #CBE4D6; color: #12503A;' : 'background: #FFFFFF; border: 1px solid #E3DFD6;'),
+        dotStyle: 'width: 8px; height: 8px; border-radius: 50%; background: ' + (r.dark ? '#12B3A6' : r.accent ? '#1C8F5A' : '#C3BDB0') + ';',
+        kickerColor: r.dark ? '#7E8C90' : r.accent ? '#146B43' : '#8B949C',
+        bodyColor: r.dark ? '#A9B6B8' : r.accent ? '#146B43' : '#6B757E',
+        items: r.items.map(i => ({
+          code: i.code, label: i.label,
+          style: 'display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 8px; background: ' + (r.dark ? 'rgba(237,234,227,.07)' : r.accent ? 'rgba(255,255,255,.6)' : '#FBFAF6') + ';'
+        }))
+      })),
+
+      aiCols: w < 1020 ? '1fr' : 'minmax(0, 1.5fr) minmax(0, .8fr)',
+      target, targetOptions: S.careerPaths.map(p => p.name),
+      setTarget: (e) => this.setState({ target: e.target.value, sel: e.target.value }),
+      actions: [
+        ['Analyze My Resume', 'Analysing your record', 'Review my academic profile as if it were a resume for ' + target + '. What reads strongest, what is thin, and what single change would improve it most?'],
+        ['Tailor for Role', 'Tailoring for ' + target, 'Rewrite how I should present myself for a ' + target + ' role: which of my courses, grades and certificates to lead with, and in what order. Name the actual course codes.'],
+        ['Improve Project Description', 'Rewriting your project entry', 'My CS403 Mini Project is a small team-built software artefact. Rewrite its resume entry in two lines for a ' + target + ' application, using the skills my transcript actually supports.'],
+        ['Identify Skill Gaps', 'Comparing against ' + target, 'Compare my record against what a ' + target + ' is expected to know. List what I have, what is missing, and which specific VIT courses from my catalogue close each gap.']
+      ].map(([label, busyLabel, prompt]) => ({
+        label,
+        go: () => this.ask(prompt, label, label),
+        style: 'padding: 8px 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12px; font-weight: 700; color: #4A555E; cursor: ' + (st.busy ? 'wait' : 'pointer') + '; opacity: ' + (st.busy ? .5 : 1) + '; transition: all .2s;'
+      })),
+      suggestions: [
+        'Which elective should I add with 6 credits left?',
+        'Am I on track to graduate in eight semesters?',
+        'Does my record suit a systems role or a product role?'
+      ].map(label => ({ label, go: () => this.ask(label, 'Advisor', label) })),
+      noMessages: st.messages.length === 0 && !st.busy,
+      messages: st.messages.map(m => ({
+        isUser: m.role === 'user', isAI: m.role === 'ai', text: m.text, heading: m.heading || 'Advisor',
+        wrapStyle: 'display: flex; ' + (m.role === 'user' ? 'justify-content: flex-end;' : 'justify-content: flex-start;'),
+        bubbleStyle: m.role === 'user'
+          ? 'max-width: 78%; padding: 11px 14px; background: #131A1F; color: #EDEAE3; border-radius: 12px 12px 3px 12px; font-size: 13px; line-height: 1.55;'
+          : 'max-width: 88%; padding: 15px 17px; background: #FBFAF6; border: 1px solid #EAE6DE; border-radius: 12px 12px 12px 3px;',
+        blocks: String(m.text || '').split('\n').filter(l => l.trim()).map(line => {
+          const t = line.trim();
+          if (t.indexOf('## ') === 0) return { text: t.slice(3), style: 'font-size: 12.5px; font-weight: 800; letter-spacing: .02em; color: #161D22; margin: 10px 0 6px;' };
+          if (t.indexOf('- ') === 0 || t.indexOf('• ') === 0) return { text: '— ' + t.slice(2), style: 'font-size: 13px; color: #4A555E; line-height: 1.6; padding-left: 4px; margin-bottom: 4px;' };
+          return { text: t, style: 'font-size: 13px; color: #4A555E; line-height: 1.65; margin-bottom: 7px;' };
+        })
+      })),
+      busy: st.busy, busyLabel: st.busyLabel, error: st.error,
+      draft: st.draft,
+      setDraft: (e) => this.setState({ draft: e.target.value }),
+      onKey: (e) => { if (e.key === 'Enter' && st.draft.trim() && !st.busy) this.ask(st.draft.trim(), 'Advisor', st.draft.trim()); },
+      send: () => { if (st.draft.trim() && !st.busy) this.ask(st.draft.trim(), 'Advisor', st.draft.trim()); },
+      sendStyle: 'padding: 11px 18px; background: ' + (st.busy || !st.draft.trim() ? '#EAE6DE' : '#131A1F') + '; color: ' + (st.busy || !st.draft.trim() ? '#9AA2A9' : '#FFFFFF') + '; border: none; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: ' + (st.busy || !st.draft.trim() ? 'default' : 'pointer') + '; transition: all .2s;',
+      contextRows: [
+        { label: 'CGPA', value: g.cgpa.toFixed(2) },
+        { label: 'Credits earned', value: g.credits + ' / 120' },
+        { label: 'Completed courses', value: Object.keys(S.state.completed).length },
+        { label: 'Registered now', value: S.state.registered.length + ' · ' + S.credits() + ' cr' },
+        { label: 'Certificates', value: S.certificates.length },
+        { label: 'Derived skills', value: prof.skills.length }
+      ]
+    };
+
+    return out;
+  }
+}
+
+</script>
+</body>
+</html>
