@@ -396,7 +396,7 @@ class Component extends DCLogic {
     });
     const semCredits = rows.reduce((n, r) => n + r.credits, 0);
     const sgpa = S.sgpa(st.sem);
-    const download = () => S.toast({ title: 'Preparing document', body: 'A signed PDF is emailed to ' + S.student.email + ' within a few minutes.', kind: 'info' });
+    const download = () => { S.saveDoc('grade-card-sem-' + st.sem, 'Grade card — Semester ' + ROMAN[st.sem] + ' (' + semData.term + ')', semData.courses.map(([code, g, mk]) => [code, S.courseName(code), 'Grade ' + g, mk == null ? '' : mk + ' marks']).concat([['', 'SGPA', sgpa, '']])); S.toast({ title: 'Document downloaded', body: 'Open the file and print to save it as PDF.', kind: 'ok' }); };
 
     const out = {
       isGrade: sub === 'grade', isMarksheet: sub === 'marksheet', isHall: sub === 'hall', isConversion: sub === 'conversion',
@@ -446,7 +446,7 @@ class Component extends DCLogic {
         msTotal: total + ' / ' + (msRows.length * 100),
         msPct: (total / msRows.length).toFixed(1),
         msId: 'VIT/MS/' + st.sem + '/' + S.student.prn,
-        issueDate: '22 December 2025'
+        issueDate: S.fmtDate(new Date().toISOString().slice(0, 10))
       });
     }
 

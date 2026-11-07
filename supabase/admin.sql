@@ -36,7 +36,7 @@ do $$ declare t text; begin
                            'calendar_event','fee','certificate','hostel_allotment','exam_paper','hall_ticket','notification'] loop
     execute format('alter table %I enable row level security', t);
     execute format('drop policy if exists "admin all" on %I', t);
-    execute format('create policy "admin all" on %I for all to authenticated using (is_admin()) with check (is_admin())', t);
+    execute format('create policy "admin all" on %I for all to authenticated using ((select is_admin())) with check ((select is_admin()))', t);
   end loop;
 end $$;
 
@@ -80,3 +80,47 @@ update faculty f set user_id = u.id from auth.users u where lower(u.email) = low
   and not exists (select 1 from faculty x where x.user_id = u.id);
 update admin   a set user_id = u.id from auth.users u where lower(u.email) = lower(a.email) and a.user_id is null
   and not exists (select 1 from admin x where x.user_id = u.id);
+
+-- ---------------------------------------------------------------------
+-- Admin console "Create login / Set password": creates (or resets) a confirmed
+-- email+password login and links it to the student / faculty / admin row with that email.
+-- Works whether or not "Confirm email" is on, and never sends mail.
+-- ---------------------------------------------------------------------
+create or replace function admin_set_login(p_email text, p_password text) returns uuid
+language plpgsql security definer set search_path = public, extensions, auth as $$
+declare
+  em  text := lower(trim(p_email));
+  uid uuid;
+begin
+  if not is_admin() then raise exception 'only admins can create logins'; end if;
+  if length(coalesce(p_password, '')) < 6 then raise exception 'password must be at least 6 characters'; end if;
+  if not exists (select 1 from student where lower(email) = em union all select 1 from faculty where lower(email) = em
+                 union all select 1 from admin where lower(email) = em) then
+    raise exception 'no student, faculty or admin record has the email %', em;
+  end if;
+
+  select id into uid from auth.users where lower(email) = em;
+  if uid is null then
+    uid := gen_random_uuid();
+    insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+                            raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+                            confirmation_token, recovery_token, email_change, email_change_token_new)
+    values ('00000000-0000-0000-0000-000000000000', uid, 'authenticated', 'authenticated', em,
+            crypt(p_password, gen_salt('bf')), now(),
+            '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', '');
+  else
+    update auth.users set encrypted_password = crypt(p_password, gen_salt('bf')),
+                          email_confirmed_at = coalesce(email_confirmed_at, now()), updated_at = now()
+    where id = uid;
+  end if;
+  insert into auth.identities (id, user_id, provider_id, identity_data, provider, created_at, updated_at)
+  select gen_random_uuid(), uid, uid::text, jsonb_build_object('sub', uid::text, 'email', em, 'email_verified', true), 'email', now(), now()
+  where not exists (select 1 from auth.identities where user_id = uid and provider = 'email');
+
+  update student set user_id = uid where lower(email) = em;
+  update faculty set user_id = uid where lower(email) = em;
+  update admin   set user_id = uid where lower(email) = em;
+  return uid;
+end $$;
+revoke all on function admin_set_login(text, text) from public, anon;
+grant execute on function admin_set_login(text, text) to authenticated;

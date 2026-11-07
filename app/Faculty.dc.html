@@ -132,6 +132,9 @@
           <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 18px 20px;">
             <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Registration requests</div>
             <div style="display: grid; gap: 7px; margin-top: 12px;">
+              <sc-if value="{{ noRequestsDash }}">
+                <div style="font-size: 12.5px; color: #8B949C;">No pending requests.</div>
+              </sc-if>
               <sc-for list="{{ requests }}" as="r" hint-placeholder-count="3">
                 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 9px; padding: 10px 12px; background: #FBFAF6; border-radius: 9px;">
                   <span style="flex: 1; min-width: 120px;">
@@ -305,7 +308,7 @@
     <div key="fco" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
       <div style="margin-bottom: 16px;">
         <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Courses Taught</div>
-        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Semester IV · Academic Year 2026–27</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ termLine }}</div>
       </div>
       <div style="display: grid; grid-template-columns: {{ courseCardCols }}; gap: 14px;">
         <sc-for list="{{ courseCards }}" as="c" hint-placeholder-count="3">
@@ -438,7 +441,7 @@
     <div key="fex" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
       <div style="margin-bottom: 16px;">
         <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Examinations</div>
-        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">In-semester examination I · 14 – 19 September 2026</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ examLine }}</div>
       </div>
       <div style="display: grid; grid-template-columns: {{ examCols }}; gap: 16px; align-items: start;">
         <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
@@ -471,7 +474,7 @@
                 </div>
               </sc-for>
             </div>
-            <div style="margin-top: 14px; padding: 11px 13px; background: #F8EFDC; border: 1px solid #EADDBC; border-radius: 9px; font-size: 11.5px; color: #6E4C10; line-height: 1.6;">Marks entry opens after the last paper of each course. Deadline for CS401: 26 September 2026.</div>
+            <div style="margin-top: 14px; padding: 11px 13px; background: #F8EFDC; border: 1px solid #EADDBC; border-radius: 9px; font-size: 11.5px; color: #6E4C10; line-height: 1.6;">Marks entry opens after the last paper of each course.</div>
           </div>
         </div>
       </div>
@@ -521,7 +524,11 @@
           <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Notifications</div>
           <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Department circulars and your own activity log.</div>
         </div>
-        <button type="button" onClick="{{ announce }}" style="padding: 11px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Post announcement to class</button>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <input type="text" value="{{ annTitle }}" onChange="{{ setAnnTitle }}" placeholder="Announcement title" style="width: 200px; padding: 10px 12px; font-size: 13px; border: 1px solid #E3DFD6; border-radius: 9px;" />
+          <input type="text" value="{{ annBody }}" onChange="{{ setAnnBody }}" placeholder="Message to all students" style="width: 280px; padding: 10px 12px; font-size: 13px; border: 1px solid #E3DFD6; border-radius: 9px;" />
+          <button type="button" onClick="{{ announce }}" style="padding: 11px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Send announcement to class</button>
+        </div>
       </div>
       <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
         <sc-for list="{{ notifications }}" as="n" hint-placeholder-count="4">
@@ -541,14 +548,15 @@
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960},&quot;page&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;f-dashboard&quot;,&quot;f-courses&quot;,&quot;f-attendance&quot;,&quot;f-lesson&quot;,&quot;f-timetable&quot;,&quot;f-students&quot;,&quot;f-exams&quot;,&quot;f-registration&quot;,&quot;f-notifications&quot;],&quot;default&quot;:&quot;f-dashboard&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
-const FAC_ID = 'F01';
-const MY_COURSES = ['CS401', 'CS412', 'CS511', 'CS512'];
-const TAUGHT = ['CS401', 'CS412'];
+// Everything comes from VIT.teaching: the signed-in teacher's sections this term (course, class list, attendance so far).
+const facIdOf = (S) => S.state.facultyId || 'F01';  // F01 = the offline demo teacher
+const REQ_TAG = { seat: 'Seat request', waiver: 'Prerequisite waiver', swap: 'Section swap' };
+const NO_FAC = { name: '', desig: '', dept: '', cabin: '' };
 
 class Component extends DCLogic {
   state = {
-    markCode: 'CS401', markDate: new Date().toISOString().slice(0, 10), marks: null,
-    lpCode: 'CS401', search: '', requests: null, mount: false,
+    markCode: null, markDate: new Date().toISOString().slice(0, 10), marks: null,
+    lpCode: null, search: '', mount: false, annTitle: '', annBody: '',
     w: typeof window !== 'undefined' ? window.innerWidth : 1440
   };
 
@@ -561,22 +569,12 @@ class Component extends DCLogic {
   }
   componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
 
-  marksFor() {
-    const S = window.VIT;
+  // a new roll call starts with everyone present; the teacher marks the absentees
+  marksFor(cls) {
     if (this.state.marks) return this.state.marks;
     const m = {};
-    S.roster.forEach((r, i) => { m[r.prn] = (i === 6 || i === 17) ? 'Absent' : 'Present'; });
+    (cls ? cls.students : []).forEach(r => { m[r.prn] = 'Present'; });
     return m;
-  }
-
-  // deterministic per-student attendance for the roster view
-  rosterPct(prn, i) {
-    const S = window.VIT;
-    if (prn === S.student.prn) {
-      const a = S.attendance().find(x => x.code === 'CS401');
-      return a ? a.pct : 0;
-    }
-    return 64 + ((i * 37) % 34);
   }
 
   renderVals() {
@@ -584,9 +582,21 @@ class Component extends DCLogic {
     const st = this.state, w = st.w, mount = st.mount;
     const nav = this.props.nav || (() => {});
     const page = this.props.page || 'f-dashboard';
-    const fac = S.faculty[FAC_ID];
+    const FAC_ID = facIdOf(S);
+    const fac = S.faculty[FAC_ID] || NO_FAC;
     const now = new Date();
     const dayName = S.dayName();
+    const classes = S.teaching || [];
+    const TAUGHT = classes.map(c => c.code);
+    const classOf = (code) => classes.find(c => c.code === code);
+    const pick = (code) => (TAUGHT.indexOf(code) >= 0 ? code : TAUGHT[0]);
+    const avg = (list) => { const t = list.reduce((a, x) => a + x.total, 0); return t ? Math.round(list.reduce((a, x) => a + x.attended, 0) / t * 100) : 0; };
+    const allStudents = {};
+    classes.forEach(c => c.students.forEach(x => {
+      const a = allStudents[x.prn] = allStudents[x.prn] || { prn: x.prn, name: x.name, roll: x.roll, attended: 0, total: 0, courses: [] };
+      a.attended += x.attended; a.total += x.total; a.courses.push(c.code);
+    }));
+    const studentList = Object.values(allStudents).sort((a, b) => (a.roll < b.roll ? -1 : a.roll > b.roll ? 1 : 0));
 
     // sessions this faculty teaches today
     const myMeetings = (code) => {
@@ -601,7 +611,9 @@ class Component extends DCLogic {
     const isSubmitted = (code) => submitted.some(s => s.code === code && s.date === now.toISOString().slice(0, 10));
     const pending = today.filter(m => S.toMin(m.end) <= now.getHours() * 60 + now.getMinutes() && !isSubmitted(m.code));
 
+    const pendingReqs = S.requests.filter(r => r.status === 'Pending');
     const out = {
+      termLine: S.term.parity + ' · Academic Year ' + S.term.ay.replace('-', '–'), examLine: S.term.exam ? S.term.exam + ' · ' + S.term.examRange : 'No examination scheduled',
       isDashboard: page === 'f-dashboard', isCourses: page === 'f-courses', isAttendance: page === 'f-attendance',
       isLesson: page === 'f-lesson', isTimetable: page === 'f-timetable', isStudents: page === 'f-students',
       isExams: page === 'f-exams', isRequests: page === 'f-registration', isNotifications: page === 'f-notifications',
@@ -611,17 +623,16 @@ class Component extends DCLogic {
     };
 
     if (page === 'f-dashboard') {
-      const att401 = S.attendance().find(a => a.code === 'CS401');
       Object.assign(out, {
         greeting: 'Good ' + (now.getHours() < 12 ? 'morning' : now.getHours() < 17 ? 'afternoon' : 'evening') + ', ' + fac.name.replace(/^(Prof\.|Dr\.)\s/, '') + '.',
         facMeta: fac.desig + ' · ' + fac.dept + ' · Cabin ' + fac.cabin + ' | ' + now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' }),
         statCols: w < 640 ? '1fr 1fr' : w < 1100 ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)',
         stats: [
           { label: "Today's classes", value: today.length, unit: 'sessions', note: today.length ? today.map(t => t.code).join(', ') : 'Nothing scheduled' },
-          { label: 'Courses taught', value: TAUGHT.length, unit: 'this term', note: 'CS401 Design Systems, CS412 Web Systems' },
-          { label: 'Students', value: 96, unit: 'across sections', note: '28 in SE-A, 40 + 28 in electives' },
+          { label: 'Courses taught', value: TAUGHT.length, unit: 'this term', note: classes.map(c => c.code + ' ' + c.name).join(', ') || 'No sections this term' },
+          { label: 'Students', value: studentList.length, unit: 'across sections', note: classes.map(c => c.code + ' · ' + c.section + ': ' + c.students.length).join(', ') || '—' },
           { label: 'Attendance pending', value: pending.length, unit: 'sessions', note: pending.length ? 'Submit before the day closes' : 'Fully up to date', warn: pending.length > 0 },
-          { label: 'CS401 class average', value: att401 ? att401.pct : 0, unit: '%', note: 'Division A attendance to date' }
+          { label: 'Class average', value: avg(studentList), unit: '%', note: 'Attendance to date, all your sections' }
         ].map(s => ({
           label: s.label, value: s.value, unit: s.unit, note: s.note,
           style: 'padding: 18px 20px; border-radius: 13px; ' + (s.warn ? 'background: #F8EFDC; border: 1px solid #EADDBC;' : 'background: #FFFFFF; border: 1px solid #E3DFD6;'),
@@ -632,7 +643,7 @@ class Component extends DCLogic {
         dashCols: w < 1020 ? '1fr' : 'minmax(0, 1.4fr) minmax(0, 1fr)',
         todayLabel: dayName ? dayName + ' · ' + now.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Sunday',
         hasToday: today.length > 0, noToday: today.length === 0,
-        noTodayBody: dayName ? 'You have no sessions against CS401 or CS412 today.' : 'Sunday is a holiday. Your next session is Monday.',
+        noTodayBody: !TAUGHT.length ? 'You have no sections this term.' : dayName ? 'You have no sessions today.' : 'Sunday is a holiday. Your next session is Monday.',
         todayClasses: today.map(m => {
           const past = S.toMin(m.end) <= now.getHours() * 60 + now.getMinutes();
           const done = isSubmitted(m.code);
@@ -651,11 +662,8 @@ class Component extends DCLogic {
         upcoming: allMeetings.filter(m => m.day !== dayName).slice(0, 5).map(m => ({ when: m.day + ' ' + m.start, name: m.name, room: m.room })),
         hasPending: pending.length > 0, noPending: pending.length === 0, pendingCount: pending.length,
         pending: pending.map(m => ({ code: m.code, name: m.name, when: m.start, go: () => { this.setState({ markCode: m.code }); nav('f-attendance'); } })),
-        requests: [
-          { student: 'Ishaan Gupta', detail: 'CS412 · seat request, section A full', tag: 'Seat' },
-          { student: 'Nidhi Rane', detail: 'CS401 · prerequisite waiver for OE301', tag: 'Waiver' },
-          { student: 'Om Prabhu', detail: 'CS412 · section swap B → A', tag: 'Swap' }
-        ].map(r => ({ student: r.student, detail: r.detail, tag: r.tag, tagStyle: 'font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; background: ' + (r.tag === 'Waiver' ? '#F8EFDC' : '#E4F2F0') + '; color: ' + (r.tag === 'Waiver' ? '#8A6114' : '#0B6F68') + ';' })),
+        requests: pendingReqs.slice(0, 3).map(r => ({ student: r.student, detail: r.code + ' · ' + S.courseName(r.code), tag: REQ_TAG[r.kind] || r.kind, tagStyle: 'font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; background: #E4F2F0; color: #0B6F68;' })),
+        noRequestsDash: pendingReqs.length === 0,
         hasSubmissions: submitted.length > 0,
         submissions: submitted.slice(0, 5).map(s => ({
           code: s.code, name: S.courseName(s.code), present: s.present, total: s.total,
@@ -667,40 +675,40 @@ class Component extends DCLogic {
     }
 
     if (page === 'f-attendance') {
-      const code = st.markCode;
-      const c = S.byCode[code];
-      const marks = this.marksFor();
+      const code = pick(st.markCode);
+      const cls = classOf(code) || { name: '', students: [] };
+      const marks = this.marksFor(classOf(code));
       const present = Object.values(marks).filter(v => v === 'Present').length;
       const late = Object.values(marks).filter(v => v === 'Late').length;
       const absent = Object.values(marks).filter(v => v === 'Absent').length;
-      const total = S.roster.length;
+      const total = cls.students.length;
       const setMark = (prn, v) => { const m = Object.assign({}, marks); m[prn] = v; this.setState({ marks: m }); };
       const sess = myMeetings(code).find(m => m.day === dayName) || myMeetings(code)[0];
 
       Object.assign(out, {
         courseList: TAUGHT.map(cc => {
-          const active = cc === code, co = S.byCode[cc];
+          const active = cc === code, co = classOf(cc);
           return {
-            code: cc, name: co.name, students: cc === 'CS401' ? 28 : 40,
-            meta: (co.sections[0] || {}).meetings.map(m => m.day).join(' · '),
+            code: cc, name: co.name, students: co.students.length,
+            meta: 'Section ' + co.section + ' · ' + myMeetings(cc).map(m => m.day).join(' · '),
             go: () => this.setState({ markCode: cc, marks: null }),
             style: 'display: block; width: 100%; padding: 13px 15px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#161D22') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 11px; cursor: pointer; transition: all .2s;',
             codeColor: active ? '#6FE3D6' : '#8B949C',
             metaColor: active ? '#8FA0A4' : '#8B949C'
           };
         }),
-        markCode: code, markName: c.name, markDate: st.markDate,
+        markCode: code || '', markName: code ? cls.name : 'No sections this term', markDate: st.markDate,
         markSession: sess ? sess.day + ' ' + sess.start + ' – ' + sess.end + ' · ' + sess.room + ' · ' + sess.type : 'No scheduled session',
         setDate: (e) => this.setState({ markDate: e.target.value }),
-        markAll: () => { const m = {}; S.roster.forEach(r => { m[r.prn] = 'Present'; }); this.setState({ marks: m }); },
+        markAll: () => { const m = {}; cls.students.forEach(r => { m[r.prn] = 'Present'; }); this.setState({ marks: m }); },
         countPresent: present, countAbsent: absent, countLate: late,
         sessionPct: total ? Math.round((present + late) / total * 100) : 0,
         sessionBar: 'height: 100%; width: ' + (total ? (present + late) / total * 100 : 0) + '%; background: #0B8F86; border-radius: 3px; transition: width .4s cubic-bezier(.2,.8,.2,1);',
-        roster: S.roster.map((r, i) => {
+        roster: cls.students.map((r, i) => {
           const v = marks[r.prn];
           return {
-            roll: r.roll, name: r.name, prn: r.prn, isDemo: r.prn === S.student.prn,
-            rowStyle: 'display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 11px 22px; border-bottom: 1px solid #F4F1EA; background: ' + (r.prn === S.student.prn ? '#FBFAF6' : i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
+            roll: r.roll, name: r.name, prn: r.prn, isDemo: false,
+            rowStyle: 'display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 11px 22px; border-bottom: 1px solid #F4F1EA; background: ' + (i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
             options: [['Present', '✓'], ['Absent', '✕'], ['Late', 'L']].map(([val, label]) => {
               const on = v === val;
               const col = val === 'Present' ? ['#1C8F5A', '#E6F2EA', '#146B43'] : val === 'Absent' ? ['#B8483A', '#F8E9E6', '#96382C'] : ['#B4801C', '#F8EFDC', '#8A6114'];
@@ -711,25 +719,21 @@ class Component extends DCLogic {
             })
           };
         }),
-        submitHint: 'Submitting writes one row per student into the attendance log. Vaishnavi Bhagwat\'s record is the live student account — her percentage in the student portal will change immediately.',
+        submitHint: 'Submitting saves one attendance record per student for this session (Late counts as present). Students see it in their portal straight away.',
         submitStyle: 'padding: 12px 20px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .2s, transform .16s;',
         submit: () => {
           const normalised = {};
           Object.keys(marks).forEach(prn => { normalised[prn] = marks[prn] === 'Late' ? 'Present' : marks[prn]; });
-          S.submitAttendance(code, st.markDate, normalised, FAC_ID);
-          const a = S.attendance().find(x => x.code === code);
-          S.toast({
-            title: 'Attendance submitted · ' + code,
-            body: present + late + ' of ' + total + ' present' + (a ? ' · student record now ' + a.pct + '%' : ''),
-            kind: 'ok'
-          });
+          if (!code || !total) return;
+          S.submitAttendance(code, st.markDate, normalised, FAC_ID, sess && sess.start, sess && sess.type);
+          S.toast({ title: 'Attendance submitted · ' + code, body: present + late + ' of ' + total + ' present · class average now ' + avg(cls.students) + '%', kind: 'ok' });
           this.setState({ marks: null });
         }
       });
     }
 
     if (page === 'f-lesson') {
-      const code = TAUGHT.indexOf(st.lpCode) >= 0 ? st.lpCode : TAUGHT[0];
+      const code = pick(st.lpCode);
       const plan = S.lessonPlans[code] || { modules: [] };
       const prog = S.lessonProgress(code);
       const rows = [];
@@ -766,17 +770,15 @@ class Component extends DCLogic {
 
     if (page === 'f-courses') {
       Object.assign(out, {
-        courseCards: MY_COURSES.map(cc => {
-          const c = S.byCode[cc]; if (!c) return null;
-          const taught = TAUGHT.indexOf(cc) >= 0;
-          const attRec = S.attendance().find(a => a.code === cc);
-          const att = attRec ? attRec.pct : cc === 'CS412' ? 91 : 88;
-          const lp = S.lessonProgress(cc).pct || (cc === 'CS412' ? 46 : 0);
-          const sec = c.sections[0] || { meetings: [], id: 'A' };
+        courseCards: classes.map(k => {
+          const cc = k.code, c = S.byCode[cc] || { name: k.name };
+          const taught = true;
+          const att = avg(k.students);
+          const lp = S.lessonProgress(cc).pct;
           return {
-            code: cc, name: c.name, section: sec.id, cat: c.cat, credits: c.credits,
-            students: cc === 'CS401' ? 28 : cc === 'CS412' ? 40 : cc === 'CS511' ? 22 : 18,
-            schedule: sec.meetings.map(m => m.day + ' ' + m.start + '–' + m.end).join('  ·  ') || 'Semester V offering',
+            code: cc, name: k.name, section: k.section, cat: c.cat, credits: c.credits,
+            students: k.students.length,
+            schedule: myMeetings(cc).map(m => m.day + ' ' + m.start + '–' + m.end).join('  ·  ') || 'No weekly slots yet',
             att, attColor: att < 75 ? '#B4801C' : '#146B43',
             attBar: 'height: 100%; width: ' + (mount ? att : 0) + '%; background: ' + (att < 75 ? '#B4801C' : '#1C8F5A') + '; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1) .15s;',
             lp, lpBar: 'height: 100%; width: ' + (mount ? lp : 0) + '%; background: #0B8F86; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1) .25s;',
@@ -789,17 +791,17 @@ class Component extends DCLogic {
 
     if (page === 'f-students') {
       const q = st.search.trim().toLowerCase();
-      const list = S.roster.filter(r => !q || r.name.toLowerCase().indexOf(q) >= 0 || r.prn.indexOf(q) >= 0);
+      const list = studentList.filter(r => !q || r.name.toLowerCase().indexOf(q) >= 0 || r.prn.indexOf(q) >= 0 || (r.roll || '').toLowerCase().indexOf(q) >= 0);
       Object.assign(out, {
-        rosterCount: S.roster.length, search: st.search,
+        rosterCount: studentList.length, search: st.search,
         setSearch: (e) => this.setState({ search: e.target.value }),
         noStudents: list.length === 0,
         students: list.map((r, i) => {
-          const pct = this.rosterPct(r.prn, S.roster.indexOf(r));
+          const pct = r.total ? Math.round(r.attended / r.total * 100) : 0;
           return {
             roll: r.roll, name: r.name, prn: r.prn, pct,
             color: pct < 75 ? '#B4801C' : '#146B43',
-            style: 'border-bottom: 1px solid #F4F1EA; background: ' + (r.prn === S.student.prn ? '#FBFAF6' : i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
+            style: 'border-bottom: 1px solid #F4F1EA; background: ' + (i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
             barStyle: 'display: block; height: 100%; width: ' + (mount ? pct : 0) + '%; background: ' + (pct < 75 ? '#B4801C' : '#1C8F5A') + '; transition: width .8s cubic-bezier(.2,.8,.2,1);'
           };
         })
@@ -816,12 +818,12 @@ class Component extends DCLogic {
           cells.push({
             hasClass: !!m, isLabel: false,
             code: m ? m.code : '', name: m ? m.name : '', room: m ? m.room : '', type: m ? m.type : '',
-            style: 'min-height: 56px; padding: ' + (m ? '8px 10px' : '0') + '; border-radius: 9px; background: ' + (m ? (m.code === 'CS401' ? '#131A1F' : '#0B8F86') : '#FBFAF6') + '; color: ' + (m ? '#EDEAE3' : 'transparent') + '; border: 1px solid ' + (m ? 'transparent' : '#F0EDE6') + '; overflow: hidden;'
+            style: 'min-height: 56px; padding: ' + (m ? '8px 10px' : '0') + '; border-radius: 9px; background: ' + (m ? (TAUGHT.indexOf(m.code) % 2 ? '#0B8F86' : '#131A1F') : '#FBFAF6') + '; color: ' + (m ? '#EDEAE3' : 'transparent') + '; border: 1px solid ' + (m ? 'transparent' : '#F0EDE6') + '; overflow: hidden;'
           });
         });
       });
       Object.assign(out, {
-        ttSummary: allMeetings.length + ' sessions a week across ' + TAUGHT.length + ' courses · ' + S.faculty[FAC_ID].dept,
+        ttSummary: allMeetings.length + ' sessions a week across ' + TAUGHT.length + ' courses · ' + fac.dept,
         ttDays: S.DAYS, ttCells: cells
       });
     }
@@ -838,11 +840,7 @@ class Component extends DCLogic {
             roleStyle: 'font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; white-space: nowrap; background: ' + (mine ? '#E4F2F0' : '#EFEDE6') + '; color: ' + (mine ? '#0B6F68' : '#5A6570') + ';'
           };
         }),
-        marksRows: [
-          { name: 'CS401 Design Systems — IS-I', done: 0, total: 28 },
-          { name: 'CS412 Web Systems — IS-I', done: 0, total: 40 },
-          { name: 'CS401 Continuous assessment', done: 28, total: 28 }
-        ].map(m => ({
+        marksRows: classes.map(k => ({ name: k.code + ' ' + k.name + ' — End-semester marks', done: 0, total: k.students.length || 1 })).map(m => ({
           name: m.name,
           label: m.done + ' / ' + m.total + ' entered',
           color: m.done === m.total ? '#146B43' : '#8A6114',
@@ -852,13 +850,7 @@ class Component extends DCLogic {
     }
 
     if (page === 'f-registration') {
-      const actioned = st.requests || {};
-      const reqs = [
-        { id: 'r1', student: 'Ishaan Gupta', prn: '12310481', tag: 'Seat request', reason: 'CS412 section A is full (0 of 40 free). Student has CS303 with grade A and a timetable that only fits section A. Approving raises the section cap to 41.' },
-        { id: 'r2', student: 'Nidhi Rane', prn: '12310487', tag: 'Prerequisite waiver', reason: 'CS401 requires CS202 AND OE301. Student has CS202 (A) but not OE301; requests a waiver on the basis of a completed design internship and the OE301 audit certificate.' },
-        { id: 'r3', student: 'Om Prabhu', prn: '12310490', tag: 'Section swap', reason: 'CS412 section B → A. Section A has a clash with the student\'s CS305 tutorial on Monday, so the swap would create a conflict — recommend denial with the section C alternative.' }
-      ].filter(r => !actioned[r.id]);
-
+      const reqs = pendingReqs.map(r => ({ id: r.id, student: r.student, prn: r.prn, tag: REQ_TAG[r.kind] || r.kind, reason: r.code + ' · ' + S.courseName(r.code) + (r.reason ? ' — ' + r.reason : '') }));
       Object.assign(out, {
         noRequests: reqs.length === 0,
         requestCards: reqs.map(r => ({
@@ -868,15 +860,20 @@ class Component extends DCLogic {
           approveLabel: 'Approve', denyLabel: 'Deny',
           approveStyle: 'padding: 10px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;',
           denyStyle: 'padding: 10px 15px; background: #FFFFFF; color: #96382C; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap;',
-          approve: () => { this.setState({ requests: Object.assign({}, actioned, { [r.id]: 'approved' }) }); S.toast({ title: 'Approved · ' + r.student, body: r.tag + ' granted. The student has been notified.', kind: 'ok' }); },
-          deny: () => { this.setState({ requests: Object.assign({}, actioned, { [r.id]: 'denied' }) }); S.toast({ title: 'Denied · ' + r.student, body: r.tag + ' declined with a written reason.', kind: 'warn' }); }
+          approve: () => S.decideRequest(r.id, 'Approved'), deny: () => S.decideRequest(r.id, 'Declined')
         }))
       });
     }
 
     if (page === 'f-notifications') {
       Object.assign(out, {
-        announce: () => S.notify({ title: 'Announcement from ' + fac.name, body: 'CS401 Design Systems: the governance and adoption-metrics topic moves to 04 September. Bring your component audit drafts.', kind: 'academic' }) || S.toast({ title: 'Announcement posted', body: 'Sent to 28 students in SE Computer Engineering, Division A.', kind: 'ok' }),
+        annTitle: st.annTitle, annBody: st.annBody, setAnnTitle: (e) => this.setState({ annTitle: e.target.value }), setAnnBody: (e) => this.setState({ annBody: e.target.value }),
+        announce: () => {
+          if (!st.annTitle.trim()) { S.toast({ title: 'Add a title first', body: 'An announcement needs a title.', kind: 'warn' }); return; }
+          S.notify({ title: st.annTitle.trim(), body: st.annBody.trim() || 'Announcement from ' + fac.name, kind: 'academic' });
+          this.setState({ annTitle: '', annBody: '' });
+          S.toast({ title: 'Announcement posted', body: 'Visible to all students in the portal.', kind: 'ok' });
+        },
         notifications: S.state.notifications.map(n => ({
           title: n.title, body: n.body, time: n.time,
           style: 'display: flex; align-items: flex-start; gap: 12px; padding: 15px 20px; border-bottom: 1px solid #F4F1EA; background: ' + (n.read ? '#FFFFFF' : '#FBFAF6') + ';',

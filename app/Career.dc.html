@@ -25,7 +25,7 @@
       <div>
         <div style="display: flex; align-items: center; gap: 9px;">
           <span style="display: flex; align-items: center; gap: 7px; padding: 4px 11px; background: rgba(18,179,166,.16); border: 1px solid rgba(18,179,166,.38); border-radius: 30px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6FE3D6;">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #12B3A6; animation: cPulse 1.8s ease-in-out infinite;"></span>Career Copilot
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #12B3A6; animation: cPulse 1.8s ease-in-out infinite;"></span>Career Advisor · rule-based
           </span>
           <span style="font-size: 11.5px; color: #8FA0A4;">reading your academic record</span>
         </div>
@@ -125,7 +125,7 @@
                 </div>
               </div>
               <div style="display: flex; align-items: baseline; justify-content: space-between; padding-top: 13px; border-top: 1px solid #F0EDE6;">
-                <span style="font-size: 12px; color: #6B757E;">Median entry package, 2026 cycle</span>
+                <span style="font-size: 12px; color: #6B757E;">Indicative median entry package</span>
                 <span style="font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600;">{{ selMedian }}</span>
               </div>
             </div>
@@ -219,8 +219,8 @@
           <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 15px 20px; border-bottom: 1px solid #F0EDE6;">
             <span style="display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; background: #131A1F; color: #6FE3D6; font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700;">AI</span>
             <div style="flex: 1; min-width: 0;">
-              <div style="font-size: 13.5px; font-weight: 700;">Resume &amp; Skills Assistant</div>
-              <div style="font-size: 11.5px; color: #8B949C;">Grounded in your transcript, registration and certificates</div>
+              <div style="font-size: 13.5px; font-weight: 700;">Career Chatbot</div>
+              <div style="font-size: 11.5px; color: #8B949C;">Answers from your transcript, registration and certificates</div>
             </div>
             <select value="{{ target }}" onChange="{{ setTarget }}" aria-label="Target role" style="height: 32px; padding: 0 9px; font-size: 12px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; cursor: pointer;">
               <sc-for list="{{ targetOptions }}" as="o" hint-placeholder-count="6">
@@ -326,7 +326,98 @@
 
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:980},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
-const TABS = [['paths', 'Career Paths'], ['subject', 'Subject → Career'], ['roadmap', 'Roadmap'], ['assistant', 'Resume Assistant']];
+const TABS = [['paths', 'Career Paths'], ['subject', 'Subject → Career'], ['roadmap', 'Roadmap'], ['assistant', 'Career Chatbot']];
+
+// Built-in career advisor: answers from the student's own record (no external service).
+// Replies use the chat's format: "## " heading lines and "- " list lines.
+function advise(question, target) {
+  const S = window.VIT, q = question.toLowerCase();
+  const prof = S.profile(), g = S.gpa(), paths = prof.paths;
+  const has = (...words) => words.some(w => q.indexOf(w) >= 0);
+  const named = paths.find(p => q.indexOf(p.name.toLowerCase()) >= 0 || q.indexOf(p.name.toLowerCase().split(' ')[0] + ' ') >= 0);
+  const role = paths.find(p => p.name === (named ? named.name : target)) || paths[0];
+  const done = S.state.completed, GP = S.GP;
+  const courseLine = (c) => c.code + ' ' + c.name + ' (' + c.credits + ' cr)';
+  const teaches = (skill) => S.courses.filter(c => (c.skills || []).indexOf(skill) >= 0 && !done[c.code]);
+  const status = (c) => {
+    if (S.isRegistered(c.code)) return 'registered now';
+    const ev = S.evalFor(c.code);
+    if (ev.ok) return c.sem <= 4 ? 'eligible now' : 'Semester ' + c.sem;
+    return 'still needs ' + S.blockers(ev).map(b => b.code + (b.status === 'progress' || S.isRegistered(b.code) ? ' (in progress)' : '') + (b.minGrade ? ' ≥ ' + b.minGrade : '')).join(', ');
+  };
+  const graded = Object.keys(done).map(code => ({ c: S.byCode[code], g: done[code] })).filter(x => x.c);
+  const best = graded.slice().sort((a, b) => GP[b.g] - GP[a.g]).slice(0, 4);
+  const weak = graded.filter(x => GP[x.g] <= 6);
+  const relevant = (c) => (c.skills || []).filter(s => role.skills.indexOf(s) >= 0).length;
+  const out = [];
+
+  if (has('hello', 'hi ', 'hey', 'help', 'what can you')) {
+    out.push('Hi ' + S.student.first + '! I know your full record: CGPA ' + g.cgpa.toFixed(2) + ', ' + g.credits + ' credits earned and ' + S.state.registered.length + ' subjects this semester.', '## Ask me about');
+    out.push('- Which career suits me best?', '- What skills am I missing for ' + role.name + '?', '- Which elective should I take?', '- Am I on track to graduate?', '- How do I improve my CGPA or resume?');
+    return out.join('\n');
+  }
+  if (has('best', 'suit', 'which career', 'which role', 'recommend', 'should i become', 'compare', ' or ')) {
+    out.push('Ranked by how many of each role\'s core skills your courses already cover:', '## Best fits for you');
+    paths.slice(0, 3).forEach((p, i) => out.push('- ' + (i + 1) + '. ' + p.name + ': ' + p.fit + '% fit, demand ' + p.demand + ', median ' + p.median + '. You have ' + (p.have.join(', ') || 'none yet') + '.'));
+    out.push('## My suggestion', paths[0].name + ' is your strongest match. ' + (paths[0].miss.length ? 'Close the gap on ' + paths[0].miss.slice(0, 2).join(' and ') + ' to make it a clear fit.' : 'You already cover every core skill for it.'));
+    return out.join('\n');
+  }
+  if (has('gap', 'missing', 'lack', 'need to learn', 'skills for', 'skill') || named) {
+    out.push('Target: ' + role.name + ' (' + role.fit + '% fit, median ' + role.median + ').', '## You already have');
+    (role.have.length ? role.have : ['No core skills for this role yet']).forEach(s => out.push('- ' + s));
+    out.push('## Missing and how to close it');
+    if (!role.miss.length) out.push('- Nothing missing. Build a portfolio project to prove it.');
+    role.miss.forEach(s => { const c = teaches(s)[0]; out.push('- ' + s + ': ' + (c ? courseLine(c) + ', ' + status(c) : 'no catalogue course; use a certification or project')); });
+    return out.join('\n');
+  }
+  if (has('elective', 'credit', 'add a course', 'which course', 'next semester', 'take')) {
+    const left = S.registrationWindow.max - S.credits();
+    const options = S.courses.filter(c => c.sem <= 4 && !done[c.code] && !S.isRegistered(c.code) && S.evalFor(c.code).ok && c.credits <= Math.max(left, 0))
+      .sort((a, b) => relevant(b) - relevant(a)).slice(0, 4);
+    out.push('You have ' + S.credits() + ' of ' + S.registrationWindow.max + ' credits registered, so ' + Math.max(left, 0) + ' credits are free.');
+    if (!options.length) out.push('No eligible elective fits in your remaining credits this semester.');
+    else { out.push('## Best options for ' + role.name); options.forEach(c => out.push('- ' + courseLine(c) + ': builds ' + ((c.skills || []).slice(0, 3).join(', ') || 'core breadth'))); }
+    const later = S.courses.filter(c => c.sem >= 5 && relevant(c) > 0 && !done[c.code]).sort((a, b) => relevant(b) - relevant(a)).slice(0, 2);
+    if (later.length) { out.push('## Plan for Semester V'); later.forEach(c => out.push('- ' + courseLine(c) + ', ' + status(c))); }
+    return out.join('\n');
+  }
+  if (has('graduat', 'on track', 'semester', 'finish', 'degree')) {
+    const w = S.whatIf([]);
+    out.push('You have earned ' + g.credits + ' credits and are taking ' + S.credits() + ' more this semester.', '## Degree progress');
+    out.push('- Requirement credits still open after this semester: ' + w.remaining, '- Projected graduation: Semester ' + w.gradSem + (w.onTrack ? ' (on track for 8 semesters)' : ' (behind; add credits)'));
+    const low = S.attendance().filter(a => a.pct < 75);
+    if (low.length) out.push('- Watch attendance: ' + low.map(a => a.name + ' ' + a.pct + '%').join(', ') + ' (minimum 75% to sit exams)');
+    return out.join('\n');
+  }
+  if (has('attendance', 'absent', 'bunk')) {
+    out.push('## Attendance by subject');
+    S.attendance().forEach(a => out.push('- ' + a.name + ': ' + a.pct + '%' + (a.pct < 75 ? ' (below 75%, attend every class)' : '')));
+    return out.join('\n');
+  }
+  if (has('cgpa', 'gpa', 'grade', 'marks', 'improve')) {
+    out.push('Your CGPA is ' + g.cgpa.toFixed(2) + ' over ' + g.credits + ' credits.', '## Strongest courses');
+    best.forEach(x => out.push('- ' + x.c.code + ' ' + x.c.name + ': ' + x.g));
+    if (weak.length) { out.push('## Pulling you down'); weak.forEach(x => out.push('- ' + x.c.code + ' ' + x.c.name + ': ' + x.g)); }
+    out.push('## Tip', 'Your highest-credit courses this semester move CGPA the most: ' + S.state.registered.map(r => S.byCode[r.code]).filter(Boolean).sort((a, b) => b.credits - a.credits).slice(0, 2).map(c => c.code).join(' and ') + '.');
+    return out.join('\n');
+  }
+  if (has('resume', 'cv', 'profile', 'present', 'tailor', 'project', 'portfolio', 'interview', 'internship', 'job')) {
+    const lead = graded.filter(x => relevant(x.c) > 0).sort((a, b) => GP[b.g] - GP[a.g]).slice(0, 3);
+    out.push('For a ' + role.name + ' application:', '## Lead with');
+    (lead.length ? lead : best.slice(0, 3)).forEach(x => out.push('- ' + x.c.code + ' ' + x.c.name + ' (' + x.g + ')'));
+    const certs = S.certificates.filter(c => c.verified).slice(0, 2);
+    if (certs.length) out.push('- Certificates: ' + certs.map(c => c.title).join(', '));
+    out.push('## Project line', 'Built a team software project applying ' + (role.have.slice(0, 2).join(' and ') || 'core engineering') + '; owned design, implementation and testing.');
+    if (role.miss.length) out.push('## Strengthen', 'Add one project showing ' + role.miss[0] + '; it is the biggest gap recruiters will notice.');
+    return out.join('\n');
+  }
+  out.push('Here is a quick read of your profile for ' + role.name + ' (' + role.fit + '% fit).', '## Highlights');
+  out.push('- CGPA ' + g.cgpa.toFixed(2) + ', top skill ' + (prof.skills[0] ? prof.skills[0].skill : 'n/a'));
+  out.push('- Best match overall: ' + paths[0].name + ' (' + paths[0].fit + '%)');
+  if (role.miss.length) out.push('- Next skill to build: ' + role.miss[0]);
+  out.push('Try asking about career fit, skill gaps, electives, graduation, CGPA or your resume.');
+  return out.join('\n');
+}
 
 class Component extends DCLogic {
   state = {
@@ -344,24 +435,6 @@ class Component extends DCLogic {
   }
   componentWillUnmount() { if (this.unsub) this.unsub(); window.removeEventListener('resize', this.onResize); }
 
-  academicContext() {
-    const S = window.VIT, g = S.gpa(), prof = S.profile(), att = S.attendance();
-    const completed = Object.keys(S.state.completed).map(c => S.byCode[c].code + ' ' + S.byCode[c].name + ' (grade ' + S.state.completed[c] + ')').join('; ');
-    const registered = S.state.registered.map(r => S.byCode[r.code].code + ' ' + S.byCode[r.code].name).join('; ');
-    const eligible = S.courses.filter(c => c.sem >= 4 && !S.isRegistered(c.code) && !S.state.completed[c.code] && S.evalFor(c.code).ok).map(c => c.code + ' ' + c.name).join('; ');
-    const certs = S.certificates.map(c => c.title).join('; ');
-    return [
-      'Student: ' + S.student.name + ', ' + S.student.programme + ', Semester ' + S.student.sem + ', Division ' + S.student.division + '.',
-      'CGPA ' + g.cgpa + ' of 10. Credits earned ' + g.credits + ' of 120. Currently registered for ' + S.credits() + ' credits.',
-      'Completed courses: ' + completed + '.',
-      'Currently registered: ' + registered + '.',
-      'Eligible but not registered: ' + (eligible || 'none') + '.',
-      'Certificates: ' + certs + '.',
-      'Top derived skills: ' + prof.skills.slice(0, 10).map(s => s.skill).join(', ') + '.',
-      'Attendance: ' + att.map(a => a.name + ' ' + a.pct + '%').join(', ') + '.'
-    ].join('\n');
-  }
-
   ask = async (prompt, label, userLabel) => {
     const S = window.VIT;
     this.setState(s => ({
@@ -369,15 +442,12 @@ class Component extends DCLogic {
       busy: true, busyLabel: label || 'Reading your academic record…', error: '', draft: ''
     }));
     try {
-      const text = await window.ADVISOR_API.complete({
-        system: 'You are the career and academic advisor built into a university student portal (VIT Pune, B.Tech Computer Engineering). You have the student\'s real academic record below. Answer as an advisor who knows this specific student: cite their actual course codes, grades and CGPA. Be concrete and brief — at most 160 words. Use short plain-text lines; start a line with "- " for list items and "## " for a single short section heading if helpful. No markdown bold, no tables, no preamble, no sign-off.\n\nACADEMIC RECORD\n' + this.academicContext(),
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 700
-      });
+      await new Promise(r => setTimeout(r, 450));   // brief "thinking" pause so the reply doesn't flash in
+      const text = advise(prompt, this.state.target || S.profile().paths[0].name);
       this.setState(s => ({ messages: s.messages.concat([{ role: 'ai', text: String(text || '').trim(), heading: label || 'Advisor' }]), busy: false }));
     } catch (e) {
-      this.setState({ busy: false, error: 'The assistant could not be reached just now. Your academic data is unaffected — try again in a moment.' });
-      if (S) S.toast({ title: 'Assistant unavailable', body: 'Could not reach the advisory service.', kind: 'warn' });
+      console.error(e);
+      this.setState({ busy: false, error: 'The advisor could not read part of your record. Try rephrasing the question.' });
     }
   };
 
@@ -389,6 +459,8 @@ class Component extends DCLogic {
     const paths = prof.paths;
     const selName = st.sel || paths[0].name;
     const sel = paths.find(p => p.name === selName) || paths[0];
+    const n = S.student.sem, semT = (k) => k > 8 ? 'After graduation' : 'Semester ' + ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'][k];
+    const thenC = S.courses.filter(c => c.sem === n + 2).sort((a, b) => ((b.buckets || []).includes('proj') ? 1 : 0) - ((a.buckets || []).includes('proj') ? 1 : 0));
     const target = st.target || sel.name;
     const g = S.gpa();
 
@@ -400,7 +472,7 @@ class Component extends DCLogic {
 
     const out = {
       headCols: w < 900 ? '1fr' : 'minmax(0, 1.25fr) minmax(0, .75fr)',
-      direction: prof.direction.length ? prof.direction : ['Design Systems', 'Software Architecture'],
+      direction: prof.direction.length ? prof.direction : ['Core curriculum only'],
       derivedFrom: 'Derived from ' + Object.keys(S.state.completed).length + ' completed courses, ' + S.state.registered.length + ' registered subjects, ' + S.certificates.length + ' certificates and your grade profile (CGPA ' + g.cgpa + ').',
       topSkill: prof.skills[0] ? prof.skills[0].skill : '—',
       topSkillWhy: prof.skills[0] ? 'Reinforced across ' + Math.max(2, Math.round(prof.skills[0].weight / 2)) + ' courses in your record' : '',
@@ -437,7 +509,7 @@ class Component extends DCLogic {
           code, name: c.name,
           status: done ? 'Completed' : regd ? 'Registered' : c.sem > 4 ? 'Semester ' + c.sem : ok ? 'Eligible now' : 'Locked',
           statusStyle: 'font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 5px; background: ' + (done || regd ? '#E6F2EA' : ok && c.sem <= 4 ? '#E4F2F0' : '#F4F1EA') + '; color: ' + (done || regd ? '#146B43' : ok && c.sem <= 4 ? '#0B6F68' : '#8B949C') + ';',
-          go: () => nav(c.sem <= 4 ? 'registration' : 'academic', c.sem <= 4 ? undefined : 'degree')
+          go: () => nav('registration')
         };
       }).filter(Boolean),
 
@@ -457,10 +529,10 @@ class Component extends DCLogic {
 
       roadCols: w < 700 ? '1fr' : w < 1100 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(4, minmax(0, 1fr))',
       roadmap: [
-        { kicker: 'Now', title: 'Semester IV', window: 'Jul – Dec 2026 · ' + S.credits() + ' credits registered', dark: true, items: S.state.registered.slice(0, 3).map(r => ({ code: r.code, label: S.courseName(r.code) })) },
-        { kicker: 'Next', title: 'Semester V', window: 'Jan – May 2027 · close the gaps for ' + sel.name, items: (sel.next || []).slice(0, 3).map(c => ({ code: c, label: S.courseName(c) })) },
-        { kicker: 'Then', title: 'Semester VI', window: 'Jul – Dec 2027 · industry internship', items: [{ code: 'CS601', label: 'Internship (4 credits)' }, { code: '—', label: 'Portfolio project in ' + (sel.skills[0] || 'systems') }] },
-        { kicker: 'Outcome', title: 'Graduation', window: 'May 2028 · B.Tech Computer Engineering', accent: true, items: [{ code: '→', label: sel.name }, { code: '~', label: 'Median ' + sel.median }] }
+        { kicker: 'Now', title: semT(n), window: S.term.range + ' · ' + S.credits() + ' credits registered', dark: true, items: S.state.registered.slice(0, 3).map(r => ({ code: r.code, label: S.courseName(r.code) })) },
+        { kicker: 'Next', title: semT(n + 1), window: 'Next term · close the gaps for ' + sel.name, items: (sel.next || []).slice(0, 3).map(c => ({ code: c, label: S.courseName(c) })) },
+        { kicker: 'Then', title: semT(n + 2), window: 'Following term' + (thenC.length ? ' · ' + thenC[0].name : ''), items: [thenC[0] ? { code: thenC[0].code, label: thenC[0].name + ' (' + thenC[0].credits + ' credits)' } : { code: '—', label: 'Electives and projects' }, { code: '—', label: 'Portfolio project in ' + (sel.skills[0] || 'systems') }] },
+        { kicker: 'Outcome', title: 'Graduation', window: S.student.programme, accent: true, items: [{ code: '→', label: sel.name }, { code: '~', label: 'Median ' + sel.median }] }
       ].map(r => ({
         kicker: r.kicker, title: r.title, window: r.window,
         cardStyle: 'padding: 19px 20px; border-radius: 14px; ' + (r.dark ? 'background: #131A1F; color: #EDEAE3; border: 1px solid #131A1F;' : r.accent ? 'background: #E6F2EA; border: 1px solid #CBE4D6; color: #12503A;' : 'background: #FFFFFF; border: 1px solid #E3DFD6;'),
@@ -479,7 +551,7 @@ class Component extends DCLogic {
       actions: [
         ['Analyze My Resume', 'Analysing your record', 'Review my academic profile as if it were a resume for ' + target + '. What reads strongest, what is thin, and what single change would improve it most?'],
         ['Tailor for Role', 'Tailoring for ' + target, 'Rewrite how I should present myself for a ' + target + ' role: which of my courses, grades and certificates to lead with, and in what order. Name the actual course codes.'],
-        ['Improve Project Description', 'Rewriting your project entry', 'My CS403 Mini Project is a small team-built software artefact. Rewrite its resume entry in two lines for a ' + target + ' application, using the skills my transcript actually supports.'],
+        ['Improve Project Description', 'Rewriting your project entry', 'Pick my strongest project or lab course from my transcript and rewrite its resume entry in two lines for a ' + target + ' application, using the skills my transcript actually supports.'],
         ['Identify Skill Gaps', 'Comparing against ' + target, 'Compare my record against what a ' + target + ' is expected to know. List what I have, what is missing, and which specific VIT courses from my catalogue close each gap.']
       ].map(([label, busyLabel, prompt]) => ({
         label,
@@ -487,9 +559,10 @@ class Component extends DCLogic {
         style: 'padding: 8px 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12px; font-weight: 700; color: #4A555E; cursor: ' + (st.busy ? 'wait' : 'pointer') + '; opacity: ' + (st.busy ? .5 : 1) + '; transition: all .2s;'
       })),
       suggestions: [
-        'Which elective should I add with 6 credits left?',
+        'Which career suits me best?',
+        'Which elective should I add with ' + Math.max(S.registrationWindow.max - S.credits(), 0) + ' credits left?',
         'Am I on track to graduate in eight semesters?',
-        'Does my record suit a systems role or a product role?'
+        'Does my record suit a systems role or a data role?'
       ].map(label => ({ label, go: () => this.ask(label, 'Advisor', label) })),
       noMessages: st.messages.length === 0 && !st.busy,
       messages: st.messages.map(m => ({

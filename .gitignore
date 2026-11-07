@@ -7,3 +7,6 @@ keys.env
 __pycache__/
 *.log
 .vscode/
+
+# generated starting passwords
+logins.csv

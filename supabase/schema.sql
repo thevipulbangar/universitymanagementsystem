@@ -100,7 +100,7 @@ create table student (
   user_id    uuid unique references auth.users on delete set null,  -- portal: login
   first_name text,                                    -- portal
   roll       text,
-  year       text,                                    -- FE | SE | TE | BE
+  year       text,                                    -- FY | SY | TY | LY (first / second / third / last year)
   division   text,
   batch      text,
   current_sem int check (current_sem between 1 and 8),
@@ -274,8 +274,76 @@ create table notification (
   created_at timestamptz not null default now()
 );
 
+create table career_path (
+  name   text primary key,
+  skills text[] not null default '{}',                -- course skills this role draws on
+  demand text,
+  median text                                         -- indicative entry package
+);
+
+create table ppo_event (
+  id      int generated always as identity primary key,
+  on_date date not null,
+  title   text not null,
+  kind    text not null                               -- registration | exam | academic
+);
+
+create table ppo_application (
+  id         int generated always as identity primary key,
+  student_id text not null references student on delete cascade,
+  company    text not null,
+  role       text not null,
+  status     text not null default 'Applied',
+  created_at timestamptz not null default now()
+);
+
+create table request (                                -- student -> course faculty: seat / waiver / swap
+  id         int generated always as identity primary key,
+  student_id text not null references student on delete cascade,
+  course_id  text not null references course on delete cascade,
+  kind       text not null,                           -- seat | waiver | swap
+  reason     text,
+  status     text not null default 'Pending',         -- Pending | Approved | Declined
+  created_at timestamptz not null default now()
+);
+
+-- Monthly faculty feedback. A form row is created automatically for each calendar month (mongo_db.ensure_feedback_form).
+-- Ratings are anonymous (no student_id); feedback_submission records only WHO has filled WHICH section, so class teachers
+-- (a student's mentor) can see who is pending. Students write through the submit_feedback RPC only.
+create table feedback_question (
+  id       int generated always as identity primary key,
+  category text not null,                             -- completion | doubts | career | clarity | punctuality | material | approachability | evaluation
+  text     text not null
+);
+
+create table feedback_form (
+  month      text primary key,                        -- '2026-11'
+  created_at timestamptz not null default now()
+);
+
+create table feedback_submission (
+  id         int generated always as identity primary key,
+  month      text not null references feedback_form,
+  student_id text not null references student on delete cascade,
+  section_id int  not null references section on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (month, student_id, section_id)
+);
+
+create table feedback_response (
+  id          int generated always as identity primary key,
+  month       text not null references feedback_form,
+  section_id  int  not null references section on delete cascade,
+  faculty_id  text not null references faculty,
+  question_id int  not null references feedback_question,
+  rating      int  not null check (rating between 1 and 5)
+);
+
 create index on section (course_id, sem_id);
 create index on enrollment (section_id);
+create index on enrollment (student_id);
+create index on fee (student_id);
+create index on certificate (student_id);
 create index on section_meeting (section_id);
 create index on attendance (enroll_id);
 create index on notification (student_id, created_at desc);
@@ -410,15 +478,15 @@ do $$ declare t text; begin
   foreach t in array array['student','enrollment','fee','certificate','hostel_allotment','hall_ticket'] loop
     execute format('alter table %I enable row level security', t);
     execute format('create policy "own or faculty %1$s" on %1$I for select to authenticated
-                    using (student_id = my_student_id() or my_faculty_id() is not null)', t);
+                    using (student_id = (select my_student_id()) or (select my_faculty_id()) is not null)', t);  -- (select …): once per query, not per row
   end loop;
 end $$;
 -- enrollment is written only via register_section / drop_section / swap_section.
 
 alter table attendance enable row level security;
 create policy "own or faculty" on attendance for select to authenticated using (
-  my_faculty_id() is not null
-  or exists (select 1 from enrollment e where e.enroll_id = attendance.enroll_id and e.student_id = my_student_id()));
+  (select my_faculty_id()) is not null
+  or enroll_id in (select e.enroll_id from enrollment e where e.student_id = (select my_student_id())));
 create policy "faculty mark" on attendance for insert to authenticated with check (
   faculty_id = my_faculty_id()
   and exists (select 1 from enrollment e join section s on s.section_id = e.section_id
@@ -434,7 +502,7 @@ create policy "faculty write" on lesson_progress for all to authenticated
   using (my_faculty_id() is not null) with check (my_faculty_id() is not null);
 
 alter table notification enable row level security;
-create policy "own" on notification for select to authenticated using (student_id = my_student_id() or student_id is null);
+create policy "own" on notification for select to authenticated using (student_id = (select my_student_id()) or student_id is null);
 create policy "mark read" on notification for update to authenticated
   using (student_id = my_student_id()) with check (student_id = my_student_id());
 revoke update on notification from authenticated;

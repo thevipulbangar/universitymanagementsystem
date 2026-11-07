@@ -23,6 +23,10 @@
       <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Database console</div>
       <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Add, edit and delete rows directly in Supabase. Every change is checked by the database's constraints and row-level security.</div>
     </div>
+    <div style="display: flex; gap: 8px;">
+    <button type="button" onClick="{{ openLog }}" style="height: 38px; padding: 0 14px; background: #FFFFFF; color: #161D22; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;" style-hover="border-color: #0B8F86;">Activity log</button>
+    <button type="button" onClick="{{ openTT }}" style="height: 38px; padding: 0 16px; background: #0B8F86; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s;" style-hover="background: #087A72;">Generate timetable</button>
+    </div>
   </div>
 
   <div style="display: grid; grid-template-columns: {{ layoutCols }}; gap: 16px; align-items: start;">
@@ -42,9 +46,28 @@
           <div style="font-size: 12px; color: #6B757E; margin-top: 3px;">{{ showing }}</div>
         </div>
         <input type="text" value="{{ q }}" onChange="{{ setQ }}" placeholder="Search rows…" aria-label="Search rows" style="width: 220px; max-width: 100%; height: 36px; padding: 0 12px; font-size: 13px; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.12); outline: none;" />
+        <sc-for list="{{ filterBoxes }}" as="fb" hint-placeholder-count="2">
+          <select value="{{ fb.value }}" onChange="{{ fb.set }}" aria-label="{{ fb.label }}" style="height: 36px; max-width: 260px; padding: 0 9px; font-size: 13px; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF; color: #161D22;">
+            <option value="">{{ fb.all }}</option>
+            <sc-for list="{{ fb.options }}" as="o" hint-placeholder-count="4">
+              <option value="{{ o.v }}">{{ o.l }}</option>
+            </sc-for>
+          </select>
+        </sc-for>
         <button type="button" onClick="{{ reload }}" style="height: 36px; padding: 0 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 12.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #0B8F86;">Refresh</button>
         <button type="button" onClick="{{ openAdd }}" style="height: 36px; padding: 0 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background .2s;" style-hover="background: #0B8F86;">+ Add row</button>
       </div>
+
+      <sc-if value="{{ hasSelection }}">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 18px; background: #EAF5F3; border-bottom: 1px solid #CFE3DF; font-size: 12.5px;">
+          <span style="font-weight: 700; color: #0B5F59; margin-right: 6px;">{{ selCount }} selected</span>
+          <sc-if value="{{ canBulkLogin }}">
+            <button type="button" onClick="{{ bulkLogin }}" style="padding: 6px 11px; background: #FFFFFF; border: 1px solid #CFE3DF; border-radius: 7px; font-size: 12px; font-weight: 600; color: #0B8F86; cursor: pointer;" style-hover="border-color: #0B8F86;">Set password = email</button>
+          </sc-if>
+          <button type="button" onClick="{{ bulkDelete }}" style="padding: 6px 11px; background: #FFFFFF; border: 1px solid #EDCFC9; border-radius: 7px; font-size: 12px; font-weight: 600; color: #96382C; cursor: pointer;" style-hover="background: #F8E9E6;">Delete selected</button>
+          <button type="button" onClick="{{ clearSel }}" style="padding: 6px 11px; background: transparent; border: none; font-size: 12px; font-weight: 600; color: #5A6570; cursor: pointer; text-decoration: underline;">Clear</button>
+        </div>
+      </sc-if>
 
       <sc-if value="{{ note }}">
         <div style="padding: 10px 18px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6; font-size: 12px; color: #5A6570; line-height: 1.55;">{{ note }}</div>
@@ -57,22 +80,24 @@
       </sc-if>
 
       <sc-if value="{{ showGrid }}">
-        <div style="overflow-x: auto;">
+        <div style="overflow: auto; max-height: calc(100vh - 340px); min-height: 260px; overscroll-behavior: contain;">
           <div style="min-width: {{ gridMin }};">
             <div style="{{ headStyle }}">
+              <input type="checkbox" checked="{{ allSelected }}" onChange="{{ toggleAll }}" aria-label="Select all matching rows" title="Select all matching rows" style="width: 16px; height: 16px; accent-color: #0B8F86; cursor: pointer;" />
               <sc-for list="{{ heads }}" as="h" hint-placeholder-count="5">
                 <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ h }}</div>
               </sc-for>
               <div style="text-align: right;">Actions</div>
             </div>
             <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
-              <div style="{{ rowStyle }}" style-hover="background: #FAF8F4;">
+              <div style="{{ r.style }}" style-hover="background: #FAF8F4;">
+                <input type="checkbox" checked="{{ r.selected }}" onChange="{{ r.toggle }}" aria-label="Select row" style="width: 16px; height: 16px; accent-color: #0B8F86; cursor: pointer;" />
                 <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="5">
                   <div title="{{ c }}" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ c }}</div>
                 </sc-for>
                 <div style="display: flex; justify-content: flex-end; gap: 6px;">
                   <sc-if value="{{ r.canLogin }}">
-                    <button type="button" onClick="{{ r.login }}" style="padding: 5px 9px; background: #FFFFFF; border: 1px solid #CFE3DF; border-radius: 7px; font-size: 11.5px; font-weight: 600; color: #0B8F86; cursor: pointer;" style-hover="border-color: #0B8F86;">Create login</button>
+                    <button type="button" onClick="{{ r.login }}" style="padding: 5px 9px; background: #FFFFFF; border: 1px solid #CFE3DF; border-radius: 7px; font-size: 11.5px; font-weight: 600; color: #0B8F86; cursor: pointer;" style-hover="border-color: #0B8F86;">{{ r.loginLabel }}</button>
                   </sc-if>
                   <button type="button" onClick="{{ r.edit }}" style="padding: 5px 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; font-size: 11.5px; font-weight: 600; cursor: pointer;" style-hover="border-color: #0B8F86;">Edit</button>
                   <button type="button" onClick="{{ r.del }}" style="padding: 5px 10px; background: #FFFFFF; border: 1px solid #EDCFC9; border-radius: 7px; font-size: 11.5px; font-weight: 600; color: #96382C; cursor: pointer;" style-hover="background: #F8E9E6;">Delete</button>
@@ -156,16 +181,151 @@
     </div>
   </sc-if>
 
+  <!-- activity log (MongoDB) -->
+  <sc-if value="{{ logOpen }}">
+    <div onClick="{{ closeAll }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: aFade .2s both; overflow-y: auto;">
+      <div onClick="{{ stop }}" style="width: 100%; max-width: 960px; margin: auto; background: #FFFFFF; border-radius: 14px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: aPop .28s cubic-bezier(.2,.8,.2,1) both; overflow: hidden;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px 22px; border-bottom: 1px solid #F0EDE6;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">MongoDB · vit_portal.activity_log</div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: 22px; margin-top: 4px;">Activity log</div>
+            <div style="font-size: 12px; color: #6B757E; margin-top: 4px;">{{ logSub }}</div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" onClick="{{ logReload }}" style="height: 30px; padding: 0 11px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; font-size: 12px; font-weight: 600; cursor: pointer;">Refresh</button>
+            <button type="button" onClick="{{ closeAll }}" aria-label="Close" style="width: 30px; height: 30px; display: grid; place-items: center; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; color: #6B757E; font-size: 13px; cursor: pointer;">✕</button>
+          </div>
+        </div>
+        <div style="max-height: 66vh; overflow: auto;">
+          <sc-if value="{{ formError }}">
+            <div style="margin: 14px 22px; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12.5px; color: #96382C;">{{ formError }}</div>
+          </sc-if>
+          <div style="min-width: 760px;">
+            <div style="position: sticky; top: 0; display: grid; grid-template-columns: 150px 170px 130px 120px 1fr; gap: 10px; padding: 9px 22px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">
+              <div>When</div><div>Admin</div><div>Action</div><div>Table</div><div>Details</div>
+            </div>
+            <sc-for list="{{ logRows }}" as="e" hint-placeholder-count="6">
+              <div style="display: grid; grid-template-columns: 150px 170px 130px 120px 1fr; gap: 10px; padding: 8px 22px; border-bottom: 1px solid #F4F1EA; font-size: 12px;">
+                <div style="color: #6B757E;">{{ e.at }}</div>
+                <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ e.actor }}</div>
+                <div style="font-weight: 600; color: {{ e.color }};">{{ e.action }}</div>
+                <div style="font-family: 'JetBrains Mono', monospace; font-size: 11.5px;">{{ e.table }}</div>
+                <div title="{{ e.detail }}" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5A6570; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ e.detail }}</div>
+              </div>
+            </sc-for>
+            <sc-if value="{{ logEmpty }}">
+              <div style="padding: 26px 22px; font-size: 13px; color: #8B949C;">{{ logEmpty }}</div>
+            </sc-if>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- timetable generator -->
+  <sc-if value="{{ ttOpen }}">
+    <div onClick="{{ closeAll }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: aFade .2s both; overflow-y: auto;">
+      <div onClick="{{ stop }}" style="width: 100%; max-width: 980px; margin: auto; background: #FFFFFF; border-radius: 14px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: aPop .28s cubic-bezier(.2,.8,.2,1) both; overflow: hidden;">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; padding: 18px 22px; border-bottom: 1px solid #F0EDE6;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Timetable · {{ ttTerm }}</div>
+            <div style="font-family: Newsreader, Georgia, serif; font-size: 22px; margin-top: 4px;">{{ ttTitle }}</div>
+          </div>
+          <button type="button" onClick="{{ closeAll }}" aria-label="Close" style="width: 30px; height: 30px; display: grid; place-items: center; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; color: #6B757E; font-size: 13px; cursor: pointer;">✕</button>
+        </div>
+        <div style="padding: 16px 22px; max-height: 68vh; overflow-y: auto; font-size: 12.5px; color: #4A555E; line-height: 1.55;">
+          <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 12px;">
+            <label style="font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5A6570;">Students per section
+              <input type="number" min="10" value="{{ ttCap }}" onChange="{{ setTTCap }}" style="display: block; width: 120px; height: 34px; margin-top: 5px; padding: 0 10px; border: 1px solid #DCD7CC; border-radius: 8px; font-size: 13px;" />
+            </label>
+            <label style="font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5A6570;">Max hours / faculty / week
+              <input type="number" min="4" value="{{ ttMaxH }}" onChange="{{ setTTMaxH }}" style="display: block; width: 120px; height: 34px; margin-top: 5px; padding: 0 10px; border: 1px solid #DCD7CC; border-radius: 8px; font-size: 13px;" />
+            </label>
+            <button type="button" onClick="{{ ttPlan }}" disabled="{{ busy }}" style="height: 34px; padding: 0 14px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer;">{{ ttPlanLabel }}</button>
+          </div>
+          <div style="padding: 10px 12px; background: #FAF8F4; border: 1px solid #F0EDE6; border-radius: 8px;">{{ ttRules }}</div>
+          <sc-if value="{{ ttHasPlan }}">
+            <div style="margin-top: 14px; padding: 10px 12px; background: #E6F2EA; border: 1px solid #CBE4D6; border-radius: 8px; color: #12503A;">{{ ttSummary }}</div>
+            <div style="margin-top: 14px; overflow-x: auto;">
+              <div style="min-width: 560px; display: grid; grid-template-columns: 70px repeat(6, 1fr); font-size: 12px;">
+                <sc-for list="{{ ttHead }}" as="h" hint-placeholder-count="7">
+                  <div style="padding: 7px 8px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #8B949C;">{{ h }}</div>
+                </sc-for>
+                <sc-for list="{{ ttDepts }}" as="d" hint-placeholder-count="6">
+                  <sc-for list="{{ d.cells }}" as="c" hint-placeholder-count="7">
+                    <div style="padding: 7px 8px; border-bottom: 1px solid #F4F1EA;">{{ c }}</div>
+                  </sc-for>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 16px;">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5A6570;">Preview week for</span>
+              <select value="{{ ttGroup }}" onChange="{{ setTTGroup }}" style="height: 32px; padding: 0 8px; border: 1px solid #DCD7CC; border-radius: 8px; font-size: 12.5px;">
+                <sc-for list="{{ ttGroups }}" as="g" hint-placeholder-count="4">
+                  <option value="{{ g.v }}">{{ g.l }}</option>
+                </sc-for>
+              </select>
+            </div>
+            <div style="margin-top: 10px; overflow-x: auto;">
+              <div style="min-width: 760px; display: grid; grid-template-columns: 54px repeat(6, 1fr); gap: 4px; font-size: 11.5px;">
+                <sc-for list="{{ ttGridHead }}" as="h" hint-placeholder-count="7">
+                  <div style="padding: 4px 6px; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: #8B949C;">{{ h }}</div>
+                </sc-for>
+                <sc-for list="{{ ttGrid }}" as="c" hint-placeholder-count="35">
+                  <div title="{{ c.title }}" style="{{ c.style }}">{{ c.text }}</div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ ttDone }}">
+            <div style="margin-top: 14px; padding: 10px 12px; background: #E6F2EA; border: 1px solid #CBE4D6; border-radius: 8px; color: #12503A;">{{ ttDone }}</div>
+          </sc-if>
+          <sc-if value="{{ formError }}">
+            <div style="margin-top: 14px; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; color: #96382C;">{{ formError }}</div>
+          </sc-if>
+        </div>
+        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; padding: 14px 22px 18px; border-top: 1px solid #F0EDE6;">
+          <span style="flex: 1; font-size: 12px; color: #6B757E;">{{ ttFoot }}</span>
+          <button type="button" onClick="{{ closeAll }}" style="padding: 10px 15px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">Close</button>
+          <sc-if value="{{ ttCanApply }}">
+            <button type="button" onClick="{{ ttApply }}" disabled="{{ busy }}" style="padding: 10px 18px; background: #0B8F86; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;">{{ ttApplyLabel }}</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- bulk action confirm -->
+  <sc-if value="{{ bulkOpen }}">
+    <div onClick="{{ closeAll }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: aFade .2s both;">
+      <div onClick="{{ stop }}" style="width: 100%; max-width: 460px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: aPop .28s cubic-bezier(.2,.8,.2,1) both; padding: 22px;">
+        <div style="font-family: Newsreader, Georgia, serif; font-size: 22px;">{{ bulkTitle }}</div>
+        <div style="font-size: 13px; color: #4A555E; margin-top: 8px; line-height: 1.55;">{{ bulkText }}</div>
+        <sc-if value="{{ bulkWarn }}">
+          <div style="margin-top: 12px; padding: 11px 13px; background: #FBF3E2; border: 1px solid #EBD9B0; border-radius: 8px; font-size: 12.5px; color: #7A5A12; line-height: 1.5;">{{ bulkWarn }}</div>
+        </sc-if>
+        <sc-if value="{{ formError }}">
+          <div style="margin-top: 12px; padding: 11px 13px; background: #F8E9E6; border: 1px solid #EDCFC9; border-radius: 8px; font-size: 12.5px; color: #96382C; line-height: 1.5; max-height: 160px; overflow-y: auto;">{{ formError }}</div>
+        </sc-if>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
+          <button type="button" onClick="{{ closeAll }}" style="padding: 10px 15px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">Close</button>
+          <sc-if value="{{ bulkPending }}">
+            <button type="button" onClick="{{ doBulk }}" disabled="{{ busy }}" style="{{ bulkBtnStyle }}">{{ bulkBtn }}</button>
+          </sc-if>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
   <!-- create login -->
   <sc-if value="{{ loginOpen }}">
     <div onClick="{{ closeAll }}" style="position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgba(19,26,31,.58); backdrop-filter: blur(3px); animation: aFade .2s both;">
       <div onClick="{{ stop }}" style="width: 100%; max-width: 460px; background: #FFFFFF; border-radius: 14px; box-shadow: 0 30px 90px rgba(20,26,31,.32); animation: aPop .28s cubic-bezier(.2,.8,.2,1) both; padding: 22px;">
         <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Accounts</div>
-        <div style="font-family: Newsreader, Georgia, serif; font-size: 22px; margin-top: 4px;">Create login</div>
-        <div style="font-size: 13px; color: #4A555E; margin-top: 8px; line-height: 1.55;">Creates a Supabase Auth user for <span style="font-family: 'JetBrains Mono', monospace; color: #0B8F86;">{{ loginEmail }}</span>. It is linked to this record automatically.</div>
-        <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5A6570; margin: 16px 0 6px;">Initial password</label>
+        <div style="font-family: Newsreader, Georgia, serif; font-size: 22px; margin-top: 4px;">{{ loginTitle }}</div>
+        <div style="font-size: 13px; color: #4A555E; margin-top: 8px; line-height: 1.55;">Sets the sign-in password for <span style="font-family: 'JetBrains Mono', monospace; color: #0B8F86;">{{ loginEmail }}</span>. The login is confirmed and linked to this record immediately — no email is sent.</div>
+        <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #5A6570; margin: 16px 0 6px;">Password</label>
         <input type="text" value="{{ loginPw }}" onChange="{{ setLoginPw }}" placeholder="at least 6 characters" style="width: 100%; height: 38px; padding: 0 11px; font-size: 13.5px; font-family: 'JetBrains Mono', monospace; border: 1px solid #DCD7CC; border-radius: 8px;" />
-        <div style="font-size: 11.5px; color: #8B949C; margin-top: 10px; line-height: 1.55;">If the project has "Confirm email" enabled, the user must click the link in the confirmation email before signing in — or turn it off in Supabase: Authentication → Sign In / Providers → Email → Confirm email.</div>
         <sc-if value="{{ loginMsg }}">
           <div style="margin-top: 12px; padding: 11px 13px; background: #E6F2EA; border: 1px solid #CBE4D6; border-radius: 8px; font-size: 12.5px; color: #12503A; line-height: 1.5;">{{ loginMsg }}</div>
         </sc-if>
@@ -174,7 +334,7 @@
         </sc-if>
         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px;">
           <button type="button" onClick="{{ closeAll }}" style="padding: 10px 15px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 600; cursor: pointer;">Close</button>
-          <button type="button" onClick="{{ doCreateLogin }}" disabled="{{ busy }}" style="padding: 10px 18px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">Create login</button>
+          <button type="button" onClick="{{ doCreateLogin }}" disabled="{{ busy }}" style="padding: 10px 18px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">{{ loginTitle }}</button>
         </div>
       </div>
     </div>
@@ -185,12 +345,13 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:860},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
 // One config drives every screen. Column spec: [name, type, extra]
 //   type: text | long | number | date | time | bool | list (text[] as comma list) | select (extra.opts) | fk:<table>
-//   extra.num: send the value as a number (selects).  Table: pk columns, id: identity pk (never sent), list: columns shown in the grid.
+//   extra.num: send the value as a number (selects).  Table: pk columns, id: identity pk (never sent), list: columns shown in the grid,
+//   filters: [[column, label, order?]] dropdowns above the grid (options = values present in the loaded rows).
 const DAY_OPTS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const TABLES = {
-  student: { label: 'Students', pk: ['student_id'], login: true, list: ['student_id', 'name', 'program_id', 'year', 'division', 'email', 'user_id'], cols: [
+  student: { label: 'Students', pk: ['student_id'], login: true, filters: [['program_id', 'Branch'], ['year', 'Year', ['FY', 'SY', 'TY', 'LY', 'Graduated']]], list: ['student_id', 'name', 'program_id', 'year', 'division', 'email', 'user_id'], cols: [
     ['student_id', 'text'], ['name', 'text'], ['first_name', 'text'], ['program_id', 'fk:program'], ['dept_id', 'fk:department'], ['admit_year', 'number'],
-    ['roll', 'text'], ['year', 'select', { opts: ['FE', 'SE', 'TE', 'BE'] }], ['division', 'text'], ['batch', 'text'], ['current_sem', 'number'],
+    ['roll', 'text'], ['division', 'text'], ['batch', 'text'],  // year + current_sem are set from admit_year (mongo_db.sync_years)
     ['email', 'text'], ['phone', 'text'], ['dob', 'date'], ['gender', 'text'], ['category', 'text'], ['admission', 'text'], ['mentor_id', 'fk:faculty']] },
   faculty: { label: 'Faculty', pk: ['faculty_id'], login: true, list: ['faculty_id', 'name', 'dept_id', 'designation', 'email', 'user_id'], cols: [
     ['faculty_id', 'text'], ['name', 'text'], ['short_name', 'text'], ['dept_id', 'fk:department'], ['email', 'text'], ['designation', 'text'], ['cabin', 'text']] },
@@ -237,6 +398,7 @@ const LABEL = {
 const PAGE = 50;
 const fkOf = (type) => type.indexOf('fk:') === 0 ? type.slice(3) : null;
 const pkOf = (t, row) => Object.fromEntries(TABLES[t].pk.map(k => [k, row[k]]));
+const keyOf = (t, row) => JSON.stringify(TABLES[t].pk.map(k => row[k]));
 
 // db value → form string, and back
 function toForm(type, v) {
@@ -256,7 +418,7 @@ function fromForm(type, extra, v) {
 }
 
 class Component extends DCLogic {
-  state = { table: 'student', rows: [], count: 0, lookups: {}, loading: true, error: '', q: '', page: 0,
+  state = { table: 'student', flt: {}, rows: [], count: 0, lookups: {}, loading: true, error: '', q: '', page: 0, sel: {}, progress: '',
             modal: null, busy: false, formError: '', w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
 
   componentDidMount() {
@@ -274,19 +436,67 @@ class Component extends DCLogic {
     const A = window.VIT.admin, cfg = TABLES[table];
     const refs = Array.from(new Set(cfg.cols.map(c => fkOf(c[1])).filter(Boolean)));
     if (refs.indexOf('section') >= 0 && refs.indexOf('semester') < 0) refs.push('semester');
-    this.setState({ table, loading: true, error: '', page: table === this.state.table ? this.state.page : 0, q: table === this.state.table ? this.state.q : '' });
+    this.setState({ table, loading: true, error: '', sel: table === this.state.table ? this.state.sel : {}, page: table === this.state.table ? this.state.page : 0, q: table === this.state.table ? this.state.q : '', flt: table === this.state.table ? this.state.flt : {} });
     Promise.resolve()
       .then(() => Promise.all([A.list(table, { order: cfg.pk })].concat(refs.map(t => A.list(t, { order: TABLES[t].pk })))))
       .then(([main, ...lk]) => {
         if (this.state.table !== table) return;
         const lookups = {};
         refs.forEach((t, i) => { lookups[t] = lk[i].rows; });
-        this.setState({ rows: main.rows, count: main.count, lookups, loading: false });
+        const keys = new Set(main.rows.map(r => keyOf(table, r)));  // drop selections whose rows are gone
+        const sel = Object.fromEntries(Object.entries(this.state.sel).filter(([k]) => keys.has(k)));
+        this.setState({ rows: main.rows, count: main.count, lookups, loading: false, sel });
       })
       .catch(e => { if (this.state.table === table) this.setState({ rows: [], count: 0, loading: false, error: e.message }); });
   }
 
-  close = () => this.setState({ modal: null, busy: false, formError: '' });
+  close = () => this.setState({ modal: null, busy: false, formError: '', progress: '' });
+
+  loadLog() {
+    this.setState({ busy: true, formError: '' });
+    window.VIT.admin.activity(300).then(
+      r => this.setState({ busy: false, modal: Object.assign({}, this.state.modal, { log: r }) }),
+      e => this.setState({ busy: false, formError: e.message || String(e) }));
+  }
+
+  ttPlan(fresh) {
+    const m = fresh || this.state.modal;
+    this.setState({ busy: true, formError: '', modal: Object.assign({}, m, { plan: null, done: '' }) });
+    window.VIT.admin.timetablePlan({ capacity: Number(m.cap) || 60, maxHours: Number(m.maxH) || 18 }).then(
+      plan => this.setState({ busy: false, modal: Object.assign({}, this.state.modal, { plan, group: 0 }) }),
+      e => this.setState({ busy: false, formError: e.message || String(e) }));
+  }
+  ttApply() {
+    const plan = this.state.modal.plan;
+    this.setState({ busy: true, formError: '' });
+    window.VIT.admin.timetableApply(plan, txt => this.setState({ progress: txt })).then(
+      r => {
+        this.setState({ busy: false, progress: '', modal: Object.assign({}, this.state.modal, { plan: null, done:
+          'Saved: ' + r.sections + ' sections, ' + r.meetings + ' weekly slots. ' + r.moved + ' enrolments moved, ' + r.added + ' added, ' + r.dropped + ' removed'
+          + (r.removedSections ? ', ' + r.removedSections + ' unused sections deleted' : '') + '. Students and faculty see the new timetable after they reload.' }) });
+        this.load(this.state.table);
+      },
+      e => this.setState({ busy: false, progress: '', formError: 'Stopped part-way: ' + (e.message || e) + ' — run Generate again to finish.' }));
+  }
+
+  // Applies fn to each row one at a time; keeps going past failures and lists them in the dialog.
+  async bulk(rows, fn, verb) {
+    this.setState({ busy: true, formError: '' });
+    const failed = [];
+    for (let i = 0; i < rows.length; i++) {
+      this.setState({ progress: (i + 1) + ' / ' + rows.length });
+      try { await fn(rows[i]); } catch (e) { failed.push((rows[i].email || Object.values(pkOf(this.state.table, rows[i])).join('/')) + ': ' + (e.message || e)); }
+    }
+    const ok = rows.length - failed.length;
+    this.load(this.state.table);
+    if (failed.length) {
+      this.setState({ busy: false, progress: '', sel: {}, modal: Object.assign({}, this.state.modal, { done: true }),
+                      formError: ok + ' ' + verb + ', ' + failed.length + ' failed — ' + failed.join(' · ') });
+      return;
+    }
+    this.setState({ sel: {} }); this.close();
+    window.VIT.toast({ title: ok + ' ' + verb, kind: 'ok' });
+  }
 
   // run an admin call with busy/error handling; on success close the modal and reload
   run(fn, keepOpen) {
@@ -319,14 +529,16 @@ class Component extends DCLogic {
       return v == null ? '' : String(v);
     };
 
-    // Note: search/paging is client-side over the first 1000 rows; switch to server-side .ilike/.range if a table outgrows that
+    // Note: search/paging is client-side over the first 20000 rows (VIT.admin.list cap); bigger tables show "(first N loaded)"
     const q = st.q.trim().toLowerCase();
     const all = st.rows.map(r => ({ row: r, cells: listCols.map(c => cell(r, c)) }));
-    const hits = q ? all.filter(x => x.cells.join(' ').toLowerCase().indexOf(q) >= 0) : all;
+    const flt = st.flt || {};
+    const hits = all.filter(x => (!q || x.cells.join(' ').toLowerCase().indexOf(q) >= 0)
+      && Object.keys(flt).every(c => !flt[c] || String(x.row[c]) === flt[c]));
     const pageCount = Math.max(1, Math.ceil(hits.length / PAGE));
     const pg = Math.min(st.page, pageCount - 1);
     const shown = hits.slice(pg * PAGE, pg * PAGE + PAGE);
-    const gridCols = 'grid-template-columns: repeat(' + listCols.length + ', minmax(110px, 1fr)) ' + (cfg.login ? '250px' : '140px') + ';';
+    const gridCols = 'grid-template-columns: 22px repeat(' + listCols.length + ', minmax(110px, 1fr)) ' + (cfg.login ? '250px' : '140px') + ';';
     const rowBase = 'display: grid; ' + gridCols + ' gap: 12px; align-items: center; padding: 9px 18px; ';
 
     const m = st.modal;
@@ -338,19 +550,31 @@ class Component extends DCLogic {
         style: 'display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 8px 11px; border: none; border-radius: 8px; text-align: left; font-size: 13px; font-weight: ' + (name === t ? 700 : 500) + '; cursor: pointer; background: ' + (name === t ? '#131A1F' : 'transparent') + '; color: ' + (name === t ? '#EDEAE3' : '#161D22') + ';'
       })),
       tableLabel: cfg.label, tableName: t, note: cfg.note || '',
-      showing: st.loading ? '' : 'Showing ' + (hits.length ? pg * PAGE + 1 : 0) + '–' + (pg * PAGE + shown.length) + ' of ' + hits.length + (q ? ' matching' : '') + ' · ' + st.count + ' in database' + (st.count > st.rows.length ? ' (first ' + st.rows.length + ' loaded)' : ''),
+      showing: st.loading ? '' : 'Showing ' + (hits.length ? pg * PAGE + 1 : 0) + '–' + (pg * PAGE + shown.length) + ' of ' + hits.length + (q || Object.values(flt).some(Boolean) ? ' matching' : '') + ' · ' + st.count + ' in database' + (st.count > st.rows.length ? ' (first ' + st.rows.length + ' loaded)' : ''),
       q: st.q, setQ: (e) => this.setState({ q: e.target.value, page: 0 }),
+      filterBoxes: (cfg.filters || []).map(([c, label, order]) => {
+        const counts = {};
+        st.rows.forEach(r => { if (r[c] != null && r[c] !== '') counts[r[c]] = (counts[r[c]] || 0) + 1; });
+        const spec = cfg.cols.find(x => x[0] === c) || [], fixed = order || (spec[2] && spec[2].opts);  // keep a meaningful order (FY, SY, TY, LY)
+        const vals = Object.keys(counts).sort((a, b) => fixed ? fixed.indexOf(a) - fixed.indexOf(b) : (a < b ? -1 : 1));
+        return { label, all: 'All ' + label.toLowerCase() + (label.endsWith('h') ? 'es' : 's'), value: flt[c] || '',
+                 options: vals.map(v => ({ v, l: (fkOf(colType[c] || '') ? fkLabel(fkOf(colType[c]), v) : v) + ' (' + counts[v] + ')' })),
+                 set: (e) => this.setState({ flt: Object.assign({}, flt, { [c]: e.target.value }), page: 0 }) };
+      }),
       reload: () => this.load(t),
       error: st.error, loading: st.loading, showGrid: !st.loading && !st.error,
-      gridMin: (listCols.length * 122 + (cfg.login ? 262 : 152) + 36) + 'px',
-      headStyle: rowBase + 'background: #FAF8F4; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;',
-      rowStyle: rowBase + 'border-bottom: 1px solid #F4F1EA; font-size: 12.5px;',
+      gridMin: (listCols.length * 122 + (cfg.login ? 262 : 152) + 70) + 'px',
+      headStyle: rowBase + 'position: sticky; top: 0; z-index: 2; background: #FAF8F4; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;',
       heads: listCols.map(c => c === 'user_id' ? 'login' : c),
       empty: shown.length === 0,
       rows: shown.map(({ row, cells }) => ({
         cells,
-        canLogin: !!cfg.login && !row.user_id,
-        login: () => this.setState({ modal: { kind: 'login', email: row.email, pw: '' }, formError: '' }),
+        selected: !!st.sel[keyOf(t, row)],
+        style: rowBase + 'border-bottom: 1px solid #F4F1EA; font-size: 12.5px;' + (st.sel[keyOf(t, row)] ? ' background: #F2FAF8;' : ''),
+        toggle: () => { const sel = Object.assign({}, this.state.sel), k = keyOf(t, row); if (sel[k]) delete sel[k]; else sel[k] = true; this.setState({ sel }); },
+        canLogin: !!cfg.login && !!row.email,
+        loginLabel: row.user_id ? 'Change password' : 'Set password',
+        login: () => this.setState({ modal: { kind: 'login', email: row.email, pw: '', linked: !!row.user_id }, formError: '' }),
         edit: () => this.setState({ modal: { kind: 'edit', pk: pkOf(t, row), values: Object.fromEntries(cfg.cols.map(c => [c[0], toForm(c[1], row[c[0]])])) }, formError: '' }),
         del: () => this.setState({ modal: { kind: 'delete', pk: pkOf(t, row), text: cells.slice(0, 3).filter(Boolean).join(' · ') }, formError: '' })
       })),
@@ -358,6 +582,23 @@ class Component extends DCLogic {
       prevPage: () => this.setState({ page: Math.max(0, pg - 1) }),
       nextPage: () => this.setState({ page: Math.min(pageCount - 1, pg + 1) }),
       openAdd: () => this.setState({ modal: { kind: 'add', values: Object.fromEntries(cfg.cols.map(c => [c[0], toForm(c[1], c[1] === 'bool' ? false : null)])) }, formError: '' }),
+
+      // selection spans pages; the header box selects every row matching the current search
+      selCount: Object.keys(st.sel).length, hasSelection: Object.keys(st.sel).length > 0, canBulkLogin: !!cfg.login,
+      allSelected: hits.length > 0 && hits.every(x => st.sel[keyOf(t, x.row)]),
+      toggleAll: () => {
+        const sel = Object.assign({}, this.state.sel), on = !(hits.length > 0 && hits.every(x => sel[keyOf(t, x.row)]));
+        hits.forEach(x => { const k = keyOf(t, x.row); if (on) sel[k] = true; else delete sel[k]; });
+        this.setState({ sel });
+      },
+      clearSel: () => this.setState({ sel: {} }),
+      bulkLogin: () => this.setState({ modal: { kind: 'bulk', action: 'login' }, formError: '' }),
+      bulkDelete: () => this.setState({ modal: { kind: 'bulk', action: 'delete' }, formError: '' }),
+      bulkOpen: !!m && m.kind === 'bulk',
+      openTT: () => { const tm = { kind: 'tt', cap: 60, maxH: 18, group: 0 }; this.setState({ modal: tm, formError: '' }); this.ttPlan(tm); },
+      ttOpen: !!m && m.kind === 'tt',
+      openLog: () => { this.setState({ modal: { kind: 'log' }, formError: '' }); this.loadLog(); },
+      logOpen: !!m && m.kind === 'log',
 
       closeAll: this.close, stop: (e) => e.stopPropagation(), busy: st.busy, formError: st.formError,
       formOpen: !!m && (m.kind === 'add' || m.kind === 'edit'),
@@ -402,16 +643,81 @@ class Component extends DCLogic {
       confirmText: t + ' · ' + m.text + '. This cannot be undone; rows that reference it may block the delete or be removed with it (per the schema\'s foreign keys).',
       doDelete: () => this.run(() => S.admin.remove(t, m.pk).then(() => 'Row deleted'))
     });
+    if (out.logOpen) {
+      const L = m.log, COLOR = { insert: '#12503A', update: '#0B5F59', delete: '#96382C', 'set password': '#7A5A12', 'generate timetable': '#0B8F86' };
+      Object.assign(out, {
+        logSub: L ? 'Newest first · showing ' + L.entries.length + ' of ' + L.total + ' entries' : st.busy ? 'Loading…' : '',
+        logReload: () => this.loadLog(),
+        logRows: L ? L.entries.map(e => ({
+          at: new Date(e.at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+          actor: e.actor, action: e.action, table: e.table, color: COLOR[e.action] || '#161D22',
+          detail: e.detail == null ? '' : typeof e.detail === 'string' ? e.detail : JSON.stringify(e.detail)
+        })) : [],
+        logEmpty: L && !L.entries.length ? 'No activity yet. Every add, edit, delete, password change and timetable run in this console is recorded here.' : ''
+      });
+    }
+    if (out.ttOpen) {
+      const p = m.plan, setM = (k) => (e) => this.setState({ modal: Object.assign({}, this.state.modal, { [k]: e.target.value }) });
+      const DAYS5 = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], SL = [['09:00', '10:00'], ['10:00', '11:00'], ['11:15', '12:15'], ['12:15', '13:15'], ['14:00', '15:00'], ['15:00', '16:00']];
+      const g = p ? Math.min(Number(m.group) || 0, p.groups.length - 1) : 0;
+      const grid = [];
+      if (p) {
+        const cells = {};
+        p.sections.filter(s => s.group === g).forEach(s => s.meetings.forEach(mt => SL.forEach(([a, b], x) => {
+          if (a >= mt.start && b <= mt.end) cells[mt.day + x] = { text: s.course + ' · ' + s.faculty, title: s.course + ' ' + s.code + ' — ' + mt.type + ' in ' + mt.room + ' with ' + s.faculty, type: mt.type };
+        })));
+        DAYS5.forEach(d => {
+          grid.push({ text: d, title: '', style: 'padding: 8px 6px; font-weight: 700; color: #5A6570;' });
+          SL.forEach((_, x) => { const c = cells[d + x];
+            grid.push(c ? Object.assign(c, { style: 'padding: 8px 6px; border-radius: 6px; background: ' + (c.type === 'Lecture' ? '#EAF5F3' : '#FBF3E2') + '; color: #161D22; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;' })
+                        : { text: '', title: '', style: 'padding: 8px 6px; border-radius: 6px; background: #FAF8F4;' }); });
+        });
+      }
+      Object.assign(out, {
+        ttTerm: p ? p.term : 'current term',
+        ttTitle: m.done ? 'Timetable saved' : p ? 'Preview — nothing saved yet' : st.busy ? 'Planning…' : 'Generate timetable',
+        ttCap: m.cap, ttMaxH: m.maxH, setTTCap: setM('cap'), setTTMaxH: setM('maxH'), setTTGroup: setM('group'), ttGroup: String(g),
+        ttPlan: () => this.ttPlan(), ttPlanLabel: st.busy && !p ? 'Planning…' : 'Re-plan',
+        ttRules: 'Rules: students with the same courses form a cohort, split into sections of at most the size above; each section gets a teacher from the course\'s department (least-loaded first, within the weekly hour limit, never two sections of one course). No clashes for any class, teacher or lab; a subject meets at most once a day; the 13:15–14:00 lunch break stays free; 4-credit subjects share a day as rarely as possible. Labs and projects get one 2-hour afternoon block.',
+        ttHasPlan: !!p,
+        ttSummary: p ? p.groups.length + ' class groups → ' + p.sections.length + ' sections. All checks passed: no clashes, one meeting per subject per day, busiest teacher ' + p.maxHours + ' h/week. 4-credit subjects share a day on ' + p.sharedImportantDays + ' group-days (minimum possible is 1 per group with two 4-credit subjects).' : '',
+        ttHead: ['Dept', 'Students', 'Sections', 'Faculty', 'Teaching', 'Hours / week', 'Average'],
+        ttDepts: p ? p.depts.map(d => ({ cells: [d.dept, String(d.students), String(d.sections), String(d.faculty), String(d.used), d.minH + '–' + d.maxH, String(d.avgH)] })) : [],
+        ttGroups: p ? p.groups.map((x, i) => ({ v: String(i), l: x.name + ' (' + x.size + ' students)' })) : [],
+        ttGridHead: [''].concat(SL.map(([a, b]) => a + '–' + b)), ttGrid: grid,
+        ttDone: m.done || '',
+        ttCanApply: !!p && !m.done,
+        ttApply: () => this.ttApply(),
+        ttApplyLabel: st.busy ? (st.progress || 'Saving…') : 'Apply timetable',
+        ttFoot: p ? 'Applying updates sections in place and keeps attendance already marked.' : ''
+      });
+    }
+    if (out.bulkOpen) {
+      const picked = st.rows.filter(r => st.sel[keyOf(t, r)]), n = picked.length, noun = n + ' ' + cfg.label.toLowerCase();
+      const isDel = m.action === 'delete', withEmail = picked.filter(r => r.email);
+      Object.assign(out, {
+        bulkTitle: m.done ? 'Finished with errors' : isDel ? 'Delete ' + noun + '?' : 'Set password for ' + withEmail.length + ' ' + cfg.label.toLowerCase() + '?',
+        bulkText: m.done ? 'The rows that succeeded are done; the failures are listed below.' : isDel
+          ? 'This cannot be undone. Rows that reference them are removed with them or block the delete, per the schema\'s foreign keys (for students: enrolments, attendance, fees, certificates, hostel and hall tickets go too). Their sign-in accounts are not removed.'
+          : 'Each selected record gets a confirmed login whose password is its own email address in lower case, e.g. ' + (withEmail[0] ? withEmail[0].email.trim().toLowerCase() : 'name@vit.edu') + '. Existing passwords are overwritten. No email is sent.' + (withEmail.length < n ? ' ' + (n - withEmail.length) + ' selected row(s) have no email and are skipped.' : ''),
+        bulkWarn: isDel || m.done ? '' : 'Anyone who knows a person\'s email can sign in as them until the password is changed. Use this only for first-time setup.',
+        bulkPending: !m.done,
+        bulkBtn: st.busy ? (isDel ? 'Deleting ' : 'Setting ') + st.progress + '…' : isDel ? 'Delete ' + n : 'Set ' + withEmail.length + ' passwords',
+        bulkBtnStyle: 'padding: 10px 18px; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; background: ' + (isDel ? '#B8483A' : '#131A1F') + ';',
+        doBulk: () => isDel
+          ? this.bulk(picked, r => S.admin.remove(t, pkOf(t, r)), 'deleted')
+          : this.bulk(withEmail, r => S.admin.createLogin(r.email, r.email.trim().toLowerCase()), 'passwords set')
+      });
+    }
     if (out.loginOpen) Object.assign(out, {
+      loginTitle: m.linked ? 'Change password' : 'Set password',
       loginEmail: m.email, loginPw: m.pw, loginMsg: m.msg || '',
       setLoginPw: (e) => this.setState({ modal: Object.assign({}, this.state.modal, { pw: e.target.value }) }),
       doCreateLogin: () => {
         if ((m.pw || '').length < 6) { this.setState({ formError: 'Password must be at least 6 characters.' }); return; }
-        this.run(() => S.admin.createLogin(m.email, m.pw).then(r => {
+        this.run(() => S.admin.createLogin(m.email, m.pw).then(() => {
           this.load(t);
-          return r.needsConfirm
-            ? 'Login created. "Confirm email" is on, so ' + m.email + ' must confirm via the emailed link before signing in.'
-            : 'Login created. ' + m.email + ' can sign in now with the password you set.';
+          return m.email + ' can sign in now with password ' + m.pw;
         }), true);
       }
     });

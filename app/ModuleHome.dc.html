@@ -88,7 +88,6 @@ class Component extends DCLogic {
     const tot = att.reduce((a, x) => a + x.total, 0), got = att.reduce((a, x) => a + x.attended, 0);
     const aggAtt = tot ? Math.round(got / tot * 100) : 0;
     const g = S.gpa();
-    const audit = S.audit();
     const cov = att.length ? Math.round(S.state.registered.reduce((n, r) => n + S.lessonProgress(r.code).pct, 0) / S.state.registered.length) : 0;
     const nextEvent = S.calendar.filter(e => new Date(e.end || e.date) >= new Date())[0];
     const low = att.filter(a => a.pct < 75).length;
@@ -99,18 +98,16 @@ class Component extends DCLogic {
     const CONFIG = {
       academic: {
         code: 'AC', title: 'Academic',
-        blurb: 'Everything the institute records about your coursework this semester — the calendar you are held to, the attendance derived from it, syllabus coverage, and how it all adds up against the degree.',
+        blurb: 'Everything the institute records about your coursework this semester — the calendar you are held to, the attendance derived from it, and syllabus coverage.',
         stats: [
           { label: 'CGPA', value: g.cgpa.toFixed(2), note: 'after 3 semesters', color: '#6FE3D6' },
           { label: 'Attendance', value: aggAtt + '%', note: low ? low + ' subject below 75%' : 'all above threshold', color: aggAtt < 75 ? '#F0B963' : '#6FE3D6' },
-          { label: 'Syllabus', value: cov + '%', note: 'average coverage', color: '#EDEAE3' },
-          { label: 'Degree', value: audit.pct + '%', note: audit.assigned + ' / 120 credits', color: '#EDEAE3' }
+          { label: 'Syllabus', value: cov + '%', note: 'average coverage', color: '#EDEAE3' }
         ],
         cards: [
           { sub: 'calendar', title: 'Academic Calendar', body: 'Semester dates, holidays, examination periods, registration and add/drop windows.', metric: nextEvent ? new Date(nextEvent.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—', metricLabel: 'next event', foot: nextEvent ? nextEvent.title : 'Nothing scheduled' },
           { sub: 'attendance', title: 'Attendance', body: 'Per-subject percentages, the semester trend, and the full session-by-session log.', metric: aggAtt + '%', metricLabel: 'aggregate', metricColor: aggAtt < 75 ? '#B4801C' : '#0B8F86', foot: tot + ' sessions logged · ' + (low ? low + ' subject needs attention' : 'no subject at risk') },
-          { sub: 'lesson', title: 'Lesson Plan', body: 'Module and topic coverage recorded by each course faculty, with objectives.', metric: cov + '%', metricLabel: 'covered', foot: S.state.registered.length + ' registered subjects' },
-          { sub: 'degree', title: 'Degree Audit', body: 'Requirement buckets, optimal credit assignment, and the what-if planner.', metric: audit.pct + '%', metricLabel: 'complete', foot: (120 - audit.assigned) + ' credits remaining · includes What If?' }
+          { sub: 'lesson', title: 'Lesson Plan', body: 'Module and topic coverage recorded by each course faculty, with objectives.', metric: cov + '%', metricLabel: 'covered', foot: S.state.registered.length + ' registered subjects' }
         ]
       },
       examination: {
@@ -133,9 +130,9 @@ class Component extends DCLogic {
         code: 'AT', title: 'Accounts',
         blurb: 'Fee position for the current academic year, head-wise receipts, and anything still outstanding. Payments are processed by the accounts office; this module is the record of them.',
         stats: [
-          { label: 'Total fees', value: '₹' + (S.fees.total / 1000).toFixed(1) + 'k', note: 'AY 2026–27', color: '#EDEAE3' },
+          { label: 'Total fees', value: '₹' + (S.fees.total / 1000).toFixed(1) + 'k', note: 'AY ' + S.fees.ay.replace('-', '–'), color: '#EDEAE3' },
           { label: 'Paid', value: '₹' + (paid / 1000).toFixed(1) + 'k', note: S.fees.heads.filter(h => h.status === 'PAID').length + ' receipts', color: '#7FDCAA' },
-          { label: 'Outstanding', value: '₹' + (due / 1000).toFixed(1) + 'k', note: due ? 'due 20 Sep 2026' : 'nothing due', color: due ? '#F0B963' : '#7FDCAA' },
+          { label: 'Outstanding', value: '₹' + (due / 1000).toFixed(1) + 'k', note: due ? 'due ' + (S.fees.heads.find(h => h.status !== 'PAID') || {}).due : 'nothing due', color: due ? '#F0B963' : '#7FDCAA' },
           { label: 'Status', value: due ? 'Partial' : 'Clear', note: due ? '1 head pending' : 'all heads settled', color: due ? '#F0B963' : '#7FDCAA' }
         ],
         cards: [

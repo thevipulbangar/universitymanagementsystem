@@ -214,9 +214,9 @@ class Component extends DCLogic {
 
     return {
       subtitle: scope === 'my'
-        ? 'Your registered sections · Semester IV · ' + Math.round(totalMins / 60 * 10) / 10 + ' contact hours a week'
-        : scope === 'class' ? 'SE Computer Engineering · Division A · full class schedule'
-        : 'Batch A2 laboratory and studio sessions · Division A',
+        ? 'Your registered sections · Semester ' + S.student.semRoman + ' · ' + Math.round(totalMins / 60 * 10) / 10 + ' contact hours a week'
+        : scope === 'class' ? S.student.year + ' ' + S.student.dept + ' · Division ' + S.student.division + ' · class schedule'
+        : 'Batch ' + S.student.batch + ' laboratory, tutorial and project sessions · Division ' + S.student.division,
       scopes: [['my', 'My Timetable'], ['class', 'Class Timetable'], ['batch', 'Batch Timetable']].map(([id, label]) => ({
         label, go: () => this.setState({ scope: id }),
         style: tabBase + (scope === id ? on : off)
@@ -264,7 +264,7 @@ class Component extends DCLogic {
       }),
       activeDay,
       dayEmpty: daySessions.length === 0,
-      dayEmptyBody: scope === 'batch' ? 'Batch A2 has no laboratory or studio session on this day.' : 'No sessions fall on this day for the selected timetable.',
+      dayEmptyBody: scope === 'batch' ? 'Batch ' + S.student.batch + ' has no practical session on this day.' : 'No sessions fall on this day for the selected timetable.',
       daySessions: daySessions.map(s => {
         const a = att.find(x => x.code === s.code);
         const col = TYPE_COL[s.type] || TYPE_COL.Lecture;
@@ -289,8 +289,8 @@ class Component extends DCLogic {
       scopeNote: scope === 'my'
         ? 'Nothing here is stored as a timetable. Every block is derived from the sections you are registered in — register or drop a course and this grid changes immediately.'
         : scope === 'class'
-        ? 'The full Division A schedule for SE Computer Engineering, including courses you are not registered in. Use it to find a section that fits your plan.'
-        : 'Batch A2 splits from the division for laboratory, tutorial and studio work. Lecture slots are shared with the whole division.',
+        ? 'The schedule your division follows: students of one cohort share the same sections, so this matches your registered courses.'
+        : 'Only the practical sessions (lab, tutorial, studio, project). Lecture slots are shared with the whole division.',
       goRegistration: () => (this.props.nav || (() => {}))('registration')
     };
   }

@@ -24,7 +24,7 @@
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
         <div>
           <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Academic Calendar</div>
-          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Academic Year 2026–27 · Semester IV commenced 20 July 2026</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Academic Year {{ ayText }} · {{ termParity }} commenced {{ termStart }}</div>
         </div>
         <div style="display: flex; padding: 3px; background: #EAE6DE; border-radius: 9px;">
           <button type="button" onClick="{{ viewMonth }}" style="{{ monthTabStyle }}">Month</button>
@@ -91,7 +91,7 @@
 
       <sc-if value="{{ semView }}">
         <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
-          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C; margin-bottom: 18px;">Semester IV · July – December 2026</div>
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C; margin-bottom: 18px;">{{ termParity }} · {{ termRange }}</div>
           <div style="position: relative; padding-left: 4px;">
             <sc-for list="{{ semRows }}" as="r" hint-placeholder-count="12">
               <div style="display: grid; grid-template-columns: {{ r.cols }}; align-items: center; gap: 14px; padding: 11px 0; border-bottom: 1px solid #F4F1EA;">
@@ -332,13 +332,10 @@
     </div>
   </sc-if>
 
-  <sc-if value="{{ isDegree }}">
-    <dc-import name="DegreeAudit" nav="{{ nav }}" hint-size="100%,700px"></dc-import>
-  </sc-if>
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:1000},&quot;sub&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;calendar&quot;,&quot;attendance&quot;,&quot;lesson&quot;,&quot;degree&quot;],&quot;default&quot;:&quot;attendance&quot;,&quot;tsType&quot;:&quot;'calendar' | 'attendance' | 'lesson' | 'degree'&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:1000},&quot;sub&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;calendar&quot;,&quot;attendance&quot;,&quot;lesson&quot;],&quot;default&quot;:&quot;attendance&quot;,&quot;tsType&quot;:&quot;'calendar' | 'attendance' | 'lesson'&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
 const KIND = {
   academic: { c: '#0B8F86', t: '#E4F2F0', l: 'Academic Event' },
   holiday: { c: '#B8483A', t: '#F8E9E6', l: 'Holiday' },
@@ -350,7 +347,7 @@ const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 
 
 class Component extends DCLogic {
   state = {
-    calView: 'month', month: 8, year: 2026, hoverCell: -1,
+    calView: 'month', month: new Date().getMonth(), year: new Date().getFullYear(), hoverCell: -1,
     filterSubject: 'all', filterStatus: 'all', limit: 12,
     lpCode: 'CS401', mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440
   };
@@ -368,8 +365,8 @@ class Component extends DCLogic {
     const S = window.VIT; if (!S) return {};
     const st = this.state, sub = this.props.sub || 'attendance', w = st.w, mount = st.mount;
     const out = {
-      nav: this.props.nav,
-      isCalendar: sub === 'calendar', isAttendance: sub === 'attendance', isLesson: sub === 'lesson', isDegree: sub === 'degree'
+      nav: this.props.nav, ayText: S.term.ay.replace('-', '–'), termParity: S.term.parity, termStart: S.term.startLabel, termRange: S.term.range,
+      isCalendar: sub === 'calendar', isAttendance: sub === 'attendance', isLesson: sub === 'lesson'
     };
 
     if (sub === 'calendar') {
@@ -423,9 +420,9 @@ class Component extends DCLogic {
             }))
           };
         }),
-        semRows: S.calendar.filter(e => new Date(e.date) <= new Date('2026-12-31')).map(e => {
+        semRows: S.calendar.filter(e => e.date >= S.term.start && e.date <= S.term.end).map(e => {
           const a = new Date(e.date), b = new Date(e.end || e.date);
-          const semStart = new Date('2026-07-15').getTime(), semEnd = new Date('2026-12-25').getTime();
+          const semStart = new Date(S.term.start).getTime(), semEnd = new Date(S.term.end).getTime();
           const left = Math.max(0, (a.getTime() - semStart) / (semEnd - semStart) * 100);
           const width = Math.max(1.6, (b.getTime() - a.getTime()) / (semEnd - semStart) * 100);
           return {
@@ -452,7 +449,7 @@ class Component extends DCLogic {
       const pill = (s) => 'display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: .02em; background: ' + (s === 'Present' ? '#E6F2EA' : s === 'Absent' ? '#F8E9E6' : '#F8EFDC') + '; color: ' + (s === 'Present' ? '#146B43' : s === 'Absent' ? '#96382C' : '#8A6114') + ';';
 
       Object.assign(out, {
-        attSummary: subjects.length + ' registered subjects · ' + tot + ' sessions logged since 20 July 2026',
+        attSummary: subjects.length + ' registered subjects · ' + tot + ' sessions logged since ' + S.term.startLabel,
         aggPct: agg, aggColor: agg < 75 ? '#B4801C' : '#0B8F86',
         subjects: subjects.map(s => {
           const col = s.pct < 75 ? '#B4801C' : s.pct < 85 ? '#0B8F86' : '#1C8F5A';

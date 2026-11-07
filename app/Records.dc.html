@@ -24,7 +24,7 @@
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
         <div>
           <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">{{ accTitle }}</div>
-          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Academic Year 2026–27 · B.Tech Computer Engineering · PRN {{ prn }}</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Academic Year {{ ayText }} · {{ programme }} · PRN {{ prn }}</div>
         </div>
         <div style="display: flex; gap: 8px;">
           <button type="button" onClick="{{ downloadAll }}" style="padding: 10px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: transform .16s, background .2s;" style-hover="background: #0B8F86; transform: translateY(-1px);">Download consolidated receipt</button>
@@ -122,8 +122,7 @@
           <input type="text" value="{{ certQuery }}" onChange="{{ setCertQuery }}" placeholder="Search certificates…" style="width: 216px; padding: 9px 12px; font-size: 13px; border: 1px solid #E3DFD6; border-radius: 9px; background: #FFFFFF;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.12); outline: none;" />
           <select value="{{ certYear }}" onChange="{{ setCertYear }}" aria-label="Filter by year" style="height: 36px; padding: 0 10px; font-size: 12.5px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; cursor: pointer;">
             <option value="all">All years</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
+            <sc-for list="{{ certYears }}" as="y" hint-placeholder-count="3"><option value="{{ y.v }}">{{ y.v }}</option></sc-for>
           </select>
         </div>
       </div>
@@ -175,7 +174,7 @@
     <div key="hostel" style="max-width: 820px;">
       <div style="margin-bottom: 18px;">
         <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Hostel</div>
-        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Allotment for Academic Year 2026–27</div>
+        <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Allotment for Academic Year {{ ayText }}</div>
       </div>
 
       <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
@@ -241,11 +240,20 @@
 
           <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
             <div style="padding: 15px 22px; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Applications</div>
+            <sc-for list="{{ ppoApps }}" as="a" hint-placeholder-count="1">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 13px 22px; border-bottom: 1px solid #F4F1EA;">
+                <span style="flex: 1; min-width: 140px;"><span style="display: block; font-size: 13.5px; font-weight: 600;">{{ a.company }}</span><span style="display: block; font-size: 12px; color: #6B757E; margin-top: 2px;">{{ a.role }} · {{ a.date }}</span></span>
+                <span style="padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; background: #E6F2EA; color: #146B43;">{{ a.status }}</span>
+              </div>
+            </sc-for>
+            <sc-if value="{{ noApps }}">
             <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 11px; padding: 34px 22px;">
               <div style="width: 34px; height: 34px; border: 1.5px dashed #D6D0C4; border-radius: 9px;"></div>
               <div style="font-size: 14.5px; font-weight: 700;">No applications yet</div>
-              <p style="margin: 0; max-width: 54ch; font-size: 12.5px; color: #6B757E; line-height: 1.6;">The PPO cycle opens on 12 January 2027. Applications you submit will appear here with their screening stage.</p>
+              <p style="margin: 0; max-width: 54ch; font-size: 12.5px; color: #6B757E; line-height: 1.6;">{{ ppoHint }}</p>
+              <sc-if value="{{ canRegisterPpo }}"><button type="button" onClick="{{ registerPpo }}" style="padding: 10px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer;">Register for the PPO cycle</button></sc-if>
             </div>
+            </sc-if>
           </div>
         </div>
 
@@ -390,9 +398,10 @@ class Component extends DCLogic {
     const out = {
       isAccounts: section === 'accounts', isCertificates: section === 'certificates',
       isHostel: section === 'hostel', isPPO: section === 'ppo', isProfile: section === 'profile',
-      prn: stu.prn,
+      prn: stu.prn, ayText: S.term.ay.replace('-', '–'), programme: stu.programme,
+      certYears: Array.from(new Set(S.certificates.map(c => c.date.slice(0, 4)))).sort().reverse().map(v => ({ v })),
       docOpen: !!st.doc, closeDoc: () => this.setState({ doc: null }), stop: (e) => e.stopPropagation(),
-      downloadDoc: () => { S.toast({ title: 'Download started', body: 'The document has been queued for generation.', kind: 'ok' }); this.setState({ doc: null }); }
+      downloadDoc: () => { const d = st.doc; if (d && d.kind === 'receipt') S.saveDoc('receipt-' + d.head.receipt, 'Fee receipt — ' + d.head.head, [['Receipt', d.head.receipt], ['Head', d.head.head], ['Amount', S.fmtINR(d.head.amount)], ['Paid on', d.head.date], ['Mode', d.head.mode]]); else if (d && d.cert) S.saveDoc('certificate-' + d.cert.course, 'Certificate — ' + d.cert.title, [['Title', d.cert.title], ['Issuer', d.cert.issuer], ['Reference', d.cert.course], ['Issued', d.cert.date], ['Hours', d.cert.hours], ['Grade', d.cert.grade]]); S.toast({ title: 'Document downloaded', body: 'Open the file and print to save it as PDF.', kind: 'ok' }); this.setState({ doc: null }); }
     };
 
     if (section === 'accounts') {
@@ -424,11 +433,11 @@ class Component extends DCLogic {
             pillStyle: 'padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; background: ' + (isPaid ? '#E6F2EA' : '#F8E9E6') + '; color: ' + (isPaid ? '#146B43' : '#96382C') + ';',
             dotStyle: 'position: absolute; left: -28px; top: 4px; width: 15px; height: 15px; border-radius: 50%; background: ' + (isPaid ? '#0B8F86' : '#FFFFFF') + '; border: 2.5px solid ' + (isPaid ? '#0B8F86' : '#EADDBC') + ';',
             view: () => this.setState({ doc: { kind: 'receipt', head: h } }),
-            download: () => S.toast({ title: 'Receipt downloaded', body: h.head + ' · ' + h.receipt, kind: 'ok' }),
-            pay: () => S.toast({ title: 'Redirecting to payment gateway', body: h.head + ' · ' + S.fmtINR(h.amount) + '. This is a prototype — no payment is processed.', kind: 'info' })
+            download: () => { S.saveDoc('receipt-' + h.receipt, 'Fee receipt — ' + h.head, [['Receipt', h.receipt], ['Head', h.head], ['Amount', S.fmtINR(h.amount)], ['Paid on', h.date], ['Mode', h.mode]]); S.toast({ title: 'Receipt downloaded', body: h.head + ' · ' + h.receipt, kind: 'ok' }); },
+            pay: () => { S.payFee(h.head); S.toast({ title: 'Payment recorded', body: h.head + ' · ' + S.fmtINR(h.amount) + ' (test payment, no money moves).', kind: 'ok' }); }
           };
         }),
-        downloadAll: () => S.toast({ title: 'Consolidated receipt queued', body: 'AY 2026–27 · ' + f.heads.filter(h => h.status === 'PAID').length + ' cleared heads', kind: 'ok' })
+        downloadAll: () => { const paidH = f.heads.filter(h => h.status === 'PAID'); S.saveDoc('fee-receipts-' + S.term.ay, 'Consolidated fee receipt — AY ' + S.term.ay, paidH.map(h => [h.head, h.receipt, S.fmtINR(h.amount), h.date, h.mode])); S.toast({ title: 'Consolidated receipt downloaded', body: 'AY ' + S.term.ay.replace('-', '–') + ' · ' + f.heads.filter(h => h.status === 'PAID').length + ' cleared heads', kind: 'ok' }); }
       });
     }
 
@@ -488,7 +497,9 @@ class Component extends DCLogic {
       const p = S.ppo;
       Object.assign(out, {
         ppoCols: w < 1000 ? '1fr' : 'minmax(0, 1.45fr) minmax(0, 1fr)',
-        ppoStatus: p.status, ppoCycle: p.cycle,
+        ppoStatus: p.status, ppoCycle: p.cycle, ppoApps: p.applications, noApps: p.applications.length === 0,
+        canRegisterPpo: !!p.eligible && p.applications.length === 0, registerPpo: () => S.ppoRegister(),
+        ppoHint: p.eligible ? 'You meet the criteria so far. Register to be considered in the PPO cycle.' : 'Complete the eligibility criteria on the right to register for the PPO cycle.',
         eligibility: p.eligibility.map(e => ({
           label: e.label, detail: e.detail,
           mark: e.ok === true ? '✓' : e.ok === false ? '✕' : '◔',
