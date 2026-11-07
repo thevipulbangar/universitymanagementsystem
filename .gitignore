@@ -10,3 +10,7 @@ __pycache__/
 
 # generated starting passwords
 logins.csv
+
+# editor / tooling output
+.claude/
+graphify-out/

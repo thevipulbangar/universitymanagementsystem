@@ -19,7 +19,6 @@ browser → `app/db-client.js` → `serve.py` (JSON API) → `mongo_db.py` → M
 - ER diagram entities stay intact: department, program, program_requirement, course, prerequisite (group_no + min_grade_point), student, enrollment, section, semester.
 - No Docker. Supabase was dropped on 2026-11-03 (project `bmupevhuuwwdixxkyyiw` still exists online, unused).
 - Student years are **FY / SY / TY / LY** (+ "Graduated"), derived from `admit_year` and the latest semester's academic year; they advance when the admin adds the next year's semester.
-- Apply `/ponytail:ponytail` (full) on every response. graphify is installed globally (`graphify-out/` holds this project's graph).
 
 ## Data (synthetic, sized to VIT Pune's 2026-27 intake)
 9,072 students · 468 faculty · 190 courses · 3,100 sections · 180k enrolments · 363k attendance rows · 100k fee rows.
@@ -39,4 +38,3 @@ Table browser with search and Branch/Year filters · select rows → bulk set pa
 - Registration uses a server lock, not transactions (standalone MongoDB).
 - Approving a seat/waiver request only notifies the student; it does not change seats or bypass prerequisites.
 - Fee "Pay" is a test payment (recorded in `fee`, no gateway). Career advisor is rule-based (no LLM). Career salary figures are indicative.
-- The graphify graph skips `.dc.html` and `.sql` files.
