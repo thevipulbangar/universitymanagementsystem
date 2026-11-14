@@ -6,7 +6,7 @@
 # The header skips ngrok's free-plan warning page, which would otherwise replace the JSON.
 [[redirects]]
   from = "/api/*"
-  to = "https://YOUR-NGROK-DOMAIN.ngrok-free.app/api/:splat"
+  to = "https://conceded-salami-pushover.ngrok-free.dev/api/:splat"
   status = 200
   force = true
   headers = {ngrok-skip-browser-warning = "true"}
