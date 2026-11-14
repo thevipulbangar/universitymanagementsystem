@@ -3,15 +3,15 @@
    db.rpc(name, args), db.auth.signInWithPassword / getSession / signOut. Every call resolves to { data, error, count }. */
 (function () {
   'use strict';
-  const KEY = 'vit-session';
-  const session = () => { try { return JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
+  const KEY = 'vit-session'; // per tab (sessionStorage): each tab can be signed in as a different user
+  const session = () => { try { return JSON.parse(sessionStorage.getItem(KEY) || 'null'); } catch (e) { return null; } };
 
   async function post(path, body) {
     const s = session();
     try {
       const res = await fetch(path, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' }, s ? { Authorization: 'Bearer ' + s.access_token } : {}), body: JSON.stringify(body || {}) });
       const out = await res.json().catch(() => ({}));
-      if (res.status === 401 && s) localStorage.removeItem(KEY); // expired / revoked session
+      if (res.status === 401 && s) sessionStorage.removeItem(KEY); // expired / revoked session
       return res.ok ? { data: out.data === undefined ? out : out.data, count: out.count == null ? null : out.count, error: null }
                     : { data: null, count: null, error: out.error && typeof out.error === 'object' ? out.error : { message: out.error || ('Request failed (' + res.status + ')') } };
     } catch (e) {
@@ -46,11 +46,11 @@
       async signInWithPassword({ email, password, role }) {
         const r = await post('/api/auth/login', { email, password, role });
         if (r.error) return { data: null, error: r.error };
-        localStorage.setItem(KEY, JSON.stringify(r.data.session));
+        sessionStorage.setItem(KEY, JSON.stringify(r.data.session));
         return { data: { session: r.data.session }, error: null };
       },
       async getSession() { return { data: { session: session() }, error: null }; },
-      async signOut() { if (session()) await post('/api/auth/logout'); localStorage.removeItem(KEY); return { error: null }; }
+      async signOut() { if (session()) await post('/api/auth/logout'); sessionStorage.removeItem(KEY); return { error: null }; }
     }
   };
 })();
