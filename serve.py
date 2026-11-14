@@ -3,7 +3,7 @@
 #   POST /api/db                                  {table, op, filters, order, range, count, head, values, returning}
 #   POST /api/rpc/<name>                          register_section, drop_section, swap_section, admin_set_login
 #   GET/POST /api/activity                        admin activity log (admins only)
-import datetime, http.server, json, os, re, sys
+import datetime, gzip, http.server, json, os, re, sys
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 try:
@@ -38,6 +38,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         data = json.dumps(body, default=str).encode()
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
+        if len(data) > 1024 and "gzip" in (self.headers.get("Accept-Encoding") or ""):  # ~10x smaller over ngrok
+            data = gzip.compress(data, 5)
+            self.send_header("Content-Encoding", "gzip")
         self.send_header("Content-Length", str(len(data)))
         self.end_headers()
         self.wfile.write(data)

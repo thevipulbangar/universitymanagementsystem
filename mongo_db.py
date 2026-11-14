@@ -18,7 +18,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 MONGO_URI = os.environ.get("MONGODB_URI", "mongodb://localhost:27017")
 client = pymongo.MongoClient(MONGO_URI, serverSelectionTimeoutMS=3000)
 db = client["vit_portal"]
-MAX_ROWS = 1000  # per request, like PostgREST; clients page with range()
+MAX_ROWS = 5000  # per request; clients page with range()
 
 
 class DbError(Exception):

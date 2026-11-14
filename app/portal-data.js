@@ -483,12 +483,12 @@
 
   // ---------- database backend (live mode): MongoDB via serve.py's /api ----------
   let db = null;                       // db-client (window.VITDB); null = mock mode
-  // PostgREST caps each response at 1000 rows, so page until a short page comes back
+  // the server caps each response at 5000 rows, so page until a short page comes back
   async function fetchAll(t, f, from = 0) {
     let r = db.from(t).select('*'); if (f) r = f(r);
-    const { data, error } = await r.range(from, from + 999);
+    const { data, error } = await r.range(from, from + 4999);
     if (error) throw error;
-    return data.length < 1000 ? data : data.concat(await fetchAll(t, f, from + 1000));
+    return data.length < 5000 ? data : data.concat(await fetchAll(t, f, from + 5000));
   }
   const REQUESTS = [];                 // seat / waiver / swap requests (student: own; faculty: their courses)
   // monthly faculty feedback (see schema.sql): the form for the current month + what the signed-in user needs to see
