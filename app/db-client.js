@@ -9,7 +9,7 @@
   async function post(path, body) {
     const s = session();
     try {
-      const res = await fetch(path, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, s ? { Authorization: 'Bearer ' + s.access_token } : {}), body: JSON.stringify(body || {}) });
+      const res = await fetch(path, { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1' }, s ? { Authorization: 'Bearer ' + s.access_token } : {}), body: JSON.stringify(body || {}) });
       const out = await res.json().catch(() => ({}));
       if (res.status === 401 && s) localStorage.removeItem(KEY); // expired / revoked session
       return res.ok ? { data: out.data === undefined ? out : out.data, count: out.count == null ? null : out.count, error: null }

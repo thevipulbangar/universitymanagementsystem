@@ -894,7 +894,7 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
   async function api(method, body, query) {
     const session = (await db.auth.getSession()).data.session;
     if (!session) throw new Error('Not signed in.');
-    const res = await fetch('/api/activity' + (query || ''), { method, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token }, body: body && JSON.stringify(body) });
+    const res = await fetch('/api/activity' + (query || ''), { method, headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1', Authorization: 'Bearer ' + session.access_token }, body: body && JSON.stringify(body) });
     const out = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(out.error || 'Activity log request failed (' + res.status + ')');
     return out;

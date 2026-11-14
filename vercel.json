@@ -1,0 +1,12 @@
+{
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "",
+  "outputDirectory": "app",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://conceded-salami-pushover.ngrok-free.dev/api/:path*" },
+    { "source": "/faculty", "destination": "/Portal.dc.html" },
+    { "source": "/admin", "destination": "/Portal.dc.html" },
+    { "source": "/", "destination": "/Portal.dc.html" }
+  ]
+}

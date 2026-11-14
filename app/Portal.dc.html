@@ -413,7 +413,7 @@ class Component extends DCLogic {
     window.addEventListener('resize', this.onResize);
     this.onKey = (e) => { if (e.key === 'Escape') this.setState({ searchOpen: false, bellOpen: false, profileOpen: false }); };
     window.addEventListener('keydown', this.onKey);
-    fetch('/api/stats').then(r => r.json()).then(stats => this.setState({ stats })).catch(() => {});
+    fetch('/api/stats', { headers: { 'ngrok-skip-browser-warning': '1' } }).then(r => r.json()).then(stats => this.setState({ stats })).catch(() => {});
     // click anywhere outside an open popover to dismiss it
     this.onDocDown = (e) => {
       const s = this.state;
