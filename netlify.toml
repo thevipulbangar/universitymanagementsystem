@@ -1,14 +1,15 @@
-# Netlify hosts the pages in app/; the API (serve.py + MongoDB) runs on a separate host.
+# Netlify hosts the pages in app/; the API (serve.py + MongoDB) runs on the laptop, reached through ngrok.
 [build]
   publish = "app"
 
-# API calls are forwarded to the backend, so the browser sees one site (no CORS).
-# Replace the URL with your backend's address once it is deployed.
+# API calls are forwarded to the laptop, so the browser sees one site (no CORS).
+# The header skips ngrok's free-plan warning page, which would otherwise replace the JSON.
 [[redirects]]
   from = "/api/*"
-  to = "https://YOUR-BACKEND.onrender.com/api/:splat"
+  to = "https://YOUR-NGROK-DOMAIN.ngrok-free.app/api/:splat"
   status = 200
   force = true
+  headers = {ngrok-skip-browser-warning = "true"}
 
 # sign-in pages
 [[redirects]]
