@@ -1,0 +1,27 @@
+# Netlify hosts the pages in app/; the API (serve.py + MongoDB) runs on a separate host.
+[build]
+  publish = "app"
+
+# API calls are forwarded to the backend, so the browser sees one site (no CORS).
+# Replace the URL with your backend's address once it is deployed.
+[[redirects]]
+  from = "/api/*"
+  to = "https://YOUR-BACKEND.onrender.com/api/:splat"
+  status = 200
+  force = true
+
+# sign-in pages
+[[redirects]]
+  from = "/faculty"
+  to = "/Portal.dc.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/Portal.dc.html"
+  status = 200
+
+[[redirects]]
+  from = "/"
+  to = "/Portal.dc.html"
+  status = 200

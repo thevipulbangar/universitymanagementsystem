@@ -6,7 +6,7 @@ Last updated 2026-11-04.
 ## Run it
 - MongoDB runs as the Windows service "MongoDB" (`mongodb://localhost:27017`, db `vit_portal`).
 - `python serve.py` (or `start.bat`) → http://localhost:5500/ . Needs `pip install pymongo`.
-- Sign-in: student/faculty password = their own email; admin = `ADMIN_EMAIL` / `ADMIN_PASSWORD` in `keys.env` (gitignored).
+- Sign-in: students at http://localhost:5500/ , faculty at http://localhost:5500/faculty (password = their own email). The portal has no admin sign-in; the admin console code and the API admin accounts (`ADMIN_EMAIL` / `ADMIN_PASSWORD` in `keys.env`) still exist but are unreachable from the UI.
 
 ## How it fits together
 browser → `app/db-client.js` → `serve.py` (JSON API) → `mongo_db.py` → MongoDB
@@ -28,7 +28,7 @@ Branches: CE, AIDS, AIML, CSEAI, ME, CSML (+ Basic Sciences for first year). Cur
 Term/registration labels (`VIT.term`, `registrationWindow`), `career_path`, `ppo_event`, `ppo_application`, `request` collections (schema.sql, seeded by `data/seed_extras.py`), computed PPO eligibility, real file downloads (`VIT.saveDoc`), faculty announcements form.
 
 ## Monthly faculty feedback
-`feedback_question` (8 statements rated 1-5: completion, doubts, career, clarity, punctuality, material, approachability, evaluation), `feedback_form` (one row per month, auto-created by `mongo_db.ensure_feedback_form()` on the first request of a month + an announcement), `feedback_submission` (who filled which section) and anonymous `feedback_response`. Students write only via the `submit_feedback` RPC. Class teacher = the student's `mentor_id`; the Feedback page's "My class" tab lists who has / hasn't filled. Sample ratings: `python data/seed_feedback.py [share]` (synthetic; seeds every month of the term, replaces them on re-run). Pages: `app/Feedback.dc.html` (student nav "Faculty Feedback", faculty nav "Feedback").
+`feedback_question` (8 statements rated 1-5: completion, doubts, career, clarity, punctuality, material, approachability, evaluation), `feedback_form` (one row per month, auto-created by `mongo_db.ensure_feedback_form()` on the first request of a month + an announcement), `feedback_submission` (who filled which section) and anonymous `feedback_response`. Students write only via the `submit_feedback` RPC. Class teacher = the student's `mentor_id`; the Feedback page's "My class" tab lists who has / hasn't filled. Recent sample attendance + lesson progress: `python data/seed_recent.py` (fills teaching days with no attendance up to the last day of instruction). Sample ratings: `python data/seed_feedback.py [share]` (synthetic; seeds every month of the term, replaces them on re-run). Pages: `app/Feedback.dc.html` (student nav "Faculty Feedback", faculty nav "Feedback").
 
 ## Admin console features
 Table browser with search and Branch/Year filters · select rows → bulk set password (= email) / delete · Set/Change password · Generate timetable · Activity log (MongoDB `activity_log`).
@@ -36,5 +36,7 @@ Table browser with search and Branch/Year filters · select rows → bulk set pa
 ## Known gaps
 - CHECK constraints are not enforced by MongoDB (the app keeps values in range).
 - Registration uses a server lock, not transactions (standalone MongoDB).
-- Approving a seat/waiver request only notifies the student; it does not change seats or bypass prerequisites.
+- An Approved seat/waiver request is a one-time override in `register_section` (waiver skips the prerequisite, seat adds one place); it becomes `Used` after registering.
+- Heads of Department (department.hod_name = faculty name) set the term's registration window (`set_reg_window` RPC, faculty Registration page).
+- Faculty enter ISE1 (/20), ISE2 (/20), ESE (/60) marks in `assessment` via the `save_marks` RPC; students see them on Examination → "in progress" tab. Users change their own password (`change_password` RPC).
 - Fee "Pay" is a test payment (recorded in `fee`, no gateway). Career advisor is rule-based (no LLM). Career salary figures are indicative.

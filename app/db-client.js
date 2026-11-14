@@ -43,8 +43,8 @@
     from: (table) => new Query(table),
     rpc: (name, args) => post('/api/rpc/' + name, args),
     auth: {
-      async signInWithPassword({ email, password }) {
-        const r = await post('/api/auth/login', { email, password });
+      async signInWithPassword({ email, password, role }) {
+        const r = await post('/api/auth/login', { email, password, role });
         if (r.error) return { data: null, error: r.error };
         localStorage.setItem(KEY, JSON.stringify(r.data.session));
         return { data: { session: r.data.session }, error: null };

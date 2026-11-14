@@ -87,6 +87,7 @@ create table semester (
   min_credits int  not null default 16,               -- portal: registration rules
   reg_opens   date,                                   -- portal: add/drop window
   reg_closes  date,
+  grades_release date,                                -- portal: grade sheet goes live on this date (set by a Head of Department)
   check (min_credits <= credit_cap),
   check (reg_closes >= reg_opens)
 );
@@ -307,6 +308,33 @@ create table request (                                -- student -> course facul
   created_at timestamptz not null default now()
 );
 
+-- Assessment marks entered by the section's faculty: CVV (out of 12.5), MSE (25), ESE (50), ASSIGN (12.5) = 100.
+create table assessment (
+  id         int generated always as identity primary key,
+  enroll_id  int  not null references enrollment on delete cascade,
+  component  text not null,                           -- ISE1 | ISE2 | ESE
+  marks      numeric(4,1) not null check (marks >= 0),  -- halves allowed
+  max_marks  numeric(4,1) not null,
+  updated_at timestamptz not null default now(),
+  unique (enroll_id, component)
+);
+
+-- A section's faculty submits final marks once every student has all four components; marks are then locked.
+create table marks_submission (
+  section_id   int primary key references section on delete cascade,
+  faculty_id   text not null references faculty,
+  submitted_at timestamptz not null default now()
+);
+
+-- Subject registration: the college assigns each student's subjects (enrollment); the student confirms them
+-- once the semester fees are paid and the registration window is open.
+create table reg_confirmation (
+  student_id   text not null references student on delete cascade,
+  sem_id       int  not null references semester,
+  confirmed_at timestamptz not null default now(),
+  primary key (student_id, sem_id)
+);
+
 -- Monthly faculty feedback. A form row is created automatically for each calendar month (mongo_db.ensure_feedback_form).
 -- Ratings are anonymous (no student_id); feedback_submission records only WHO has filled WHICH section, so class teachers
 -- (a student's mentor) can see who is pending. Students write through the submit_feedback RPC only.
@@ -353,8 +381,8 @@ create index on notification (student_id, created_at desc);
 -- =====================================================================
 
 create function grade_letter(gp int) returns text language sql immutable as $$
-  select case gp when 10 then 'O' when 9 then 'A+' when 8 then 'A' when 7 then 'B+'
-                 when 6 then 'B' when 5 then 'C' when 4 then 'P' when 0 then 'F' end $$;
+  select case gp when 10 then 'A+' when 9 then 'A' when 8 then 'B+' when 7 then 'B'
+                 when 6 then 'C' when 5 then 'D' when 4 then 'P' when 0 then 'F' end $$;
 
 -- Completed courses with letter grades (feeds Examination → Grade Card).
 create view transcript with (security_invoker = true) as

@@ -55,15 +55,15 @@
         <p style="margin: 22px 0 0; font-size: 14.5px; line-height: 1.65; color: #A9B6B8; max-width: 400px; text-wrap: pretty;">One record for attendance, registration, examinations and degree progress — with a constraint-aware course planner that tells you why, not just no.</p>
         <div style="display: flex; gap: 26px; margin-top: 34px; padding-top: 24px; border-top: 1px solid rgba(237,234,227,.14);">
           <div>
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">18,420</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">{{ statStudents }}</div>
             <div style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8A989B; margin-top: 4px;">Students</div>
           </div>
           <div>
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">1,104</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">{{ statFaculty }}</div>
             <div style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8A989B; margin-top: 4px;">Faculty</div>
           </div>
           <div>
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">14</div>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 21px; color: #6FE3D6;">{{ statDepts }}</div>
             <div style="font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #8A989B; margin-top: 4px;">Departments</div>
           </div>
         </div>
@@ -73,13 +73,6 @@
 
     <div style="display: flex; align-items: center; justify-content: center; padding: 40px 32px;">
       <div style="width: 100%; max-width: 396px;">
-        <div style="display: flex; padding: 4px; background: #EAE6DE; border-radius: 11px; position: relative;">
-          <div style="position: absolute; top: 4px; bottom: 4px; width: calc((100% - 8px) / 3); left: {{ tabLeft }}; background: #FFFFFF; border-radius: 8px; box-shadow: 0 1px 2px rgba(20,26,31,.10), 0 4px 12px rgba(20,26,31,.06); transition: left .32s cubic-bezier(.4,0,.2,1);"></div>
-          <button type="button" onClick="{{ pickStudent }}" style="{{ studentTabStyle }}">Student</button>
-          <button type="button" onClick="{{ pickFaculty }}" style="{{ facultyTabStyle }}">Faculty</button>
-          <button type="button" onClick="{{ pickAdmin }}" style="{{ adminTabStyle }}">Admin</button>
-        </div>
-
         <div key="{{ loginRole }}" style="animation: vFieldIn .34s cubic-bezier(.2,.8,.2,1) both;">
           <h1 style="font-family: Newsreader, Georgia, serif; font-size: 32px; font-weight: 500; margin: 30px 0 6px; letter-spacing: -.01em;">{{ loginTitle }}</h1>
           <p style="margin: 0 0 26px; font-size: 13.5px; color: #6B757E; line-height: 1.55;">{{ loginSub }}</p>
@@ -101,7 +94,7 @@
 
           <div style="display: flex; justify-content: space-between; margin-top: 18px; font-size: 12.5px;">
             <a href="#forgot" onClick="{{ notImplemented }}">Forgot Password</a>
-            <a href="#help" onClick="{{ notImplemented }}">{{ helpLabel }}</a>
+            <a href="mailto:admissions@vit.edu" onClick="{{ showHelp }}" title="admissions@vit.edu">{{ helpLabel }}</a>
           </div>
 
           <sc-if value="{{ demoHint }}">
@@ -113,6 +106,7 @@
       </div>
     </div>
   </div>
+  <a href="{{ switchHref }}" style="position: fixed; right: 24px; bottom: 24px; z-index: 50; display: flex; align-items: center; gap: 8px; padding: 12px 18px; background: #131A1F; color: #EDEAE3; border-radius: 30px; font-size: 13px; font-weight: 700; letter-spacing: .02em; text-decoration: none; box-shadow: 0 8px 24px rgba(20,26,31,.28); transition: background .2s, transform .16s;" style-hover="background: #0B8F86; transform: translateY(-2px);">{{ switchLabel }}</a>
 </sc-if>
 
 <sc-if value="{{ showApp }}">
@@ -193,12 +187,6 @@
           </sc-if>
         </div>
 
-        <sc-if value="{{ isWide }}">
-          <select value="{{ ay }}" onChange="{{ setAy }}" aria-label="Academic year" style="height: 36px; padding: 0 10px; font-size: 12.5px; font-family: 'JetBrains Mono', monospace; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; color: #161D22; cursor: pointer;">
-            <sc-for list="{{ ayOptions }}" as="o" hint-placeholder-count="3"><option value="{{ o.v }}">AY {{ o.label }}</option></sc-for>
-          </select>
-        </sc-if>
-
         <div data-popover="profile" style="position: relative;">
           <button type="button" onClick="{{ toggleProfile }}" style="display: flex; align-items: center; gap: 10px; padding: 4px 4px 4px 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 40px; cursor: pointer; transition: border-color .2s;" style-hover="border-color: #0B8F86;">
             <sc-if value="{{ isWide }}">
@@ -223,6 +211,26 @@
           </sc-if>
         </div>
       </header>
+
+      <sc-if value="{{ pwOpen }}">
+        <div onClick="{{ closePw }}" style="position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; background: rgba(20,26,31,.42);">
+          <form onSubmit="{{ savePw }}" onClick="{{ stopPw }}" style="width: 100%; max-width: 400px; background: #FFFFFF; border-radius: 14px; padding: 24px; box-shadow: 0 30px 90px rgba(20,26,31,.32);">
+            <div style="font-family: Newsreader, Georgia, serif; font-size: 24px;">Change password</div>
+            <div style="font-size: 12.5px; color: #6B757E; margin-top: 4px;">At least 8 characters, and not your email address.</div>
+            <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5A6570; margin: 18px 0 6px;">Current password</label>
+            <input type="password" autocomplete="current-password" value="{{ pwOld }}" onChange="{{ setPwOld }}" style="width: 100%; padding: 11px 12px; font-size: 14px; border: 1px solid #DCD7CC; border-radius: 8px;" />
+            <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5A6570; margin: 14px 0 6px;">New password</label>
+            <input type="password" autocomplete="new-password" value="{{ pwNew }}" onChange="{{ setPwNew }}" style="width: 100%; padding: 11px 12px; font-size: 14px; border: 1px solid #DCD7CC; border-radius: 8px;" />
+            <label style="display: block; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #5A6570; margin: 14px 0 6px;">Confirm new password</label>
+            <input type="password" autocomplete="new-password" value="{{ pwNew2 }}" onChange="{{ setPwNew2 }}" style="width: 100%; padding: 11px 12px; font-size: 14px; border: 1px solid #DCD7CC; border-radius: 8px;" />
+            <sc-if value="{{ pwError }}"><div style="margin-top: 12px; padding: 10px 12px; background: #F8E9E6; border-radius: 8px; font-size: 12.5px; color: #96382C;">{{ pwError }}</div></sc-if>
+            <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px;">
+              <button type="button" onClick="{{ closePw }}" style="padding: 10px 16px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;">Cancel</button>
+              <button type="submit" style="padding: 10px 16px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">{{ pwSaveLabel }}</button>
+            </div>
+          </form>
+        </div>
+      </sc-if>
 
       <sc-if value="{{ hasSubTabs }}">
         <div style="position: sticky; top: 62px; z-index: 38; display: flex; gap: 6px; overflow-x: auto; padding: 10px clamp(14px, 2.4vw, 28px); background: rgba(244,242,237,.92); backdrop-filter: blur(14px); border-bottom: 1px solid #E3DFD6;">
@@ -263,8 +271,41 @@
           <sc-if value="{{ atFFeedback }}"><dc-import name="Feedback" role="faculty" nav="{{ navTo }}" hint-size="100%,700px"></dc-import></sc-if>
           <sc-if value="{{ notFFeedback }}"><dc-import name="Faculty" page="{{ page }}" nav="{{ navTo }}" hint-size="100%,700px"></dc-import></sc-if>
         </sc-if>
+        <sc-if value="{{ atSettings }}">
+          <div style="max-width: 760px;">
+            <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">{{ setTitle }}</div>
+            <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ setSub }}</div>
+
+            <div style="margin-top: 18px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Account</div>
+              <div style="margin-top: 10px;">
+                <sc-for list="{{ setRows }}" as="r" hint-placeholder-count="5">
+                  <div style="display: flex; flex-wrap: wrap; gap: 12px; padding: 10px 0; border-bottom: 1px solid #F4F1EA;">
+                    <span style="min-width: 150px; font-size: 12px; color: #8B949C;">{{ r.label }}</span>
+                    <span style="flex: 1; font-size: 13.5px; font-weight: 600;">{{ r.value }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px;">
+                <button type="button" onClick="{{ openPw }}" style="padding: 10px 18px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">Change password</button>
+                <span style="font-size: 12px; color: #6B757E;">Name, email and department are kept by the academic office.</span>
+              </div>
+            </div>
+
+            <sc-if value="{{ showZoom }}">
+            <div style="margin-top: 16px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Text size</div>
+              <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px;">
+                <sc-for list="{{ zoomOpts }}" as="z" hint-placeholder-count="3"><button type="button" onClick="{{ z.go }}" style="{{ z.style }}">{{ z.label }}</button></sc-for>
+              </div>
+              <div style="font-size: 12px; color: #6B757E; margin-top: 10px;">Saved on this device only.</div>
+            </div>
+            </sc-if>
+          </div>
+        </sc-if>
         <sc-if value="{{ isAdmin }}">
-          <dc-import name="Admin" nav="{{ navTo }}" hint-size="100%,700px"></dc-import>
+          <sc-if value="{{ atFacultyControl }}"><dc-import name="FacultyControl" nav="{{ navTo }}" hint-size="100%,700px"></dc-import></sc-if>
+          <sc-if value="{{ atDbConsole }}"><dc-import name="Admin" nav="{{ navTo }}" hint-size="100%,700px"></dc-import></sc-if>
         </sc-if>
       </main>
 
@@ -320,7 +361,6 @@ const STUDENT_NAV = [
   { id: 'hostel', code: 'HO', label: 'Hostel' },
   { id: 'timetable', code: 'TT', label: 'Timetable' },
   { id: 'registration', code: 'SR', label: 'Subject Registration' },
-  { id: 'ppo', code: 'PP', label: 'PPO' },
   { id: 'feedback', code: 'FB', label: 'Faculty Feedback' },
   { id: 'career', code: 'CC', label: 'Career Choices' }
 ];
@@ -331,45 +371,49 @@ const FACULTY_NAV = [
   { id: 'f-attendance', code: 'AT', label: 'Attendance' },
   { id: 'f-lesson', code: 'LP', label: 'Lesson Plans' },
   { id: 'f-timetable', code: 'TT', label: 'Timetable' },
-  { id: 'f-students', code: 'ST', label: 'Students' },
   { id: 'f-exams', code: 'EX', label: 'Examinations' },
   { id: 'f-registration', code: 'SR', label: 'Registration' },
   { id: 'f-feedback', code: 'FB', label: 'Feedback' },
   { id: 'f-notifications', code: 'NT', label: 'Notifications' }
 ];
 
-const ADMIN_NAV = [{ id: 'admin', code: 'AD', label: 'Admin Console' }];
+const ADMIN_NAV = [{ id: 'admin-faculty', code: 'FC', label: 'Faculty Control' }, { id: 'admin', code: 'DB', label: 'Database Console' }];
 
 const TITLES = {
-  admin: ['Admin Console', 'Database Management'],
+  admin: ['Database Console', 'Database Management'], 'admin-faculty': ['Faculty Control', 'All Faculty'],
   dashboard: ['Dashboard', ''], academic: ['Academic', ''], accounts: ['Accounts', 'Fee Receipt & Payment Status'],
   certificates: ['Certificates', 'Completed Certifications'], examination: ['Examination', ''], hostel: ['Hostel', 'Allotment & Contact'],
-  timetable: ['Timetable', 'Weekly Schedule'], registration: ['Subject Registration', 'Semester IV · Add / Drop'],
+  timetable: ['Timetable', 'Weekly Schedule'], registration: ['Subject Registration', 'Add / Drop'],
   feedback: ['Faculty Feedback', 'Monthly Rating Form'], 'f-feedback': ['Feedback', 'Student Ratings & Class Status'],
-  ppo: ['PPO', 'Pre-Placement Offers'], career: ['Career Choices', 'Career Advisor'], profile: ['My Profile', 'Academic Details'],
+career: ['Career Choices', 'Career Advisor'], profile: ['My Profile', ''], settings: ['Settings', 'Account & Display'], 'f-profile': ['My Profile', ''],
   'f-dashboard': ['Faculty Dashboard', ''], 'f-courses': ['Courses', 'Courses Taught'], 'f-attendance': ['Attendance', 'Mark & Review'],
-  'f-lesson': ['Lesson Plans', 'Syllabus Progress'], 'f-timetable': ['Timetable', 'Teaching Schedule'], 'f-students': ['Students', 'Class Roster'],
+  'f-lesson': ['Lesson Plans', 'Syllabus Progress'], 'f-timetable': ['Timetable', 'Teaching Schedule'],
   'f-exams': ['Examinations', 'Invigilation & Marks'], 'f-registration': ['Registration', 'Requests & Seat Approvals'], 'f-notifications': ['Notifications', 'Announcements']
 };
 
 const SUB_LABEL = { calendar: 'Academic Calendar', attendance: 'Attendance', lesson: 'Lesson Plan', grade: 'Grade Card', marksheet: 'Mark Sheet', hall: 'Hall Ticket', conversion: 'Conversion Certificate', receipt: 'Fee Receipt', payment: 'Payment Status' };
 const MODULES = ['academic', 'examination', 'accounts'];
 
+// two sign-in pages: "/" is for students, "/faculty" for faculty. There is no administrator sign-in.
+const PAGE_ROLE = typeof location === 'undefined' ? 'student' : /^\/faculty\/?$/.test(location.pathname) ? 'faculty' : /^\/admin\/?$/.test(location.pathname) ? 'admin' : 'student';
+
 class Component extends DCLogic {
   state = {
-    ready: !!window.VIT, loginRole: 'student', id: '', pw: '', loginError: '',
+    ready: !!window.VIT, loginRole: PAGE_ROLE, id: '', pw: '', loginError: '',
     page: 'dashboard', sub: 'attendance', railOpen: true, expanded: '',
     searchOpen: false, query: '', bellOpen: false, profileOpen: false, drawerOpen: false,
     ay: '', w: typeof window !== 'undefined' ? window.innerWidth : 1440
   };
 
   componentDidMount() {
-    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.setState(window.VIT.live ? { ready: true, pw: '' } : { ready: true }); };
+    try { const z = localStorage.getItem('vit-zoom'); if (z) { document.documentElement.style.zoom = z; this.setState({ zoom: z }); } } catch (e) {}
+    const boot = () => { if (window.VIT.state.role && window.VIT.state.role !== PAGE_ROLE) window.VIT.logout(); this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.setState(window.VIT.live ? { ready: true, pw: '' } : { ready: true }); };
     if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
     this.onResize = () => this.setState({ w: window.innerWidth });
     window.addEventListener('resize', this.onResize);
     this.onKey = (e) => { if (e.key === 'Escape') this.setState({ searchOpen: false, bellOpen: false, profileOpen: false }); };
     window.addEventListener('keydown', this.onKey);
+    fetch('/api/stats').then(r => r.json()).then(stats => this.setState({ stats })).catch(() => {});
     // click anywhere outside an open popover to dismiss it
     this.onDocDown = (e) => {
       const s = this.state;
@@ -403,7 +447,7 @@ class Component extends DCLogic {
     const st = this.state;
     const facultyMode = role === 'faculty', adminMode = role === 'admin';
     const nav = adminMode ? ADMIN_NAV : facultyMode ? FACULTY_NAV : STUDENT_NAV;
-    const page = adminMode ? 'admin' : (facultyMode && st.page.indexOf('f-') !== 0) ? 'f-dashboard' : (!facultyMode && st.page.indexOf('f-') === 0 ? 'dashboard' : st.page);
+    const page = adminMode ? (st.page === 'admin-faculty' ? 'admin-faculty' : 'admin') : (facultyMode && st.page.indexOf('f-') !== 0 && st.page !== 'settings') ? 'f-dashboard' : (!facultyMode && st.page.indexOf('f-') === 0 ? 'dashboard' : st.page);
 
     // ——— login ———
     if (!role) {
@@ -411,33 +455,33 @@ class Component extends DCLogic {
       const tabBase = 'flex: 1; position: relative; z-index: 1; padding: 10px; font-size: 13.5px; font-weight: 700; letter-spacing: .02em; background: transparent; border: none; border-radius: 8px; cursor: pointer; transition: color .24s;';
       return {
         showLogin: true, showApp: false, loginRole: st.loginRole,
+        statStudents: st.stats ? st.stats.student.toLocaleString('en-IN') : '—', statFaculty: st.stats ? st.stats.faculty.toLocaleString('en-IN') : '—', statDepts: st.stats ? st.stats.department : '—',
         loginCols: w < 860 ? '1fr' : 'minmax(0, 1.02fr) minmax(0, 1fr)',
         tabLeft: 'calc(4px + ' + (isStu ? 0 : isAdm ? 2 : 1) + ' * (100% - 8px) / 3)',
         studentTabStyle: tabBase + 'color: ' + (isStu ? '#161D22' : '#7A828A') + ';',
         facultyTabStyle: tabBase + 'color: ' + (st.loginRole === 'faculty' ? '#161D22' : '#7A828A') + ';',
         adminTabStyle: tabBase + 'color: ' + (isAdm ? '#161D22' : '#7A828A') + ';',
-        pickStudent: () => this.setState({ loginRole: 'student', id: '', pw: '', loginError: '' }),
-        pickFaculty: () => this.setState({ loginRole: 'faculty', id: '', pw: '', loginError: '' }),
-        pickAdmin: () => this.setState({ loginRole: 'admin', id: '', pw: '', loginError: '' }),
+        switchLabel: isStu ? 'Faculty Login →' : '← Student Login', switchHref: isStu ? '/faculty' : '/',
         demoHint: false,
         loginTitle: isStu ? 'Student Portal' : isAdm ? 'Admin Console' : 'Faculty Portal',
         loginSub: isStu ? 'Sign in with your institute email to reach attendance, registration and results.' : isAdm ? 'Sign in as a portal administrator to manage records directly in the database.' : 'Sign in with your institute email to manage courses, attendance and lesson plans.',
         idLabel: 'Email ID',
         idHint: isStu ? 'Student email issued by the institute.' : isAdm ? 'Administrator email, e.g. admin@vit.edu.' : 'Institute email issued by the department.',
         idPlaceholder: 'name@vit.edu',
-        idValue: st.id, pwValue: st.pw, roleWord: isStu ? 'student' : 'faculty',
+        idValue: st.id, pwValue: st.pw, roleWord: isStu ? 'student' : isAdm ? 'admin' : 'faculty',
         helpLabel: isStu ? 'Help / Contact Support' : isAdm ? 'Admin Help' : 'Faculty Help',
         setId: (e) => this.setState({ id: e.target.value, loginError: '' }),
         setPw: (e) => this.setState({ pw: e.target.value, loginError: '' }),
         loginError: st.loginError,
-        notImplemented: (e) => { e.preventDefault(); S.toast({ title: 'Contact the academic office', body: 'Password resets are handled by the Examination Cell, Room A-104.', kind: 'info' }); },
+        notImplemented: (e) => { e.preventDefault(); S.toast({ title: 'Contact the academic office', body: 'Forgotten passwords are reset by the academic office. Email admissions@vit.edu. Once signed in, you can change your password under Settings.', kind: 'info' }); },
+        showHelp: () => S.toast({ title: 'Help & support', body: 'Email admissions@vit.edu — your mail app opens with the address filled in.', kind: 'info' }),
         submitLogin: (e) => {
           if (e && e.preventDefault) e.preventDefault();
           if (!st.id.trim() || !st.pw.trim()) { this.setState({ loginError: 'Enter both email ID and password to continue.' }); return; }
           if (st.id.indexOf('@') < 0) { this.setState({ loginError: 'Enter a valid institute email address.' }); return; }
-          this.setState({ page: isStu ? 'dashboard' : isAdm ? 'admin' : 'f-dashboard', sub: 'attendance', loginError: '' });
+          this.setState({ page: isStu ? 'dashboard' : isAdm ? 'admin-faculty' : 'f-dashboard', sub: 'attendance', loginError: '' });
           S.signIn(st.id.trim(), st.pw, st.loginRole).then(() => {
-            const f = S.state.role === 'faculty' && (S.faculty[S.state.facultyId] || S.faculty.F01);
+            const f = S.state.role === 'faculty' && (S.faculty[S.state.facultyId] || { name: '', dept: '' });
             const a = S.state.role === 'admin' && (S.state.admin || { name: 'Portal Administrator', email: st.id.trim() });
             S.toast({ title: 'Signed in', body: a ? a.name + ' · ' + a.email : f ? f.name + ' · ' + f.dept : S.student.name + ' · ' + S.student.programme, kind: 'ok', ms: 2000 });
           }, (e) => this.setState({ loginError: e.message || 'Sign-in failed.' }));
@@ -461,7 +505,7 @@ class Component extends DCLogic {
       go: () => this.go(S.isRegistered(c.code) ? 'academic' : 'registration', 'lesson')
     })).concat(nav.filter(n => n.label.toLowerCase().indexOf(q) >= 0).slice(0, 3).map(n => ({ code: n.code, label: n.label, kind: 'Page', go: () => this.go(n.id) }))) : [];
 
-    const student = S.student, fac = S.faculty[S.state.facultyId] || S.faculty.F01;
+    const student = S.student, fac = S.faculty[S.state.facultyId] || { name: '', dept: '', desig: '', email: '' };
     const adm = S.state.admin || { id: 'A01', name: 'Portal Administrator', email: 'admin@vit.edu' };
     const toastStyle = (kind) => 'display: flex; gap: 10px; align-items: flex-start; min-width: 268px; max-width: 340px; padding: 13px 15px; background: #FFFFFF; border: 1px solid ' + (kind === 'err' ? '#EDCFC9' : kind === 'warn' ? '#EADDBC' : '#DCE9E6') + '; border-radius: 11px; box-shadow: 0 14px 40px rgba(20,26,31,.16); animation: vSlideL .28s cubic-bezier(.2,.8,.2,1) both; pointer-events: auto;';
     const dotOf = (kind) => 'min-width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: ' + (kind === 'err' ? '#B8483A' : kind === 'warn' ? '#B4801C' : kind === 'ok' ? '#1C8F5A' : '#0B8F86') + ';';
@@ -469,9 +513,9 @@ class Component extends DCLogic {
     return {
       showLogin: false, showApp: true, page, sub: st.sub, isMobile, isWide,
       portalName: adminMode ? 'Admin Console' : facultyMode ? 'Faculty Portal' : 'Academic Portal',
-      portalKicker: facultyMode ? 'Computer Engg.' : 'VIT Pune',
-      goHome: () => this.go(adminMode ? 'admin' : facultyMode ? 'f-dashboard' : 'dashboard'),
-      canGoBack: page !== (adminMode ? 'admin' : facultyMode ? 'f-dashboard' : 'dashboard'),
+      portalKicker: facultyMode ? (fac.dept || 'Faculty') : 'VIT Pune',
+      goHome: () => this.go(adminMode ? 'admin-faculty' : facultyMode ? 'f-dashboard' : 'dashboard'),
+      canGoBack: page !== (adminMode ? 'admin-faculty' : facultyMode ? 'f-dashboard' : 'dashboard'),
       logout: () => { S.logout(); this.setState({ page: 'dashboard' }); },
 
       hasFacTabs: facultyMode,
@@ -509,9 +553,6 @@ class Component extends DCLogic {
         dotStyle: 'min-width: 8px; height: 8px; border-radius: 50%; background: ' + (n.kind === 'warning' ? '#B4801C' : n.kind === 'registration' ? '#0B8F86' : n.kind === 'accounts' ? '#B8483A' : '#1C8F5A') + ';'
       })),
 
-      ay: st.ay || S.term.ay, ayOptions: [0, 1, 2].map(i => { const y = +S.term.ay.slice(0, 4) - i; const v = y + '-' + String(y + 1).slice(2); return { v, label: v.replace('-', '–') }; }),
-      setAy: (e) => { this.setState({ ay: e.target.value }); S.toast({ title: 'Academic year ' + e.target.value, body: e.target.value === S.term.ay ? 'Showing live records.' : 'Archived records are read-only.', kind: 'info' }); },
-
       userName: adminMode ? adm.name : facultyMode ? fac.name : student.name,
       userMeta: adminMode ? 'Administrator · ' + adm.id : facultyMode ? fac.desig + ' · ' + fac.dept : student.dept + ' · ' + student.year + ' • Division ' + student.division,
       userId: adminMode ? adm.email : facultyMode ? fac.email : 'PRN ' + student.prn,
@@ -519,23 +560,45 @@ class Component extends DCLogic {
       profileOpen: st.profileOpen,
       toggleProfile: () => this.setState({ profileOpen: !st.profileOpen, bellOpen: false, searchOpen: false }),
       profileMenu: (adminMode
-        ? [['Admin Console', () => this.go('admin')], ['Logout', 'logout']]
+        ? [['Faculty Control', () => this.go('admin-faculty')], ['Database Console', () => this.go('admin')], ['Logout', 'logout']]
         : facultyMode
-        ? [['My Profile', () => this.go('f-dashboard')], ['Courses Taught', () => this.go('f-courses')], ['Settings', null], ['Logout', 'logout']]
-        : [['My Profile', () => this.go('profile')], ['Academic Details', () => this.go('academic')], ['Settings', null], ['Logout', 'logout']]
+        ? [['My Profile', () => this.go('f-profile')], ['Courses Taught', () => this.go('f-courses')], ['Settings', () => this.go('settings')], ['Logout', 'logout']]
+        : [['My Profile', () => this.go('profile')], ['Settings', () => this.go('settings')], ['Logout', 'logout']]
       ).map(([label, fn]) => ({
         label,
         style: 'display: block; width: 100%; padding: 11px 15px; background: transparent; border: none; border-bottom: 1px solid #F4F1EA; text-align: left; font-size: 13px; font-weight: ' + (label === 'Logout' ? 700 : 500) + '; color: ' + (label === 'Logout' ? '#B8483A' : '#161D22') + '; cursor: pointer;',
-        go: fn === 'logout' ? () => { S.logout(); this.setState({ page: 'dashboard', profileOpen: false }); } : (fn || (() => S.toast({ title: 'Settings', body: 'Notification and display preferences are managed by the academic office.', kind: 'info' })))
+        go: fn === 'logout' ? () => { S.logout(); this.setState({ page: 'dashboard', profileOpen: false }); } : fn === 'pw' ? () => this.setState({ pwOpen: true, profileOpen: false, pwOld: '', pwNew: '', pwNew2: '', pwError: '' }) : fn
       })),
 
-      isStudent: !facultyMode && !adminMode, isFaculty: facultyMode, isAdmin: adminMode,
+      pwOpen: !!st.pwOpen, pwOld: st.pwOld || '', pwNew: st.pwNew || '', pwNew2: st.pwNew2 || '', pwError: st.pwError || '', pwSaveLabel: st.pwBusy ? 'Saving…' : 'Save password',
+      setPwOld: (e) => this.setState({ pwOld: e.target.value, pwError: '' }), setPwNew: (e) => this.setState({ pwNew: e.target.value, pwError: '' }), setPwNew2: (e) => this.setState({ pwNew2: e.target.value, pwError: '' }),
+      closePw: () => this.setState({ pwOpen: false }), stopPw: (e) => e.stopPropagation(),
+      savePw: (e) => {
+        if (e && e.preventDefault) e.preventDefault();
+        if (st.pwBusy) return;
+        if (!st.pwOld || !st.pwNew) { this.setState({ pwError: 'Fill in all three fields.' }); return; }
+        if (st.pwNew !== st.pwNew2) { this.setState({ pwError: 'The two new passwords do not match.' }); return; }
+        this.setState({ pwBusy: true });
+        S.changePassword(st.pwOld, st.pwNew).then(() => { this.setState({ pwOpen: false, pwBusy: false }); S.toast({ title: 'Password changed', body: 'Use the new password next time you sign in.', kind: 'ok' }); },
+          (err) => this.setState({ pwBusy: false, pwError: err.message }));
+      },
+      isStudent: !facultyMode && !adminMode, isFaculty: facultyMode, isAdmin: adminMode, atFacultyControl: page === 'admin-faculty', atDbConsole: page === 'admin',
       atModuleHome, module: page,
       atDashboard: page === 'dashboard', atAcademic: page === 'academic' && !atModuleHome, atTimetable: page === 'timetable',
       atRegistration: page === 'registration', atExamination: page === 'examination' && !atModuleHome,
-      atRecords: ['certificates', 'hostel', 'ppo'].indexOf(page) >= 0 || (page === 'accounts' && !atModuleHome),
-      atFeedback: page === 'feedback', atFFeedback: page === 'f-feedback', notFFeedback: page !== 'f-feedback',
-      atCareer: page === 'career', atProfile: page === 'profile',
+      atRecords: ['certificates', 'hostel'].indexOf(page) >= 0 || (page === 'accounts' && !atModuleHome),
+      atFeedback: page === 'feedback', atFFeedback: page === 'f-feedback', notFFeedback: ['f-feedback', 'settings', 'f-profile'].indexOf(page) < 0,
+      atCareer: page === 'career', atProfile: page === 'profile', atSettings: page === 'settings' || page === 'f-profile', setTitle: page === 'f-profile' ? 'My Profile' : 'Settings', showZoom: page === 'settings',
+      setSub: page === 'f-profile' ? fac.desig + ' · ' + fac.dept : 'Your account and how the portal looks on this device.',
+      openPw: () => this.setState({ pwOpen: true, pwOld: '', pwNew: '', pwNew2: '', pwError: '' }),
+      setRows: facultyMode
+        ? [{ label: 'Name', value: fac.name }, { label: 'Email', value: fac.email }, { label: 'Faculty ID', value: S.state.facultyId }, { label: 'Designation', value: fac.desig }, { label: 'Department', value: fac.dept }]
+        : [{ label: 'Name', value: student.name }, { label: 'Email', value: student.email }, { label: 'PRN', value: student.prn }, { label: 'Programme', value: student.programme }, { label: 'Department', value: student.dept }],
+      zoomOpts: [['Small', '0.9'], ['Default', '1'], ['Large', '1.12']].map(([label, z]) => {
+        const on = (st.zoom || '1') === z;
+        return { label, go: () => { try { localStorage.setItem('vit-zoom', z); } catch (e) {} document.documentElement.style.zoom = z; this.setState({ zoom: z }); },
+          style: 'padding: 8px 16px; border-radius: 30px; font-size: 12.5px; cursor: pointer; border: 1px solid ' + (on ? '#131A1F' : '#E3DFD6') + '; background: ' + (on ? '#131A1F' : '#FFFFFF') + '; color: ' + (on ? '#EDEAE3' : '#4A555E') + '; font-weight: ' + (on ? 700 : 500) + ';' };
+      }),
       navTo: (id, sub) => this.go(id, sub),
 
       bottomNav: (adminMode ? ADMIN_NAV : facultyMode ? FACULTY_NAV.slice(0, 5) : ['registration', 'timetable', 'dashboard', 'academic', 'career'].map(id => STUDENT_NAV.find(n => n.id === id))).map(it => ({

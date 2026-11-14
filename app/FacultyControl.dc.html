@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="./portal-data.js"></script>
+<style>
+  @keyframes fcIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+</style>
+</helmet>
+
+<div style="max-width: 1380px; animation: fcIn .3s cubic-bezier(.2,.8,.2,1) both;">
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
+    <div>
+      <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Faculty Control</div>
+      <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">{{ summary }}</div>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+      <input type="text" value="{{ q }}" onChange="{{ setQ }}" placeholder="Search name, ID or email…" style="width: 230px; padding: 9px 12px; font-size: 13px; border: 1px solid #E3DFD6; border-radius: 9px; background: #FFFFFF;" />
+      <select value="{{ dept }}" onChange="{{ setDept }}" aria-label="Department" style="height: 36px; padding: 0 10px; font-size: 12.5px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; cursor: pointer;">
+        <option value="all">All departments</option>
+        <sc-for list="{{ depts }}" as="d" hint-placeholder-count="5"><option value="{{ d.v }}">{{ d.v }}</option></sc-for>
+      </select>
+      <button type="button" onClick="{{ reload }}" style="height: 36px; padding: 0 14px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer;">Refresh</button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px;">
+    <sc-for list="{{ tiles }}" as="t" hint-placeholder-count="4">
+      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 12px; padding: 14px 16px;">
+        <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #8B949C;">{{ t.label }}</div>
+        <div style="font-size: 24px; font-weight: 800; margin-top: 6px;">{{ t.value }}</div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin-bottom: 16px; padding: 18px 20px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px;">
+    <div style="flex: 1; min-width: 240px;">
+      <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Grade sheet release · {{ term }}</div>
+      <div style="font-size: 15px; font-weight: 700; margin-top: 6px;">{{ relStatus }}</div>
+      <div style="font-size: 12px; color: #6B757E; margin-top: 3px;">{{ relNote }}</div>
+    </div>
+    <label style="font-size: 11px; font-weight: 700; color: #5A6570;">Release on<br /><input type="date" value="{{ relDate }}" min="{{ today }}" onChange="{{ setRelDate }}" style="margin-top: 5px; padding: 9px 10px; border: 1px solid #DCD7CC; border-radius: 8px; font-size: 13px;" /></label>
+    <button type="button" onClick="{{ releaseToday }}" style="padding: 10px 16px; background: #FFFFFF; color: #131A1F; border: 1px solid #131A1F; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;">Release today</button>
+    <button type="button" onClick="{{ scheduleRel }}" style="padding: 10px 16px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">Schedule release</button>
+  </div>
+
+  <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow-x: auto;">
+    <div style="min-width: 1100px;">
+      <div style="display: grid; grid-template-columns: 70px 1.5fr 60px 1fr 80px 110px 110px 90px 1.6fr; gap: 10px; padding: 12px 18px; background: #F4F1EA; border-bottom: 1px solid #E3DFD6; font-size: 11.5px; font-weight: 700;">
+        <span>ID</span><span>Name</span><span>Dept</span><span>Designation</span><span>Sections</span><span>Marks submitted</span><span>Last attendance</span><span>Sign-in</span><span>Actions</span>
+      </div>
+      <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+        <div style="display: grid; grid-template-columns: 70px 1.5fr 60px 1fr 80px 110px 110px 90px 1.6fr; gap: 10px; align-items: center; padding: 10px 18px; border-bottom: 1px solid #F4F1EA; font-size: 12.5px;">
+          <span style="font-family: 'JetBrains Mono', monospace; color: #8B949C;">{{ r.id }}</span>
+          <span><span style="font-weight: 700;">{{ r.name }}</span> <span style="{{ r.hodStyle }}">{{ r.hodLabel }}</span><br /><span style="font-size: 11px; color: #8B949C;">{{ r.email }}</span></span>
+          <span>{{ r.dept }}</span>
+          <span style="color: #4A555E;">{{ r.desig }}</span>
+          <span style="font-family: 'JetBrains Mono', monospace;">{{ r.sections }}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; color: {{ r.marksColor }};">{{ r.marks }}</span>
+          <span style="font-family: 'JetBrains Mono', monospace; color: #4A555E;">{{ r.last }}</span>
+          <span style="{{ r.loginStyle }}">{{ r.login }}</span>
+          <span style="display: flex; flex-wrap: wrap; gap: 6px;">
+            <button type="button" onClick="{{ r.pw }}" style="padding: 5px 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; font-size: 11.5px; font-weight: 700; cursor: pointer;">Set password</button>
+            <sc-if value="{{ r.canHod }}"><button type="button" onClick="{{ r.makeHod }}" style="padding: 5px 10px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 7px; font-size: 11.5px; font-weight: 700; cursor: pointer;">Make HoD</button></sc-if>
+            <sc-if value="{{ r.hasLogin }}"><button type="button" onClick="{{ r.toggle }}" style="{{ r.toggleStyle }}">{{ r.toggleLabel }}</button></sc-if>
+          </span>
+        </div>
+      </sc-for>
+      <sc-if value="{{ empty }}"><div style="padding: 30px 18px; font-size: 13px; color: #6B757E;">{{ emptyText }}</div></sc-if>
+    </div>
+  </div>
+  <div style="font-size: 12px; color: #8B949C; margin-top: 10px;">Showing {{ shown }}. Disabling an account signs the faculty member out immediately. Every action is recorded in the database console's activity log.</div>
+</div>
+</x-dc>
+
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1380,&quot;height&quot;:800},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { list: null, error: '', q: '', dept: 'all', busy: '', relDate: null };
+
+  componentDidMount() {
+    const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.load(); };
+    if (window.VIT) boot(); else window.addEventListener('vit-ready', boot, { once: true });
+  }
+  componentWillUnmount() { if (this.unsub) this.unsub(); }
+  load() { window.VIT.admin.facultyOverview().then(list => this.setState({ list, error: '' }), e => this.setState({ list: [], error: e.message })); }
+
+  act(f, action, password) {
+    const S = window.VIT;
+    this.setState({ busy: f.id });
+    S.admin.facultyAction(f.id, action, password).then(() => {
+      this.setState({ busy: '' });
+      S.toast({ title: { password: 'Password set', make_hod: 'Head of Department updated', disable: 'Sign-in disabled', enable: 'Sign-in enabled' }[action], body: f.name + ' · ' + f.id, kind: 'ok' });
+      this.load();
+    }, e => { this.setState({ busy: '' }); S.toast({ title: 'Action failed', body: e.message, kind: 'err' }); });
+  }
+
+  release(date) {
+    const S = window.VIT, all = this.state.list || [], secs = all.reduce((n, f) => n + f.sections, 0), sub = all.reduce((n, f) => n + f.submitted, 0);
+    if (!date) { S.toast({ title: 'Pick a release date', kind: 'warn' }); return; }
+    const pending = secs - sub;
+    if (!window.confirm(pending ? pending + ' of ' + secs + ' sections have not submitted final marks. Students in those courses will not get a grade for them. Release on ' + date + ' anyway?' : 'Release the grade sheet on ' + date + '? Students will be notified.')) return;
+    S.setGradesRelease(date, true).then(() => { this.setState({ relDate: null }); S.toast({ title: 'Grade sheet release set', body: S.fmtDate(date) + '. Students have been notified.', kind: 'ok' }); },
+      e => S.toast({ title: 'Not released', body: e.message, kind: 'err' }));
+  }
+
+  renderVals() {
+    const S = window.VIT; if (!S) return {};
+    const st = this.state, all = st.list || [], q = st.q.trim().toLowerCase();
+    const list = all.filter(f => (st.dept === 'all' || f.dept === st.dept) && (!q || (f.name + ' ' + f.id + ' ' + f.email).toLowerCase().indexOf(q) >= 0));
+    const pill = (bg, fg) => 'display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 3px 8px; border-radius: 20px; background: ' + bg + '; color: ' + fg + ';';
+    const secs = all.reduce((n, f) => n + f.sections, 0), sub = all.reduce((n, f) => n + f.submitted, 0);
+    const rel = S.gradeRelease, today = new Date().toISOString().slice(0, 10), relDate = st.relDate != null ? st.relDate : (rel.date || today);
+    return {
+      term: S.term.name, today, relDate, setRelDate: (e) => this.setState({ relDate: e.target.value }),
+      relStatus: rel.released ? 'Released on ' + S.fmtDate(rel.date) : rel.date ? 'Scheduled for ' + S.fmtDate(rel.date) : 'Not scheduled',
+      relNote: sub + ' of ' + secs + ' sections have submitted final marks. As admin you can release even if some are pending.',
+      releaseToday: () => this.release(today), scheduleRel: () => this.release(relDate),
+      summary: st.list ? all.length + ' faculty members · ' + secs + ' sections this term' : st.error || 'Loading…',
+      q: st.q, setQ: (e) => this.setState({ q: e.target.value }),
+      dept: st.dept, setDept: (e) => this.setState({ dept: e.target.value }),
+      depts: Array.from(new Set(all.map(f => f.dept))).sort().map(v => ({ v })),
+      reload: () => this.load(),
+      tiles: [
+        { label: 'Faculty', value: all.length },
+        { label: 'Active sign-ins', value: all.filter(f => f.login === 'active').length },
+        { label: 'Disabled', value: all.filter(f => f.login === 'disabled').length },
+        { label: 'Marks submitted', value: sub + ' / ' + secs }
+      ],
+      shown: list.length + ' of ' + all.length,
+      empty: !list.length, emptyText: st.error ? st.error : st.list ? 'No faculty match these filters.' : 'Loading…',
+      rows: list.slice(0, 300).map(f => {
+        const busy = st.busy === f.id, off = f.login === 'disabled';
+        return {
+          id: f.id, name: f.name, email: f.email, dept: f.dept, desig: f.desig, sections: f.sections,
+          hodLabel: f.hod ? 'HoD' : '', hodStyle: f.hod ? pill('#E4F2F0', '#0B6F68') : 'display: none;',
+          marks: f.sections ? f.submitted + ' / ' + f.sections : '—', marksColor: f.sections && f.submitted === f.sections ? '#146B43' : '#8A6114',
+          last: f.lastAttendance ? S.fmtDate(f.lastAttendance) : '—',
+          login: { active: 'Active', disabled: 'Disabled', none: 'No login' }[f.login],
+          loginStyle: f.login === 'active' ? pill('#E6F2EA', '#146B43') : f.login === 'disabled' ? pill('#F8E9E6', '#96382C') : pill('#EFEDE6', '#5A6570'),
+          canHod: !f.hod, hasLogin: f.login !== 'none',
+          toggleLabel: busy ? '…' : off ? 'Enable' : 'Disable',
+          toggleStyle: 'padding: 5px 10px; border-radius: 7px; font-size: 11.5px; font-weight: 700; cursor: pointer; background: #FFFFFF; border: 1px solid ' + (off ? '#1C8F5A' : '#B8483A') + '; color: ' + (off ? '#146B43' : '#96382C') + ';',
+          pw: () => { const p = window.prompt('New password for ' + f.name + ' (at least 6 characters):'); if (p) this.act(f, 'password', p); },
+          makeHod: () => { if (window.confirm('Make ' + f.name + ' Head of Department for ' + f.dept + '? The current HoD loses the role.')) this.act(f, 'make_hod'); },
+          toggle: () => { if (busy) return; if (off || window.confirm('Disable sign-in for ' + f.name + '? They will be signed out now.')) this.act(f, off ? 'enable' : 'disable'); }
+        };
+      })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -349,7 +349,7 @@ class Component extends DCLogic {
   state = {
     calView: 'month', month: new Date().getMonth(), year: new Date().getFullYear(), hoverCell: -1,
     filterSubject: 'all', filterStatus: 'all', limit: 12,
-    lpCode: 'CS401', mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440
+    lpCode: null, mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440
   };
 
   componentDidMount() {

@@ -100,7 +100,7 @@ class Component extends DCLogic {
         code: 'AC', title: 'Academic',
         blurb: 'Everything the institute records about your coursework this semester — the calendar you are held to, the attendance derived from it, and syllabus coverage.',
         stats: [
-          { label: 'CGPA', value: g.cgpa.toFixed(2), note: 'after 3 semesters', color: '#6FE3D6' },
+          { label: 'CGPA', value: g.cgpa.toFixed(2), note: S.transcript.length ? 'after ' + S.transcript.length + ' semester' + (S.transcript.length === 1 ? '' : 's') : 'no results yet', color: '#6FE3D6' },
           { label: 'Attendance', value: aggAtt + '%', note: low ? low + ' subject below 75%' : 'all above threshold', color: aggAtt < 75 ? '#F0B963' : '#6FE3D6' },
           { label: 'Syllabus', value: cov + '%', note: 'average coverage', color: '#EDEAE3' }
         ],

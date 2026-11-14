@@ -22,7 +22,7 @@
       <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
         <div>
           <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Grade Card</div>
-          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Semester-wise results · B.Tech Computer Engineering</div>
+          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Semester-wise results · {{ programme }}</div>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 7px;">
           <sc-for list="{{ semTabs }}" as="s" hint-placeholder-count="3">
@@ -31,6 +31,26 @@
         </div>
       </div>
 
+      <sc-if value="{{ isCur }}">
+        <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow-x: auto;">
+          <div style="min-width: 640px;">
+            <div style="display: grid; grid-template-columns: 1.8fr repeat(4, 92px) 90px 84px; gap: 10px; padding: 13px 20px; background: #F4F1EA; border-bottom: 1px solid #E3DFD6; font-size: 12px; font-weight: 700;">
+              <span>Course</span><span>CVV (/12.5)</span><span>MSE (/25)</span><span>ESE (/50)</span><span>Assign. (/12.5)</span><span>Total</span><span>Grade · Pts</span>
+            </div>
+            <sc-for list="{{ curRows }}" as="c" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: 1.8fr repeat(4, 92px) 90px 84px; gap: 10px; align-items: center; padding: 12px 20px; border-bottom: 1px solid #F0EDE6; font-size: 13px;">
+                <span><span style="font-weight: 700;">{{ c.name }}</span> <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #8B949C;">{{ c.code }}</span></span>
+                <span style="font-family: 'JetBrains Mono', monospace;">{{ c.cvv }}</span><span style="font-family: 'JetBrains Mono', monospace;">{{ c.mse }}</span><span style="font-family: 'JetBrains Mono', monospace;">{{ c.ese }}</span><span style="font-family: 'JetBrains Mono', monospace;">{{ c.asg }}</span>
+                <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700;">{{ c.total }}</span>
+                <span style="font-weight: 800; color: #0B6F68;">{{ c.grade }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="font-size: 12px; color: #8B949C; margin-top: 10px;">{{ curNote }}</div>
+      </sc-if>
+
+      <sc-if value="{{ notCur }}">
       <div style="display: grid; grid-template-columns: {{ gradeCols }}; gap: 16px; align-items: start;">
         <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden; min-width: 0;">
           <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 10px; padding: 16px 22px; border-bottom: 1px solid #F0EDE6;">
@@ -107,6 +127,7 @@
           </div>
         </div>
       </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -359,7 +380,7 @@
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
 
 class Component extends DCLogic {
-  state = { sem: 3, mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
+  state = { sem: null, mount: false, w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
 
   componentDidMount() {
     const boot = () => { this.unsub = window.VIT.subscribe(() => this.forceUpdate()); this.forceUpdate(); };
@@ -381,26 +402,34 @@ class Component extends DCLogic {
     const S = window.VIT; if (!S) return {};
     const st = this.state, sub = this.props.sub || 'grade', w = st.w, mount = st.mount;
     const nav = this.props.nav || (() => {});
-    const semData = S.transcript.find(t => t.sem === st.sem) || S.transcript[S.transcript.length - 1];
+    const semData = S.transcript.find(t => t.sem === st.sem) || S.transcript[S.transcript.length - 1] || { sem: 0, term: '', courses: [] };
+    const sem = semData.sem, isCurTab = st.sem === 'cur';
     const g = S.gpa();
     const tabBase = 'padding: 8px 14px; font-size: 12.5px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all .2s;';
 
     const semTabs = S.transcript.map(t => ({
       label: 'Sem ' + ROMAN[t.sem], go: () => this.setState({ sem: t.sem }),
-      style: tabBase + (t.sem === st.sem ? 'background: #131A1F; color: #EDEAE3; border: 1px solid #131A1F;' : 'background: #FFFFFF; color: #4A555E; border: 1px solid #E3DFD6;')
-    })).concat([{ label: 'Sem IV · in progress', go: () => S.toast({ title: 'Semester IV is in progress', body: 'Results are published after the end-semester examination in November.', kind: 'info' }), style: tabBase + 'background: #FAF8F4; color: #9AA2A9; border: 1px dashed #D6D0C4;' }]);
+      style: tabBase + (!isCurTab && t.sem === sem ? 'background: #131A1F; color: #EDEAE3; border: 1px solid #131A1F;' : 'background: #FFFFFF; color: #4A555E; border: 1px solid #E3DFD6;')
+    })).concat([{ label: 'Sem ' + S.student.semRoman + ' · in progress', go: () => this.setState({ sem: 'cur' }), style: tabBase + (st.sem === 'cur' ? 'background: #131A1F; color: #EDEAE3; border: 1px solid #131A1F;' : 'background: #FAF8F4; color: #4A555E; border: 1px dashed #D6D0C4;') }]);
 
     const rows = semData.courses.map(([code, grade, marks]) => {
       const c = S.byCode[code];
       return { code, name: c.name, credits: c.credits, grade, marks, points: (S.GP[grade] * c.credits) };
     });
     const semCredits = rows.reduce((n, r) => n + r.credits, 0);
-    const sgpa = S.sgpa(st.sem);
-    const download = () => { S.saveDoc('grade-card-sem-' + st.sem, 'Grade card — Semester ' + ROMAN[st.sem] + ' (' + semData.term + ')', semData.courses.map(([code, g, mk]) => [code, S.courseName(code), 'Grade ' + g, mk == null ? '' : mk + ' marks']).concat([['', 'SGPA', sgpa, '']])); S.toast({ title: 'Document downloaded', body: 'Open the file and print to save it as PDF.', kind: 'ok' }); };
+    const sgpa = S.sgpa(sem);
+    const download = () => { S.saveDoc('grade-card-sem-' + sem, 'Grade card — Semester ' + ROMAN[sem] + ' (' + semData.term + ')', semData.courses.map(([code, g, mk]) => [code, S.courseName(code), 'Grade ' + g, mk == null ? '' : mk + ' marks']).concat([['', 'SGPA', sgpa, '']])); S.toast({ title: 'Document downloaded', body: 'Open the file and print to save it as PDF.', kind: 'ok' }); };
 
     const out = {
       isGrade: sub === 'grade', isMarksheet: sub === 'marksheet', isHall: sub === 'hall', isConversion: sub === 'conversion',
-      semTabs, semRoman: ROMAN[st.sem], semTerm: semData.term,
+      semTabs, semRoman: ROMAN[sem], semTerm: semData.term, programme: S.student.programme,
+      isCur: isCurTab, notCur: !isCurTab,
+      curRows: S.myMarks().map(c => { const f = (k) => c.marks[k] == null ? '—' : c.marks[k]; return { name: c.name, code: c.code, cvv: f('CVV'), mse: f('MSE'), ese: f('ESE'), asg: f('ASSIGN'), total: c.outOf ? c.total + ' / ' + c.outOf : '—', grade: c.grade ? c.grade + ' · ' + S.GP[c.grade] : '—' }; }),
+      curNote: (() => {
+        const rel = S.gradeRelease, ms = S.myMarks().filter(c => c.grade), cr = ms.reduce((n, c) => n + c.credits, 0);
+        if (rel.released) return 'Grade sheet released on ' + S.fmtDate(rel.date) + '.' + (cr ? ' SGPA this term: ' + S.termSgpa().toFixed(2) + ' · CGPA: ' + S.gpa().cgpa.toFixed(2) + '.' : '');
+        return 'Marks appear as your faculty enter them. “—” means not entered yet. ' + (rel.date ? 'Grades will be released on ' + S.fmtDate(rel.date) + '.' : 'Grades are released after every faculty member submits final marks.');
+      })(),
       cgpa: g.cgpa.toFixed(2), sgpa: sgpa.toFixed(2), semCredits,
       gradeCols: w < 980 ? '1fr' : 'minmax(0, 1.55fr) minmax(0, 1fr)',
       studentName: S.student.name, download
@@ -417,7 +446,7 @@ class Component extends DCLogic {
           const v = S.sgpa(t.sem);
           return {
             value: v.toFixed(2), label: 'Sem ' + ROMAN[t.sem],
-            barStyle: 'width: 100%; height: ' + (mount ? Math.round(v / 10 * 62) : 0) + 'px; background: ' + (t.sem === st.sem ? '#12B3A6' : 'rgba(18,179,166,.34)') + '; border-radius: 4px 4px 0 0; transition: height .9s cubic-bezier(.2,.8,.2,1) ' + (t.sem * 90) + 'ms;'
+            barStyle: 'width: 100%; height: ' + (mount ? Math.round(v / 10 * 62) : 0) + 'px; background: ' + (t.sem === sem ? '#12B3A6' : 'rgba(18,179,166,.34)') + '; border-radius: 4px 4px 0 0; transition: height .9s cubic-bezier(.2,.8,.2,1) ' + (t.sem * 90) + 'ms;'
           };
         }),
         scale: S.RANK.slice().reverse().map(gr => ({ grade: gr, points: S.GP[gr] }))
@@ -436,7 +465,7 @@ class Component extends DCLogic {
           { label: 'Student name', value: S.student.name },
           { label: 'PRN', value: S.student.prn },
           { label: 'Programme', value: 'B.Tech (Computer Engineering)' },
-          { label: 'Semester', value: ROMAN[st.sem] },
+          { label: 'Semester', value: ROMAN[sem] },
           { label: 'Academic term', value: semData.term },
           { label: 'Division / Batch', value: 'A / ' + S.student.batch },
           { label: 'Date of birth', value: S.student.dob },
@@ -445,7 +474,7 @@ class Component extends DCLogic {
         msRows,
         msTotal: total + ' / ' + (msRows.length * 100),
         msPct: (total / msRows.length).toFixed(1),
-        msId: 'VIT/MS/' + st.sem + '/' + S.student.prn,
+        msId: 'VIT/MS/' + sem + '/' + S.student.prn,
         issueDate: S.fmtDate(new Date().toISOString().slice(0, 10))
       });
     }

@@ -194,6 +194,7 @@
               </div>
               <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 9px;">
                 <input type="date" value="{{ markDate }}" onChange="{{ setDate }}" aria-label="Session date" style="height: 36px; padding: 0 10px; font-size: 12.5px; font-family: 'JetBrains Mono', monospace; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px;" />
+                <input type="time" value="{{ markTime }}" onChange="{{ setTime }}" min="08:00" max="18:00" aria-label="Session time" style="height: 36px; padding: 0 10px; font-size: 12.5px; font-family: 'JetBrains Mono', monospace; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px;" />
                 <button type="button" onClick="{{ markAll }}" style="height: 36px; padding: 0 14px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12.5px; font-weight: 700; color: #4A555E; cursor: pointer; white-space: nowrap; transition: border-color .2s, color .2s;" style-hover="border-color: #1C8F5A; color: #146B43;">Mark All Present</button>
               </div>
             </div>
@@ -354,54 +355,6 @@
     </div>
   </sc-if>
 
-  <sc-if value="{{ isStudents }}">
-    <div key="fst" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
-      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 16px;">
-        <div>
-          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Class Roster</div>
-          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">SE Computer Engineering · Division A · {{ rosterCount }} students</div>
-        </div>
-        <input type="text" value="{{ search }}" onChange="{{ setSearch }}" placeholder="Search name or PRN…" style="min-width: 220px; padding: 10px 13px; font-size: 13px; border: 1px solid #DCD7CC; border-radius: 9px; background: #FFFFFF;" style-focus="border-color: #0B8F86; box-shadow: 0 0 0 3px rgba(11,143,134,.12); outline: none;" />
-      </div>
-      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
-        <div style="overflow-x: auto;">
-          <table style="width: 100%; min-width: 620px; border-collapse: collapse;">
-            <thead>
-              <tr style="background: #FBFAF6;">
-                <th style="padding: 10px 22px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Roll</th>
-                <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Student</th>
-                <th style="padding: 10px 14px; text-align: left; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">PRN</th>
-                <th style="padding: 10px 22px; text-align: right; font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">Attendance</th>
-              </tr>
-            </thead>
-            <tbody>
-              <sc-for list="{{ students }}" as="s" hint-placeholder-count="12">
-                <tr style="{{ s.style }}">
-                  <td style="padding: 11px 22px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #9AA2A9;">{{ s.roll }}</td>
-                  <td style="padding: 11px 14px; font-size: 13px; font-weight: 600;">{{ s.name }}</td>
-                  <td style="padding: 11px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #6B757E;">{{ s.prn }}</td>
-                  <td style="padding: 11px 22px; text-align: right;">
-                    <span style="display: inline-flex; align-items: center; gap: 9px;">
-                      <span style="display: inline-block; width: 62px; height: 5px; background: #EFEDE6; border-radius: 3px; overflow: hidden;"><span style="{{ s.barStyle }}"></span></span>
-                      <span style="font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; color: {{ s.color }}; min-width: 34px;">{{ s.pct }}%</span>
-                    </span>
-                  </td>
-                </tr>
-              </sc-for>
-            </tbody>
-          </table>
-        </div>
-        <sc-if value="{{ noStudents }}">
-          <div style="padding: 40px 22px; text-align: center;">
-            <div style="width: 32px; height: 32px; margin: 0 auto 12px; border: 1.5px dashed #D6D0C4; border-radius: 9px;"></div>
-            <div style="font-size: 14.5px; font-weight: 700;">No students match that search</div>
-            <p style="margin: 6px 0 0; font-size: 12.5px; color: #6B757E;">Try a partial name or the first digits of a PRN.</p>
-          </div>
-        </sc-if>
-      </div>
-    </div>
-  </sc-if>
-
   <sc-if value="{{ isTimetable }}">
     <div key="ftt" style="animation: fIn .3s cubic-bezier(.2,.8,.2,1) both;">
       <div style="margin-bottom: 16px;">
@@ -474,10 +427,72 @@
                 </div>
               </sc-for>
             </div>
-            <div style="margin-top: 14px; padding: 11px 13px; background: #F8EFDC; border: 1px solid #EADDBC; border-radius: 9px; font-size: 11.5px; color: #6E4C10; line-height: 1.6;">Marks entry opens after the last paper of each course.</div>
+            <div style="margin-top: 12px; font-size: 11.5px; color: #8B949C;">CVV 12.5 · Mid-semester 25 · End-semester 50 · Assignments 12.5 — total 100.</div>
           </div>
         </div>
       </div>
+      <div style="margin-top: 16px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+        <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Enter marks</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px;">
+          <sc-for list="{{ mkClasses }}" as="c" hint-placeholder-count="2"><button type="button" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px;">
+          <sc-for list="{{ mkComps }}" as="c" hint-placeholder-count="3"><button type="button" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button></sc-for>
+        </div>
+        <div style="margin-top: 14px; border-top: 1px solid #F0EDE6;">
+          <sc-for list="{{ mkRows }}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #F4F1EA;">
+              <span style="width: 90px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8B949C;">{{ r.roll }}</span>
+              <span style="flex: 1; font-size: 13px; font-weight: 600;">{{ r.name }}</span>
+              <input type="number" min="0" max="{{ mkMax }}" step="0.5" value="{{ r.val }}" onChange="{{ r.set }}" style="width: 84px; padding: 7px 9px; font-size: 13px; border: 1px solid {{ r.border }}; border-radius: 7px; text-align: right;" />
+              <span style="width: 34px; font-size: 12px; color: #8B949C;">/ {{ mkMax }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ mkEmpty }}"><div style="padding: 24px 0; font-size: 13px; color: #6B757E;">You have no sections this term.</div></sc-if>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 14px;">
+          <button type="button" onClick="{{ mkSave }}" style="padding: 10px 18px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">{{ mkSaveLabel }}</button>
+          <button type="button" onClick="{{ mkSubmit }}" style="{{ mkSubmitStyle }}">{{ mkSubmitLabel }}</button>
+          <span style="font-size: 12px; color: #6B757E;">{{ mkNote }}</span>
+        </div>
+      </div>
+      <div style="margin-top: 16px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px;">
+          <div style="flex: 1; min-width: 220px;">
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Grade sheet release · {{ winTermG }}</div>
+            <div style="font-size: 15px; font-weight: 700; margin-top: 6px;">{{ gsStatus }}</div>
+            <div style="font-size: 12px; color: #6B757E; margin-top: 3px;">{{ gsNote }}</div>
+          </div>
+          <sc-if value="{{ gsCanSet }}">
+            <label style="font-size: 11px; font-weight: 700; color: #5A6570;">Release on<br /><input type="date" value="{{ gsDate }}" onChange="{{ gsSetDate }}" style="margin-top: 5px; padding: 9px 10px; border: 1px solid #DCD7CC; border-radius: 8px; font-size: 13px;" /></label>
+            <button type="button" onClick="{{ gsSave }}" style="padding: 10px 16px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">Schedule release</button>
+          </sc-if>
+        </div>
+        <sc-if value="{{ gsHasPending }}">
+          <div style="margin-top: 12px; font-size: 12px; color: #8A6114; line-height: 1.7;">Waiting for: {{ gsPending }}</div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ msShow }}">
+      <div style="margin-top: 16px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
+        <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px;">
+          <div>
+            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Class marksheets · your mentees</div>
+            <div style="font-size: 12.5px; color: #6B757E; margin-top: 5px;">{{ msNote }}</div>
+          </div>
+          <button type="button" onClick="{{ msGenerate }}" style="padding: 10px 18px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">{{ msLabel }}</button>
+        </div>
+        <div style="margin-top: 14px; border-top: 1px solid #F0EDE6; max-height: 420px; overflow-y: auto;">
+          <sc-for list="{{ msRows }}" as="r" hint-placeholder-count="6">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #F4F1EA;">
+              <span style="width: 90px; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #8B949C;">{{ r.roll }}</span>
+              <span style="flex: 1; font-size: 13px; font-weight: 600;">{{ r.name }}</span>
+              <span style="font-size: 12px; color: #6B757E;">{{ r.progress }}</span>
+              <span style="{{ r.style }}">{{ r.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -486,6 +501,18 @@
       <div style="margin-bottom: 16px;">
         <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Registration Requests</div>
         <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Seat approvals and prerequisite waivers for courses you coordinate.</div>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px; margin-bottom: 18px; padding: 18px 20px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px;">
+        <div style="flex: 1; min-width: 220px;">
+          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Registration window · {{ winTerm }}</div>
+          <div style="font-size: 15px; font-weight: 700; margin-top: 6px;">{{ winStatus }}</div>
+          <div style="font-size: 12px; color: #6B757E; margin-top: 3px;">{{ winNote }}</div>
+        </div>
+        <sc-if value="{{ isHod }}">
+          <label style="font-size: 11px; font-weight: 700; color: #5A6570;">Opens<br /><input type="date" value="{{ winOpensVal }}" onChange="{{ setWinOpens }}" style="margin-top: 5px; padding: 9px 10px; border: 1px solid #DCD7CC; border-radius: 8px; font-size: 13px;" /></label>
+          <label style="font-size: 11px; font-weight: 700; color: #5A6570;">Closes<br /><input type="date" value="{{ winClosesVal }}" onChange="{{ setWinCloses }}" style="margin-top: 5px; padding: 9px 10px; border: 1px solid #DCD7CC; border-radius: 8px; font-size: 13px;" /></label>
+          <button type="button" onClick="{{ saveWin }}" style="padding: 10px 16px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer;" style-hover="background: #0B8F86;">Save window</button>
+        </sc-if>
       </div>
       <div style="display: grid; gap: 12px;">
         <sc-for list="{{ requestCards }}" as="r" hint-placeholder-count="3">
@@ -547,16 +574,16 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960},&quot;page&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;f-dashboard&quot;,&quot;f-courses&quot;,&quot;f-attendance&quot;,&quot;f-lesson&quot;,&quot;f-timetable&quot;,&quot;f-students&quot;,&quot;f-exams&quot;,&quot;f-registration&quot;,&quot;f-notifications&quot;],&quot;default&quot;:&quot;f-dashboard&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960},&quot;page&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;f-dashboard&quot;,&quot;f-courses&quot;,&quot;f-attendance&quot;,&quot;f-lesson&quot;,&quot;f-timetable&quot;,&quot;f-exams&quot;,&quot;f-registration&quot;,&quot;f-notifications&quot;],&quot;default&quot;:&quot;f-dashboard&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
 // Everything comes from VIT.teaching: the signed-in teacher's sections this term (course, class list, attendance so far).
-const facIdOf = (S) => S.state.facultyId || 'F01';  // F01 = the offline demo teacher
+const facIdOf = (S) => S.state.facultyId;
 const REQ_TAG = { seat: 'Seat request', waiver: 'Prerequisite waiver', swap: 'Section swap' };
 const NO_FAC = { name: '', desig: '', dept: '', cabin: '' };
 
 class Component extends DCLogic {
   state = {
     markCode: null, markDate: new Date().toISOString().slice(0, 10), marks: null,
-    lpCode: null, search: '', mount: false, annTitle: '', annBody: '',
+    lpCode: null, search: '', mount: false, annTitle: '', annBody: '', mkSec: null, mkComp: 'CVV', mkVals: {}, mkBusy: false,
     w: typeof window !== 'undefined' ? window.innerWidth : 1440
   };
 
@@ -606,7 +633,7 @@ class Component extends DCLogic {
       return out;
     };
     const allMeetings = TAUGHT.reduce((acc, c) => acc.concat(myMeetings(c)), []);
-    const today = allMeetings.filter(m => m.day === dayName).sort((a, b) => S.toMin(a.start) - S.toMin(b.start));
+    const today = !S.isTeachingDay() ? [] : allMeetings.filter(m => m.day === dayName).sort((a, b) => S.toMin(a.start) - S.toMin(b.start));
     const submitted = S.state.facultySubmissions;
     const isSubmitted = (code) => submitted.some(s => s.code === code && s.date === now.toISOString().slice(0, 10));
     const pending = today.filter(m => S.toMin(m.end) <= now.getHours() * 60 + now.getMinutes() && !isSubmitted(m.code));
@@ -615,7 +642,7 @@ class Component extends DCLogic {
     const out = {
       termLine: S.term.parity + ' · Academic Year ' + S.term.ay.replace('-', '–'), examLine: S.term.exam ? S.term.exam + ' · ' + S.term.examRange : 'No examination scheduled',
       isDashboard: page === 'f-dashboard', isCourses: page === 'f-courses', isAttendance: page === 'f-attendance',
-      isLesson: page === 'f-lesson', isTimetable: page === 'f-timetable', isStudents: page === 'f-students',
+      isLesson: page === 'f-lesson', isTimetable: page === 'f-timetable',
       isExams: page === 'f-exams', isRequests: page === 'f-registration', isNotifications: page === 'f-notifications',
       attCols: w < 900 ? '1fr' : '232px minmax(0, 1fr)',
       courseCardCols: w < 720 ? '1fr' : w < 1180 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
@@ -691,7 +718,7 @@ class Component extends DCLogic {
           return {
             code: cc, name: co.name, students: co.students.length,
             meta: 'Section ' + co.section + ' · ' + myMeetings(cc).map(m => m.day).join(' · '),
-            go: () => this.setState({ markCode: cc, marks: null }),
+            go: () => this.setState({ markCode: cc, marks: null, markTime: null }),
             style: 'display: block; width: 100%; padding: 13px 15px; background: ' + (active ? '#131A1F' : '#FFFFFF') + '; color: ' + (active ? '#EDEAE3' : '#161D22') + '; border: 1px solid ' + (active ? '#131A1F' : '#E3DFD6') + '; border-radius: 11px; cursor: pointer; transition: all .2s;',
             codeColor: active ? '#6FE3D6' : '#8B949C',
             metaColor: active ? '#8FA0A4' : '#8B949C'
@@ -699,7 +726,8 @@ class Component extends DCLogic {
         }),
         markCode: code || '', markName: code ? cls.name : 'No sections this term', markDate: st.markDate,
         markSession: sess ? sess.day + ' ' + sess.start + ' – ' + sess.end + ' · ' + sess.room + ' · ' + sess.type : 'No scheduled session',
-        setDate: (e) => this.setState({ markDate: e.target.value }),
+        markTime: st.markTime || (sess ? sess.start.slice(0, 5) : '09:00'),
+        setDate: (e) => this.setState({ markDate: e.target.value }), setTime: (e) => this.setState({ markTime: e.target.value }),
         markAll: () => { const m = {}; cls.students.forEach(r => { m[r.prn] = 'Present'; }); this.setState({ marks: m }); },
         countPresent: present, countAbsent: absent, countLate: late,
         sessionPct: total ? Math.round((present + late) / total * 100) : 0,
@@ -724,10 +752,16 @@ class Component extends DCLogic {
         submit: () => {
           const normalised = {};
           Object.keys(marks).forEach(prn => { normalised[prn] = marks[prn] === 'Late' ? 'Present' : marks[prn]; });
-          if (!code || !total) return;
-          S.submitAttendance(code, st.markDate, normalised, FAC_ID, sess && sess.start, sess && sess.type);
-          S.toast({ title: 'Attendance submitted · ' + code, body: present + late + ' of ' + total + ' present · class average now ' + avg(cls.students) + '%', kind: 'ok' });
-          this.setState({ marks: null });
+          if (!code || !total || st.attBusy) return;
+          const time = st.markTime || (sess ? sess.start.slice(0, 5) : '09:00');
+          if (!st.markDate || !time) { S.toast({ title: 'Pick a date and time', body: 'Both are needed to record a session.', kind: 'warn' }); return; }
+          if (new Date(st.markDate + 'T12:00:00').getDay() === 0) { S.toast({ title: 'Sunday', body: 'Attendance cannot be marked for a Sunday.', kind: 'warn' }); return; }
+          if (time < '08:00' || time > '18:00') { S.toast({ title: 'Time outside college hours', body: 'Attendance can only be marked for sessions between 08:00 and 18:00.', kind: 'warn' }); return; }
+          this.setState({ attBusy: true });
+          S.submitAttendance(code, st.markDate, normalised, FAC_ID, time, sess && sess.type).then(() => {
+            this.setState({ marks: null, attBusy: false });
+            S.toast({ title: 'Attendance submitted · ' + code, body: present + late + ' of ' + total + ' present · ' + st.markDate + ' ' + time + ' · class average now ' + avg(cls.students) + '%', kind: 'ok' });
+          }, e => { this.setState({ attBusy: false }); S.toast({ title: 'Attendance not saved', body: e.message, kind: 'err' }); });
         }
       });
     }
@@ -782,29 +816,10 @@ class Component extends DCLogic {
             att, attColor: att < 75 ? '#B4801C' : '#146B43',
             attBar: 'height: 100%; width: ' + (mount ? att : 0) + '%; background: ' + (att < 75 ? '#B4801C' : '#1C8F5A') + '; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1) .15s;',
             lp, lpBar: 'height: 100%; width: ' + (mount ? lp : 0) + '%; background: #0B8F86; border-radius: 3px; transition: width .9s cubic-bezier(.2,.8,.2,1) .25s;',
-            goMark: () => { if (taught) { this.setState({ markCode: cc, marks: null }); nav('f-attendance'); } else S.toast({ title: cc + ' is a Semester V offering', body: 'Attendance opens when the term begins in January 2027.', kind: 'info' }); },
-            goPlan: () => { if (taught) { this.setState({ lpCode: cc }); nav('f-lesson'); } else S.toast({ title: 'Lesson plan not published', body: cc + ' syllabus is approved but the plan is drafted closer to the term.', kind: 'info' }); }
+            goMark: () => { if (taught) { this.setState({ markCode: cc, marks: null }); nav('f-attendance'); } else S.toast({ title: cc + ' is not in your sections this term', body: 'Attendance can be marked only for sections you teach this term.', kind: 'info' }); },
+            goPlan: () => { if (taught) { this.setState({ lpCode: cc }); nav('f-lesson'); } else S.toast({ title: cc + ' is not in your sections this term', body: 'Lesson plans can be updated only for sections you teach this term.', kind: 'info' }); }
           };
         }).filter(Boolean)
-      });
-    }
-
-    if (page === 'f-students') {
-      const q = st.search.trim().toLowerCase();
-      const list = studentList.filter(r => !q || r.name.toLowerCase().indexOf(q) >= 0 || r.prn.indexOf(q) >= 0 || (r.roll || '').toLowerCase().indexOf(q) >= 0);
-      Object.assign(out, {
-        rosterCount: studentList.length, search: st.search,
-        setSearch: (e) => this.setState({ search: e.target.value }),
-        noStudents: list.length === 0,
-        students: list.map((r, i) => {
-          const pct = r.total ? Math.round(r.attended / r.total * 100) : 0;
-          return {
-            roll: r.roll, name: r.name, prn: r.prn, pct,
-            color: pct < 75 ? '#B4801C' : '#146B43',
-            style: 'border-bottom: 1px solid #F4F1EA; background: ' + (i % 2 ? '#FCFBF8' : '#FFFFFF') + ';',
-            barStyle: 'display: block; height: 100%; width: ' + (mount ? pct : 0) + '%; background: ' + (pct < 75 ? '#B4801C' : '#1C8F5A') + '; transition: width .8s cubic-bezier(.2,.8,.2,1);'
-          };
-        })
       });
     }
 
@@ -829,6 +844,36 @@ class Component extends DCLogic {
     }
 
     if (page === 'f-exams') {
+      if (st.ms === undefined && !this.msLoading) { this.msLoading = true; S.classMarksheets(false).then(ms => { this.msLoading = false; this.setState({ ms }); }, () => { this.msLoading = false; this.setState({ ms: [] }); }); }
+      const ms = st.ms || [], msReady = ms.filter(m => m.ready).length, msPub = ms.filter(m => m.published).length;
+      const pill = (bg, fg) => 'font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 4px 10px; border-radius: 20px; white-space: nowrap; background: ' + bg + '; color: ' + fg + ';';
+      if (st.gs === undefined && !this.gsLoading) { this.gsLoading = true; S.gradesStatus().then(gs => { this.gsLoading = false; this.setState({ gs }); }, () => { this.gsLoading = false; this.setState({ gs: null }); }); }
+      const gs = st.gs || { total: 0, submitted: 0, pending: [], release: S.gradeRelease.date }, allIn = gs.total > 0 && gs.submitted === gs.total;
+      const gDate = st.gsDate != null ? st.gsDate : (gs.release || '');
+      Object.assign(out, {
+        winTermG: S.term.name,
+        gsStatus: S.gradeRelease.released ? 'Released on ' + S.fmtDate(S.gradeRelease.date) : gs.release ? 'Scheduled for ' + S.fmtDate(gs.release) : gs.submitted + ' of ' + gs.total + ' sections have submitted final marks',
+        gsNote: !S.state.hodOf ? 'A Head of Department schedules the release once every section has submitted.' : allIn ? 'Every section has submitted. Pick the date students will see their grades.' : 'You can schedule the release once every section has submitted final marks.',
+        gsCanSet: !!S.state.hodOf && allIn && !S.gradeRelease.released,
+        gsDate: gDate, gsSetDate: (e) => this.setState({ gsDate: e.target.value }),
+        gsHasPending: !allIn && gs.pending.length > 0,
+        gsPending: gs.pending.join(' · ') + (gs.total - gs.submitted > gs.pending.length ? ' · and ' + (gs.total - gs.submitted - gs.pending.length) + ' more' : ''),
+        gsSave: () => S.setGradesRelease(gDate).then(() => { this.setState({ gsDate: null, gs: undefined }); S.toast({ title: 'Grade sheet release scheduled', body: S.fmtDate(gDate) + '. Students have been notified.', kind: 'ok' }); },
+          e => S.toast({ title: 'Not scheduled', body: e.message, kind: 'err' })),
+        msShow: ms.length > 0,
+        msNote: msPub + ' of ' + ms.length + ' published · ' + msReady + ' have every mark entered. Marksheets appear in the student\'s Certificates.',
+        msLabel: st.msBusy ? 'Generating…' : 'Generate marksheets',
+        msRows: ms.map(m => ({ roll: m.roll, name: m.name, progress: m.entered + ' / ' + m.needed + ' marks',
+          status: m.published ? 'Published' : m.ready ? 'Ready' : 'Waiting for marks',
+          style: m.published ? pill('#E6F2EA', '#146B43') : m.ready ? pill('#E4F2F0', '#0B6F68') : pill('#F8EFDC', '#8A6114') })),
+        msGenerate: () => {
+          if (st.msBusy) return;
+          if (!msReady) { S.toast({ title: 'No marksheet is ready', body: 'A marksheet is generated once every faculty member has entered all marks for that student.', kind: 'warn' }); return; }
+          this.setState({ msBusy: true });
+          S.classMarksheets(true).then(ms2 => { this.setState({ ms: ms2, msBusy: false }); S.toast({ title: 'Marksheets generated', body: ms2.filter(m => m.published).length + ' students can now see their marksheet under Certificates.', kind: 'ok' }); },
+            e => { this.setState({ msBusy: false }); S.toast({ title: 'Marksheets not generated', body: e.message, kind: 'err' }); });
+        }
+      });
       Object.assign(out, {
         examRows: S.hallTicket.papers.map(p => {
           const mine = TAUGHT.indexOf(p.code) >= 0;
@@ -840,18 +885,62 @@ class Component extends DCLogic {
             roleStyle: 'font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; white-space: nowrap; background: ' + (mine ? '#E4F2F0' : '#EFEDE6') + '; color: ' + (mine ? '#0B6F68' : '#5A6570') + ';'
           };
         }),
-        marksRows: classes.map(k => ({ name: k.code + ' ' + k.name + ' — End-semester marks', done: 0, total: k.students.length || 1 })).map(m => ({
+        marksRows: [].concat(...classes.map(k => S.COMPONENTS.map(([cid, clabel]) => ({ name: k.code + ' ' + (k.section ? '(' + k.section + ') ' : '') + '— ' + clabel, done: k.students.filter(x => S.marksOf(x.enrollId)[cid] != null).length, total: k.students.length || 1 })))).map(m => ({
           name: m.name,
           label: m.done + ' / ' + m.total + ' entered',
           color: m.done === m.total ? '#146B43' : '#8A6114',
           barStyle: 'height: 100%; width: ' + (mount ? m.done / m.total * 100 : 0) + '%; background: ' + (m.done === m.total ? '#1C8F5A' : '#B4801C') + '; border-radius: 3px; transition: width .8s cubic-bezier(.2,.8,.2,1);'
-        }))
+        })),
+        ...(() => {
+          const cls = classes.find(k => k.sectionId === st.mkSec) || classes[0], comp = S.COMPONENTS.find(c => c[0] === st.mkComp) || S.COMPONENTS[0], max = comp[2];
+          const valOf = (x) => (x.prn in st.mkVals) ? st.mkVals[x.prn] : (S.marksOf(x.enrollId)[comp[0]] != null ? String(S.marksOf(x.enrollId)[comp[0]]) : '');
+          const bad = (v) => v !== '' && !(/^\d+(\.[05])?$/.test(v) && +v <= max);
+          const locked = !!cls && S.isSubmitted(cls.sectionId);
+          const missing = cls ? cls.students.length * S.COMPONENTS.length - cls.students.reduce((n, x) => n + S.COMPONENTS.filter(c => S.marksOf(x.enrollId)[c[0]] != null).length, 0) : 0;
+          const changed = Object.keys(st.mkVals).length;
+          return {
+            mkClasses: classes.map(k => { const on = cls && k.sectionId === cls.sectionId; return { label: k.code + (k.section ? ' · ' + k.section : ''), go: () => this.setState({ mkSec: k.sectionId, mkVals: {} }), style: 'padding: 7px 13px; border-radius: 30px; font-size: 12.5px; cursor: pointer; border: 1px solid ' + (on ? '#131A1F' : '#E3DFD6') + '; background: ' + (on ? '#131A1F' : '#FFFFFF') + '; color: ' + (on ? '#EDEAE3' : '#4A555E') + '; font-weight: ' + (on ? 700 : 500) + ';' }; }),
+            mkComps: S.COMPONENTS.map(([cid, clabel, out]) => { const on = cid === comp[0]; return { label: clabel + ' (/' + out + ')', go: () => this.setState({ mkComp: cid, mkVals: {} }), style: 'padding: 7px 13px; border-radius: 30px; font-size: 12.5px; cursor: pointer; border: 1px solid ' + (on ? '#131A1F' : '#E3DFD6') + '; background: ' + (on ? '#131A1F' : '#FFFFFF') + '; color: ' + (on ? '#EDEAE3' : '#4A555E') + '; font-weight: ' + (on ? 700 : 500) + ';' }; }),
+            mkMax: max, mkEmpty: !cls, mkLocked: locked,
+            mkSubmitLabel: locked ? 'Final marks submitted' : st.mkSubBusy ? 'Submitting…' : 'Submit final marks',
+            mkSubmitStyle: 'padding: 10px 18px; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: ' + (locked ? 'default' : 'pointer') + '; background: ' + (locked ? '#E6F2EA' : '#FFFFFF') + '; color: ' + (locked ? '#146B43' : '#131A1F') + '; border: 1px solid ' + (locked ? '#CBE4D6' : '#131A1F') + ';',
+            mkSubmit: () => {
+              if (!cls || locked || st.mkSubBusy) return;
+              if (changed) { S.toast({ title: 'Save your changes first', body: 'You have unsaved marks.', kind: 'warn' }); return; }
+              if (missing) { S.toast({ title: missing + ' marks still missing', body: 'Enter all four components for every student before submitting.', kind: 'warn' }); return; }
+              if (!window.confirm('Submit final marks for ' + cls.code + '? You will not be able to change them afterwards.')) return;
+              this.setState({ mkSubBusy: true });
+              S.submitMarks(cls.sectionId).then(() => { this.setState({ mkSubBusy: false, gs: undefined }); S.toast({ title: 'Final marks submitted', body: cls.code + ' marks are now locked.', kind: 'ok' }); },
+                e => { this.setState({ mkSubBusy: false }); S.toast({ title: 'Not submitted', body: e.message, kind: 'err' }); });
+            },
+            mkRows: cls ? cls.students.map(x => { const v = valOf(x); return { roll: x.roll, name: x.name, val: v, border: bad(v) ? '#B8483A' : '#DCD7CC',
+              set: (e) => { const val = e.target.value.trim(); this.setState(s2 => ({ mkVals: Object.assign({}, s2.mkVals, { [x.prn]: val }) })); } }; }) : [],
+            mkSaveLabel: st.mkBusy ? 'Saving…' : 'Save marks',
+            mkNote: locked ? 'Marks for this section are submitted and locked.' : changed ? changed + ' unsaved change' + (changed === 1 ? '' : 's') : missing ? missing + ' marks still to enter before you can submit. Half marks (e.g. 9.5) are allowed.' : 'All marks entered — submit final marks to lock them.',
+            mkSave: () => {
+              if (!cls || st.mkBusy || !changed || locked) return;
+              if (Object.values(st.mkVals).some(bad)) { S.toast({ title: 'Check the highlighted marks', body: 'Marks must be whole or half marks from 0 to ' + max + '.', kind: 'warn' }); return; }
+              this.setState({ mkBusy: true });
+              S.saveMarks(cls.sectionId, comp[0], st.mkVals).then(r => { this.setState({ mkBusy: false, mkVals: {} }); S.toast({ title: 'Marks saved', body: cls.code + ' · ' + comp[1] + ' · ' + (r && r.saved != null ? r.saved : changed) + ' saved', kind: 'ok' }); },
+                e => { this.setState({ mkBusy: false }); S.toast({ title: 'Marks not saved', body: e.message, kind: 'err' }); });
+            }
+          };
+        })()
       });
     }
 
     if (page === 'f-registration') {
       const reqs = pendingReqs.map(r => ({ id: r.id, student: r.student, prn: r.prn, tag: REQ_TAG[r.kind] || r.kind, reason: r.code + ' · ' + S.courseName(r.code) + (r.reason ? ' — ' + r.reason : '') }));
+      const win = S.registrationWindow, fmt = (d) => d ? S.fmtDate(d) : '—';
+      const wOpens = st.winOpens != null ? st.winOpens : (win.opens || ''), wCloses = st.winCloses != null ? st.winCloses : (win.closes || '');
       Object.assign(out, {
+        isHod: !!S.state.hodOf, winTerm: S.term.name,
+        winStatus: win.open ? 'Open · ' + fmt(win.opens) + ' – ' + fmt(win.closes) : win.opens ? 'Closed · was ' + fmt(win.opens) + ' – ' + fmt(win.closes) : 'Not scheduled',
+        winNote: S.state.hodOf ? 'As Head of Department you can set the add / drop window for every student this term.' : 'Set by the Heads of Department.',
+        winOpensVal: wOpens, winClosesVal: wCloses,
+        setWinOpens: (e) => this.setState({ winOpens: e.target.value }), setWinCloses: (e) => this.setState({ winCloses: e.target.value }),
+        saveWin: () => S.setRegWindow(wOpens, wCloses).then(() => { this.setState({ winOpens: null, winCloses: null }); S.toast({ title: 'Registration window saved', body: fmt(wOpens) + ' – ' + fmt(wCloses) + '. Students have been notified.', kind: 'ok' }); },
+          (e) => S.toast({ title: 'Window not saved', body: e.message, kind: 'err' })),
         noRequests: reqs.length === 0,
         requestCards: reqs.map(r => ({
           student: r.student, prn: r.prn, tag: r.tag, reason: r.reason,

@@ -24,7 +24,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def translate_path(self, path):
         rel = super().translate_path(path)[len(os.getcwd()):].lstrip("\\/")
         rel = rel[4:] if rel.replace("\\", "/").startswith("app/") else rel
-        p = os.path.normpath(os.path.join(APP, rel or "Portal.dc.html"))
+        p = os.path.normpath(os.path.join(APP, "Portal.dc.html" if rel in ("", "faculty", "admin") else rel))  # "/" = student sign-in, "/faculty" = faculty sign-in
         return p if p.startswith(APP) else os.path.join(APP, "__missing__")
 
     def end_headers(self):
@@ -53,6 +53,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if not self.path.startswith("/api/"): return super().do_GET()
         try:
+            if self.path.startswith("/api/stats"):  # public: headline counts for the sign-in page
+                return self.reply(200, {k: M.db[k].estimated_document_count() for k in ("student", "faculty", "department")})
             if not self.path.startswith("/api/activity"): raise M.DbError("not found", "404", 404)
             ctx = self.admin_ctx()
             limit = min(int((re.search(r"limit=(\d+)", self.path) or [0, 200])[1]), 1000)
@@ -70,7 +72,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             M.ensure_feedback_form()  # a new month gets its feedback form on the first request
             if path == "/api/auth/login":
-                b = self.body(10_000); return self.reply(200, {"session": M.login(b.get("email"), b.get("password"))})
+                b = self.body(10_000); return self.reply(200, {"session": M.login(b.get("email"), b.get("password"), b.get("role"))})
             if path == "/api/auth/logout":
                 M.logout(self.token()); return self.reply(200, {"ok": True})
             if path == "/api/activity":
@@ -102,5 +104,6 @@ class Server(http.server.ThreadingHTTPServer):
     request_queue_size = 128  # the portal fires ~20 requests at once on sign-in; the default backlog (5) refuses some on Windows
     daemon_threads = True
 
-print("Portal on http://localhost:5500/")
-Server(("", 5500), Handler).serve_forever()
+PORT = int(os.environ.get("PORT", 5500))  # hosts like Render set PORT
+print(f"Portal on http://localhost:{PORT}/")
+Server(("", PORT), Handler).serve_forever()

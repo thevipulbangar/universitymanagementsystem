@@ -177,113 +177,10 @@
         <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Allotment for Academic Year {{ ayText }}</div>
       </div>
 
-      <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
-        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 18px 22px; background: #FAF8F4; border-bottom: 1px solid #F0EDE6;">
-          <span style="display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: #E6F2EA; border: 1px solid #CBE4D6; border-radius: 30px; font-size: 12px; font-weight: 700; color: #146B43;">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background: #1C8F5A;"></span>{{ hostelStatus }}
-          </span>
-          <span style="font-size: 12.5px; color: #6B757E;">Checked in {{ checkIn }}</span>
-        </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-          <sc-for list="{{ hostelFields }}" as="f" hint-placeholder-count="6">
-            <div style="padding: 17px 22px; border-right: 1px solid #F4F1EA; border-bottom: 1px solid #F4F1EA;">
-              <div style="font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #8B949C;">{{ f.label }}</div>
-              <div style="font-size: 14.5px; font-weight: 600; margin-top: 6px; letter-spacing: -.005em;">{{ f.value }}</div>
-            </div>
-          </sc-for>
-        </div>
-        <div style="padding: 18px 22px;">
-          <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Help &amp; contact</div>
-          <div style="display: grid; gap: 8px; margin-top: 12px;">
-            <sc-for list="{{ hostelContacts }}" as="c" hint-placeholder-count="3">
-              <div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; font-size: 13px;">
-                <span style="min-width: 132px; color: #8B949C; font-size: 12px;">{{ c.label }}</span>
-                <span style="font-weight: 600;">{{ c.value }}</span>
-              </div>
-            </sc-for>
-          </div>
-        </div>
-      </div>
-    </div>
-  </sc-if>
-
-  <sc-if value="{{ isPPO }}">
-    <div key="ppo">
-      <div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 14px; margin-bottom: 18px;">
-        <div>
-          <div style="font-family: Newsreader, Georgia, serif; font-size: clamp(24px, 2.6vw, 31px); font-weight: 400; letter-spacing: -.01em;">Pre-Placement Offers</div>
-          <div style="font-size: 13px; color: #6B757E; margin-top: 5px;">Training &amp; Placement Cell · {{ ppoCycle }}</div>
-        </div>
-      </div>
-
-      <div style="display: grid; grid-template-columns: {{ ppoCols }}; gap: 16px; align-items: start;">
-        <div style="display: flex; flex-direction: column; gap: 16px; min-width: 0;">
-          <div style="background: #131A1F; border-radius: 14px; padding: 22px 24px; color: #EDEAE3; position: relative; overflow: hidden;">
-            <div style="position: absolute; inset: 0; background: radial-gradient(70% 100% at 88% 0%, rgba(18,179,166,.2), transparent 70%);"></div>
-            <div style="position: relative;">
-              <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #7E8C90;">PPO Status</div>
-              <div style="font-family: Newsreader, Georgia, serif; font-size: 26px; font-weight: 400; margin-top: 9px; letter-spacing: -.01em;">{{ ppoStatus }}</div>
-              <div style="font-size: 12.5px; color: #A9B6B8; line-height: 1.65; margin-top: 10px; max-width: 56ch;">Your academic record meets the standing thresholds. Company-specific criteria are applied when the cycle opens.</div>
-            </div>
-          </div>
-
-          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
-            <div style="padding: 15px 22px; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Eligibility</div>
-            <sc-for list="{{ eligibility }}" as="e" hint-placeholder-count="5">
-              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 13px 22px; border-bottom: 1px solid #F4F1EA;">
-                <span style="{{ e.markStyle }}">{{ e.mark }}</span>
-                <span style="flex: 1; min-width: 140px; font-size: 13.5px; font-weight: 600;">{{ e.label }}</span>
-                <span style="font-size: 12px; color: {{ e.detailColor }};">{{ e.detail }}</span>
-              </div>
-            </sc-for>
-          </div>
-
-          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; overflow: hidden;">
-            <div style="padding: 15px 22px; border-bottom: 1px solid #F0EDE6; font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Applications</div>
-            <sc-for list="{{ ppoApps }}" as="a" hint-placeholder-count="1">
-              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 13px 22px; border-bottom: 1px solid #F4F1EA;">
-                <span style="flex: 1; min-width: 140px;"><span style="display: block; font-size: 13.5px; font-weight: 600;">{{ a.company }}</span><span style="display: block; font-size: 12px; color: #6B757E; margin-top: 2px;">{{ a.role }} · {{ a.date }}</span></span>
-                <span style="padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; background: #E6F2EA; color: #146B43;">{{ a.status }}</span>
-              </div>
-            </sc-for>
-            <sc-if value="{{ noApps }}">
-            <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 11px; padding: 34px 22px;">
-              <div style="width: 34px; height: 34px; border: 1.5px dashed #D6D0C4; border-radius: 9px;"></div>
-              <div style="font-size: 14.5px; font-weight: 700;">No applications yet</div>
-              <p style="margin: 0; max-width: 54ch; font-size: 12.5px; color: #6B757E; line-height: 1.6;">{{ ppoHint }}</p>
-              <sc-if value="{{ canRegisterPpo }}"><button type="button" onClick="{{ registerPpo }}" style="padding: 10px 15px; background: #131A1F; color: #FFFFFF; border: none; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer;">Register for the PPO cycle</button></sc-if>
-            </div>
-            </sc-if>
-          </div>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 14px;">
-          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
-            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Important dates</div>
-            <div style="position: relative; padding-left: 24px; margin-top: 14px;">
-              <div style="position: absolute; left: 5px; top: 6px; bottom: 8px; width: 1.5px; background: #EAE6DE;"></div>
-              <sc-for list="{{ ppoDates }}" as="d" hint-placeholder-count="4">
-                <div style="position: relative; margin-bottom: 15px;">
-                  <div style="{{ d.dotStyle }}"></div>
-                  <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #0B8F86;">{{ d.date }}</div>
-                  <div style="font-size: 13px; font-weight: 600; margin-top: 3px; line-height: 1.4;">{{ d.title }}</div>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-
-          <div style="background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 14px; padding: 20px 22px;">
-            <div style="font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #8B949C;">Documents</div>
-            <div style="display: grid; gap: 8px; margin-top: 13px;">
-              <sc-for list="{{ ppoDocs }}" as="d" hint-placeholder-count="4">
-                <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #FBFAF6; border-radius: 8px;">
-                  <span style="flex: 1; min-width: 0; font-size: 12.5px; font-weight: 600; line-height: 1.4;">{{ d.name }}</span>
-                  <span style="{{ d.pillStyle }}">{{ d.status }}</span>
-                </div>
-              </sc-for>
-            </div>
-          </div>
-        </div>
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 62px 22px; background: #FFFFFF; border: 1px dashed #D6D0C4; border-radius: 14px; text-align: center;">
+        <div style="width: 38px; height: 38px; border: 1.5px dashed #D6D0C4; border-radius: 10px;"></div>
+        <div style="font-size: 15.5px; font-weight: 700;">Coming soon…</div>
+        <p style="margin: 0; max-width: 46ch; font-size: 13px; color: #6B757E; line-height: 1.6;">Hostel allotment, room details and warden contacts will be available here shortly.</p>
       </div>
     </div>
   </sc-if>
@@ -375,7 +272,7 @@
 </div>
 
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:860},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;accounts&quot;,&quot;certificates&quot;,&quot;hostel&quot;,&quot;ppo&quot;,&quot;profile&quot;],&quot;default&quot;:&quot;accounts&quot;,&quot;tsType&quot;:&quot;'accounts' | 'certificates' | 'hostel' | 'ppo' | 'profile'&quot;},&quot;sub&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;receipt&quot;,&quot;payment&quot;],&quot;default&quot;:&quot;receipt&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1360,&quot;height&quot;:860},&quot;section&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;accounts&quot;,&quot;certificates&quot;,&quot;hostel&quot;,&quot;profile&quot;],&quot;default&quot;:&quot;accounts&quot;,&quot;tsType&quot;:&quot;'accounts' | 'certificates' | 'hostel' | 'profile'&quot;},&quot;sub&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;receipt&quot;,&quot;payment&quot;],&quot;default&quot;:&quot;receipt&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
 class Component extends DCLogic {
   state = { mount: false, certQuery: '', certYear: 'all', certHover: null, doc: null, w: typeof window !== 'undefined' ? window.innerWidth : 1440 };
 
@@ -397,11 +294,11 @@ class Component extends DCLogic {
 
     const out = {
       isAccounts: section === 'accounts', isCertificates: section === 'certificates',
-      isHostel: section === 'hostel', isPPO: section === 'ppo', isProfile: section === 'profile',
+      isHostel: section === 'hostel', isProfile: section === 'profile',
       prn: stu.prn, ayText: S.term.ay.replace('-', '–'), programme: stu.programme,
       certYears: Array.from(new Set(S.certificates.map(c => c.date.slice(0, 4)))).sort().reverse().map(v => ({ v })),
       docOpen: !!st.doc, closeDoc: () => this.setState({ doc: null }), stop: (e) => e.stopPropagation(),
-      downloadDoc: () => { const d = st.doc; if (d && d.kind === 'receipt') S.saveDoc('receipt-' + d.head.receipt, 'Fee receipt — ' + d.head.head, [['Receipt', d.head.receipt], ['Head', d.head.head], ['Amount', S.fmtINR(d.head.amount)], ['Paid on', d.head.date], ['Mode', d.head.mode]]); else if (d && d.cert) S.saveDoc('certificate-' + d.cert.course, 'Certificate — ' + d.cert.title, [['Title', d.cert.title], ['Issuer', d.cert.issuer], ['Reference', d.cert.course], ['Issued', d.cert.date], ['Hours', d.cert.hours], ['Grade', d.cert.grade]]); S.toast({ title: 'Document downloaded', body: 'Open the file and print to save it as PDF.', kind: 'ok' }); this.setState({ doc: null }); }
+      downloadDoc: () => { const d = st.doc; if (d && d.kind === 'receipt') S.saveDoc('receipt-' + d.head.receipt, 'Fee receipt — ' + d.head.head, [['Receipt', d.head.receipt], ['Head', d.head.head], ['Amount', S.fmtINR(d.head.amount)], ['Paid on', d.head.date], ['Mode', d.head.mode]]); else if (d && d.cert && /^MS-/.test(d.cert.course || '')) S.saveDoc('marksheet-' + S.student.prn, d.cert.title + ' — ' + S.student.name + ' (' + S.student.prn + ')', S.myMarks().map(c => [c.code + ' ' + c.name, 'CVV ' + (c.marks.CVV != null ? c.marks.CVV : '—') + '/12.5', 'MSE ' + (c.marks.MSE != null ? c.marks.MSE : '—') + '/25', 'ESE ' + (c.marks.ESE != null ? c.marks.ESE : '—') + '/50', 'Assign. ' + (c.marks.ASSIGN != null ? c.marks.ASSIGN : '—') + '/12.5', 'Total ' + c.total + '/' + c.outOf + (c.grade ? ' (' + c.grade + ')' : '')]).concat([['Grand total', d.cert.grade], ['Issued by', d.cert.issuer]])); else if (d && d.cert) S.saveDoc('certificate-' + d.cert.course, 'Certificate — ' + d.cert.title, [['Title', d.cert.title], ['Issuer', d.cert.issuer], ['Reference', d.cert.course], ['Issued', d.cert.date], ['Hours', d.cert.hours], ['Grade', d.cert.grade]]); S.toast({ title: 'Document downloaded', body: 'Open the file and print to save it as PDF.', kind: 'ok' }); this.setState({ doc: null }); }
     };
 
     if (section === 'accounts') {
@@ -460,7 +357,7 @@ class Component extends DCLogic {
         certificates: list.map(c => {
           const hov = st.certHover === c.id;
           return {
-            title: c.title, issuer: c.issuer, course: c.course,
+            title: c.title, issuer: c.issuer, course: /^MS-/.test(c.course || '') ? 'Marks ' + c.grade : c.course,
             date: new Date(c.date).toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }),
             enter: () => this.setState({ certHover: c.id }), leave: () => this.setState({ certHover: null }),
             cardStyle: 'display: block; width: 100%; padding: 0; background: #FFFFFF; border: 1px solid ' + (hov ? '#0B8F86' : '#E3DFD6') + '; border-radius: 13px; overflow: hidden; cursor: pointer; text-align: left; transform: translateY(' + (hov ? '-3px' : '0') + '); box-shadow: ' + (hov ? '0 14px 32px rgba(20,26,31,.12)' : '0 1px 2px rgba(20,26,31,.04)') + '; transition: all .22s cubic-bezier(.2,.8,.2,1);',
@@ -475,47 +372,7 @@ class Component extends DCLogic {
       });
     }
 
-    if (section === 'hostel') {
-      const h = stu.hostel;
-      Object.assign(out, {
-        hostelStatus: h.allotted ? 'Allotted' : 'Not allotted',
-        checkIn: h.checkIn,
-        hostelFields: [
-          { label: 'Hostel', value: h.name }, { label: 'Block', value: h.block },
-          { label: 'Room number', value: h.room }, { label: 'Floor', value: h.floor },
-          { label: 'Occupancy', value: h.occupancy }, { label: 'Mess', value: h.mess }
-        ],
-        hostelContacts: [
-          { label: 'Warden', value: h.warden }, { label: 'Warden office', value: h.wardenPhone },
-          { label: 'Hostel office', value: 'Block A, Ground Floor · 09:00 – 17:00' },
-          { label: 'Maintenance requests', value: 'hostel.help@vit.edu' }
-        ]
-      });
-    }
 
-    if (section === 'ppo') {
-      const p = S.ppo;
-      Object.assign(out, {
-        ppoCols: w < 1000 ? '1fr' : 'minmax(0, 1.45fr) minmax(0, 1fr)',
-        ppoStatus: p.status, ppoCycle: p.cycle, ppoApps: p.applications, noApps: p.applications.length === 0,
-        canRegisterPpo: !!p.eligible && p.applications.length === 0, registerPpo: () => S.ppoRegister(),
-        ppoHint: p.eligible ? 'You meet the criteria so far. Register to be considered in the PPO cycle.' : 'Complete the eligibility criteria on the right to register for the PPO cycle.',
-        eligibility: p.eligibility.map(e => ({
-          label: e.label, detail: e.detail,
-          mark: e.ok === true ? '✓' : e.ok === false ? '✕' : '◔',
-          detailColor: e.ok === true ? '#146B43' : e.ok === false ? '#96382C' : '#8A6114',
-          markStyle: 'display: grid; place-items: center; min-width: 19px; height: 19px; border-radius: 50%; font-size: 10px; font-weight: 700; color: #FFFFFF; background: ' + (e.ok === true ? '#1C8F5A' : e.ok === false ? '#B8483A' : '#B4801C') + ';'
-        })),
-        ppoDates: p.dates.map(d => ({
-          date: d.date, title: d.title,
-          dotStyle: 'position: absolute; left: -24px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: #FFFFFF; border: 2.5px solid ' + (d.kind === 'exam' ? '#B4801C' : d.kind === 'registration' ? '#1C8F5A' : '#0B8F86') + ';'
-        })),
-        ppoDocs: p.documents.map(d => ({
-          name: d.name, status: d.status,
-          pillStyle: 'padding: 3px 9px; border-radius: 20px; font-size: 10.5px; font-weight: 700; white-space: nowrap; background: ' + (d.status === 'Verified' ? '#E6F2EA' : '#F8EFDC') + '; color: ' + (d.status === 'Verified' ? '#146B43' : '#8A6114') + ';'
-        }))
-      });
-    }
 
     if (section === 'profile') {
       const g = S.gpa();
@@ -557,6 +414,20 @@ class Component extends DCLogic {
             { label: 'Date of payment', value: d.head.date }
           ],
           docFooter: 'This is a computer-generated receipt. Fees once paid are not refundable except as provided in the institute refund policy.'
+        });
+      } else if (/^MS-/.test(d.cert.course || '')) {
+        const ms = S.myMarks(), dash = (v) => v == null ? '—' : v;
+        Object.assign(out, {
+          docKicker: 'Mark Sheet', docTitle: d.cert.title,
+          docHeading: 'Statement of Marks · ' + S.term.name,
+          docRows: [
+            { label: 'Student name', value: stu.name },
+            { label: 'PRN', value: stu.prn },
+            { label: 'Programme', value: stu.programme + ' · Semester ' + stu.semRoman }
+          ].concat(ms.map(c => ({ label: c.code + ' · ' + c.name, value: 'CVV ' + dash(c.marks.CVV) + '/12.5 · MSE ' + dash(c.marks.MSE) + '/25 · ESE ' + dash(c.marks.ESE) + '/50 · Assign. ' + dash(c.marks.ASSIGN) + '/12.5 · Total ' + c.total + '/' + c.outOf + (c.grade ? ' · Grade ' + c.grade : '') })))
+            .concat([{ label: 'Grand total', value: ms.reduce((n, c) => n + c.total, 0) + ' / ' + ms.reduce((n, c) => n + c.outOf, 0) },
+                     { label: 'Issued by', value: d.cert.issuer + ' · ' + new Date(d.cert.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) }]),
+          docFooter: 'Generated by the class teacher from marks entered by each course faculty member.'
         });
       } else {
         Object.assign(out, {

@@ -7,8 +7,8 @@
   'use strict';
 
   // ---------- grades ----------
-  const GP = { O: 10, 'A+': 9, A: 8, 'B+': 7, B: 6, C: 5, P: 4, F: 0 };
-  const RANK = ['F', 'P', 'C', 'B', 'B+', 'A', 'A+', 'O'];
+  const GP = { 'A+': 10, A: 9, 'B+': 8, B: 7, C: 6, D: 5, P: 4, F: 0 };
+  const RANK = ['F', 'P', 'D', 'C', 'B', 'B+', 'A', 'A+'];
   const gradeMeets = (have, need) => RANK.indexOf(have) >= RANK.indexOf(need);
 
   // ---------- deterministic prng ----------
@@ -97,9 +97,9 @@
 
   // ---------- transcript ----------
   const TRANSCRIPT = [
-    { sem: 1, term: 'Odd 2024-25', courses: [['CS101', 'A+', 88], ['MA101', 'A', 79], ['PH101', 'B+', 71], ['HS101', 'O', 93], ['CS102', 'A', 82]] },
-    { sem: 2, term: 'Even 2024-25', courses: [['CS201', 'A+', 90], ['MA102', 'A', 81], ['CS202', 'A', 84], ['EE101', 'B+', 68], ['HS201', 'A+', 89]] },
-    { sem: 3, term: 'Odd 2025-26', courses: [['CS301', 'A', 83], ['CS303', 'B', 64], ['CS203', 'A', 80], ['MA201', 'B+', 72], ['OE301', 'A+', 91], ['HS301', 'A', 85]] }
+    { sem: 1, term: 'Odd 2024-25', courses: [['CS101', 'A', 88], ['MA101', 'B+', 79], ['PH101', 'B', 71], ['HS101', 'A+', 93], ['CS102', 'B+', 82]] },
+    { sem: 2, term: 'Even 2024-25', courses: [['CS201', 'A', 90], ['MA102', 'B+', 81], ['CS202', 'B+', 84], ['EE101', 'B', 68], ['HS201', 'A', 89]] },
+    { sem: 3, term: 'Odd 2025-26', courses: [['CS301', 'B+', 83], ['CS303', 'C', 64], ['CS203', 'B+', 80], ['MA201', 'B', 72], ['OE301', 'A', 91], ['HS301', 'B+', 85]] }
   ];
   const COMPLETED = {};
   TRANSCRIPT.forEach(s => s.courses.forEach(([code, g]) => { COMPLETED[code] = g; }));
@@ -375,7 +375,7 @@
     const log = state.attendanceLog.slice().reverse(), pts = [];
     let att = 0, tot = 0, week = -1;
     log.forEach(r => {
-      const wk = Math.floor((new Date(r.date) - new Date('2026-07-20')) / (7 * 86400000));
+      const wk = Math.floor((new Date(r.date) - new Date(TERM.start || r.date)) / (7 * 86400000)); // weeks since the term began
       tot++; if (r.status !== 'Absent') att++;
       if (wk !== week) { week = wk; pts.push({ week: wk + 1, pct: Math.round(att / tot * 100) }); }
       else pts[pts.length - 1] = { week: wk + 1, pct: Math.round(att / tot * 100) };
@@ -429,6 +429,7 @@
       const c = BY_CODE[code]; if (!c) return;
       pts += GP[state.completed[code]] * c.credits; cr += c.credits;
     });
+    if (window.VIT && window.VIT.gradeRelease.released) window.VIT.myMarks().forEach(m => { if (m.grade && !state.completed[m.code]) { pts += GP[m.grade] * m.credits; cr += m.credits; } });
     return { cgpa: cr ? Math.round(pts / cr * 100) / 100 : 0, credits: cr };
   }
   function sgpaOf(sem) {
@@ -494,6 +495,9 @@
   // forms = one per month (newest last); the raw submissions / ratings stay here and are summarised on demand
   const FEEDBACK = { forms: [], current: '', questions: [], items: [] };
   const FB = { subs: [], resp: [], mySecs: [], mentees: [] };
+  const MARKS = {};                    // enroll_id → { CVV, MSE, ESE, ASSIGN }
+  const SUBMITTED = {};                // faculty: section_id → true once final marks are submitted
+  const MY_ENROLL = {};                // student: course code → enroll_id (current semester)
   const SECTION_COURSE = {};            // section_id → course code (current semester)
   const SECTION_ID = {};               // 'CS401|A' → section_id (current semester)
   const ENROLL = {};                   // 'prn|CS401' → enroll_id (current semester, the signed-in faculty's sections)
@@ -580,7 +584,7 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
     const secById = {};
     sections.forEach(s => { secById[s.section_id] = s; });
     const curSecs = sections.filter(s => s.sem_id === cur.sem_id);
-    [SECTION_ID, ENROLL, MY_SECTION, SECTION_COURSE].forEach(o => swap(o, {}));
+    [SECTION_ID, ENROLL, MY_SECTION, SECTION_COURSE, MARKS, MY_ENROLL, SUBMITTED].forEach(o => swap(o, {}));
     curSecs.forEach(s => {
       SECTION_ID[s.course_id + '|' + s.section_code] = s.section_id; SECTION_COURSE[s.section_id] = s.course_id;
       if (me && s.faculty_id === me.faculty_id && !MY_SECTION[s.course_id]) MY_SECTION[s.course_id] = s.section_id;
@@ -615,7 +619,7 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       enrollCode[e.enroll_id] = s.course_id;
       if (s.sem_id !== cur.sem_id) return;
       if (me && s.faculty_id === me.faculty_id) ENROLL[e.student_id + '|' + s.course_id] = e.enroll_id; // RLS: faculty mark only their own sections
-      if (stu && e.student_id === stu.student_id && e.grade_point == null) registered.push({ code: s.course_id, section: s.section_code });
+      if (stu && e.student_id === stu.student_id && e.grade_point == null) { registered.push({ code: s.course_id, section: s.section_code }); MY_ENROLL[s.course_id] = e.enroll_id; }
     });
     const attendanceLog = att.filter(a => enrollCode[a.enroll_id])
       .map(a => ({ date: a.held_on, code: enrollCode[a.enroll_id], fac: a.faculty_id, type: a.type, status: a.status, time: hm(a.held_at) }))
@@ -676,6 +680,9 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
     const prns = new Set(enrolls.filter(e => mySecs.indexOf(e.section_id) >= 0).map(e => e.student_id));
     replace(ROSTER, studs.filter(s => prns.has(s.student_id)).sort((a, b) => a.name < b.name ? -1 : 1).map(s => ({ prn: s.student_id, name: s.name, roll: s.roll })));
     const myEnrolls = enrolls.filter(e => mySecs.indexOf(e.section_id) >= 0);
+    (me ? (myEnrolls.length ? await q('assessment', r => r.in('enroll_id', myEnrolls.map(e => e.enroll_id))) : []) : await q('assessment'))
+      .forEach(a => { (MARKS[a.enroll_id] = MARKS[a.enroll_id] || {})[a.component] = a.marks; });
+    if (me) (await q('marks_submission')).forEach(m => { SUBMITTED[m.section_id] = true; });
     const tally = {};
     (myEnrolls.length ? await q('attendance', r => r.in('enroll_id', myEnrolls.map(e => e.enroll_id))) : []).forEach(a => {
       const t = tally[a.enroll_id] = tally[a.enroll_id] || { att: 0, tot: 0 }; t.tot++; if (a.status !== 'Absent') t.att++;
@@ -686,11 +693,14 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       code: x.course_id, name: (BY_CODE[x.course_id] || {}).name || x.course_id, section: x.section_code, sectionId: x.section_id,
       students: myEnrolls.filter(e => e.section_id === x.section_id).map(e => {
         const p = stuById[e.student_id] || {}, t = tally[e.enroll_id] || { att: 0, tot: 0 };
-        return { prn: e.student_id, name: p.name || e.student_id, roll: p.roll || '', attended: t.att, total: t.tot, pct: t.tot ? Math.round(t.att / t.tot * 100) : 0 };
+        return { prn: e.student_id, enrollId: e.enroll_id, name: p.name || e.student_id, roll: p.roll || '', attended: t.att, total: t.tot, pct: t.tot ? Math.round(t.att / t.tot * 100) : 0 };
       }).sort((a, b) => (a.roll < b.roll ? -1 : a.roll > b.roll ? 1 : 0))
     })).sort((a, b) => (a.code < b.code ? -1 : 1)));
 
     const today = new Date().toISOString().slice(0, 10);
+    const regc = stu ? (await own('reg_confirmation')).find(r => r.sem_id === cur.sem_id) : null;
+    swap(VIT.regConfirm, { confirmed: !!regc, at: regc ? regc.confirmed_at : null });
+    swap(VIT.gradeRelease, { date: cur.grades_release || null, released: !!cur.grades_release && today >= cur.grades_release });
     swap(VIT.registrationWindow, { open: !!cur.reg_opens && today >= cur.reg_opens && today <= cur.reg_closes, opens: cur.reg_opens, closes: cur.reg_closes, min: cur.min_credits, max: cur.credit_cap });
 
     const stuName = Object.fromEntries(studs.map(x => [x.student_id, x.name]));
@@ -722,6 +732,7 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
 
     state = {
       role: me ? 'faculty' : 'student', facultyId: me ? me.faculty_id : null,
+      hodOf: me ? (depts.find(d => d.hod_name === me.name) || {}).dept_id || null : null,
       completed, registered, attendanceLog, lessonDone: lessonDoneOf(),
       facultySubmissions: subs.filter(s => s.faculty_id === me.faculty_id && secById[s.section_id])
         .map(s => ({ code: secById[s.section_id].course_id, date: s.held_on, present: s.present, total: s.total, at: new Date(s.created_at).getTime() })),
@@ -999,7 +1010,14 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       return uid;
     },
     // latest MongoDB activity entries, newest first → { entries, total }
-    activity(limit) { needLive(); return api('GET', null, '?limit=' + (limit || 200)); }
+    activity(limit) { needLive(); return api('GET', null, '?limit=' + (limit || 200)); },
+    // faculty control
+    async facultyOverview() { needLive(); return (await must(db.rpc('faculty_overview', {}))).data || []; },
+    async facultyAction(id, action, password) {
+      needLive();
+      await must(db.rpc('admin_faculty', { p_faculty: id, p_action: action, p_password: password }));
+      logActivity(action === 'password' ? 'set password' : action.replace('_', ' '), 'faculty', { faculty_id: id }); // never the password itself
+    }
   };
 
   // ---------- store ----------
@@ -1040,6 +1058,15 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
     term: TERM, student: STUDENT, transcript: TRANSCRIPT, lessonPlans: LESSON_PLANS, calendar: CALENDAR,
     fees: FEES, certificates: CERTIFICATES, hallTicket: HALL_TICKET, ppo: PPO, roster: ROSTER, teaching: TEACHING,
     careerPaths: CAREER_PATHS,
+    gradeRelease: { date: null, released: false },
+    regConfirm: { confirmed: false, at: null },
+    // semester fee heads still unpaid (exam fees are due later and don't block registration)
+    feesPending: () => FEES.heads.filter(h => h.status !== 'PAID' && !/^Examination/.test(h.head)),
+    async confirmRegistration() {
+      const r = await db.rpc('confirm_registration', {});
+      if (r.error) throw new Error(r.error.message);
+      Object.assign(VIT.regConfirm, { confirmed: true, at: r.data.confirmed_at }); emit();
+    },
     registrationWindow: { open: true, opens: '2026-09-07', closes: '2026-09-18', min: 16, max: 24 },
 
     get state() { return state; },
@@ -1059,6 +1086,8 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
     attendanceTrend: () => attendanceTrend(state),
     gpa: () => gpa(state),
     sgpa: sgpaOf,
+    // this term, from released grades
+    termSgpa: () => { const ms = VIT.myMarks().filter(m => m.grade), cr = ms.reduce((n, m) => n + m.credits, 0); return cr ? Math.round(ms.reduce((n, m) => n + GP[m.grade] * m.credits, 0) / cr * 100) / 100 : null; },
     whatIf: (codes) => whatIf(state, codes),
     profile: () => profile(state),
     isRegistered: (code) => state.registered.some(r => r.code === code),
@@ -1081,9 +1110,13 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
     // Portal login: mock mode just sets the role; live mode authenticates by email and loads the data.
     async signIn(email, pw, role) {
       if (!db) { VIT.login(role); return; }
-      const { error } = await db.auth.signInWithPassword({ email, password: pw });
+      const { error } = await db.auth.signInWithPassword({ email, password: pw, role });
       if (error) throw error;
       try { await load(); } catch (e) { db.auth.signOut(); throw e; }
+      if (role && state.role !== role) { // wrong sign-in page for this account (admin accounts cannot sign in here at all)
+        const was = state.role; db.auth.signOut(); state = initial();
+        throw new Error(was === 'admin' ? 'Administrator sign-in is not available on this portal.' : was === 'faculty' ? 'This is a faculty account. Use the faculty sign-in page.' : 'This is a student account. Use the student sign-in page.');
+      }
       emit();
     },
     login(role) { state.role = role; emit(); },
@@ -1115,6 +1148,64 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       sync(() => db.rpc('submit_feedback', { p_section: sectionId, p_ratings: ratings }), () => { FB.subs.splice(FB.subs.indexOf(rec), 1); }, 'Feedback not saved — ' + it.code);
       VIT.toast({ title: 'Feedback submitted', body: it.name + ' · ' + it.facultyName + '. Thank you.', kind: 'ok' });
     },
+    // change the signed-in user's own password (server checks the current one and the rules)
+    // Heads of Department only (server-checked): set the current term's add / drop window
+    // continuous assessment: [id, label, out of]
+    COMPONENTS: [['CVV', 'CVV', 12.5], ['MSE', 'Mid-semester exam', 25], ['ESE', 'End-semester exam', 50], ['ASSIGN', 'Assignments', 12.5]],
+    // total out of 100 → letter grade
+    gradeOf: (t) => t >= 91 ? 'A+' : t >= 81 ? 'A' : t >= 71 ? 'B+' : t >= 61 ? 'B' : t >= 51 ? 'C' : t >= 45 ? 'D' : t >= 40 ? 'P' : 'F',
+    isSubmitted: (sectionId) => !!SUBMITTED[sectionId],
+    async submitMarks(sectionId) {
+      const r = await db.rpc('submit_marks', { p_section: sectionId });
+      if (r.error) throw new Error(r.error.message);
+      SUBMITTED[sectionId] = true; emit();
+    },
+    async gradesStatus() {
+      const r = await db.rpc('grades_status', {});
+      if (r.error) throw new Error(r.error.message);
+      return r.data;
+    },
+    async setGradesRelease(date, force) {
+      const r = await db.rpc('set_grades_release', { p_date: date, p_force: !!force });
+      if (r.error) throw new Error(r.error.message);
+      const today = new Date().toISOString().slice(0, 10);
+      Object.assign(VIT.gradeRelease, { date, released: today >= date }); emit();
+    },
+    marksOf: (enrollId) => MARKS[enrollId] || {},
+    // student: this term's marks per registered course
+    myMarks: () => state.registered.map(r => {
+      const mk = MARKS[MY_ENROLL[r.code]] || {}, got = Object.keys(mk);
+      const total = got.reduce((n, k) => n + mk[k], 0), full = got.length === VIT.COMPONENTS.length;
+      return { code: r.code, name: courseName(r.code), credits: (BY_CODE[r.code] || {}).credits || 0, marks: mk, total, outOf: VIT.COMPONENTS.filter(c => got.indexOf(c[0]) >= 0).reduce((n, c) => n + c[2], 0),
+        grade: full && VIT.gradeRelease.released ? VIT.gradeOf(total) : null };
+    }),
+    // faculty: save one component for one of their sections. vals = { prn: number | '' }
+    async saveMarks(sectionId, component, vals) {
+      const r = await db.rpc('save_marks', { p_section: sectionId, p_component: component, p_marks: vals });
+      if (r.error) throw new Error(r.error.message);
+      const cls = TEACHING.find(t => t.sectionId === sectionId);
+      if (cls) cls.students.forEach(x => { if (!(x.prn in vals)) return; const m = MARKS[x.enrollId] = MARKS[x.enrollId] || {}; if (vals[x.prn] === '' || vals[x.prn] == null) delete m[component]; else m[component] = +vals[x.prn]; });
+      emit();
+      return r.data;
+    },
+    // class teacher: mentees' marks progress; publish = issue marksheets to everyone whose marks are complete
+    async classMarksheets(publish) {
+      const r = await db.rpc('class_marksheets', { p_publish: !!publish });
+      if (r.error) throw new Error(r.error.message);
+      return r.data || [];
+    },
+    async setRegWindow(opens, closes) {
+      const r = await db.rpc('set_reg_window', { p_opens: opens, p_closes: closes });
+      if (r.error) throw new Error(r.error.message);
+      const today = new Date().toISOString().slice(0, 10);
+      Object.assign(VIT.registrationWindow, { opens, closes, open: today >= opens && today <= closes });
+      emit();
+    },
+    async changePassword(oldPw, newPw) {
+      if (!db) throw new Error('Password changes need the portal server.');
+      const r = await db.rpc('change_password', { p_old: oldPw, p_new: newPw });
+      if (r.error) throw new Error(r.error.message);
+    },
     ppoRegister() {
       const item = { id: 'tmp', company: 'Training & Placement Cell', role: 'PPO registration', status: 'Registered', date: fmtDate(new Date().toISOString()) };
       PPO.applications = PPO.applications.concat([item]); emit();
@@ -1130,7 +1221,7 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       const r = REQUESTS.find(x => x.id === id); if (!r) return;
       const prev = r.status; r.status = status; emit();
       sync(() => db.from('request').update({ status }).eq('id', id).then(res => res.error ? res : db.from('notification').insert({ student_id: r.prn, kind: 'registration',
-        title: courseName(r.code) + ' — your ' + r.kind + ' request was ' + status.toLowerCase(), body: 'Decided by ' + ((FACULTY[state.facultyId] || {}).name || 'course faculty') + '.' })),
+        title: courseName(r.code) + ' — your ' + r.kind + ' request was ' + status.toLowerCase(), body: 'Decided by ' + ((FACULTY[state.facultyId] || {}).name || 'course faculty') + '.' + (status === 'Approved' ? ' You can now register for this course while the registration window is open.' : '') })),
         () => { r.status = prev; }, 'Could not update the request');
     },
     // Downloads a small printable HTML document (open it and "Print → Save as PDF"). rows = [[label, value], …]
@@ -1149,6 +1240,7 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       Object.assign(h, { status: 'PAID', date: fmtDate(iso), receipt, mode: 'Portal (test payment)' }); delete h.due; emit();
       sync(() => db.from('fee').update({ status: 'PAID', paid_on: iso, receipt, mode: h.mode }).eq('id', h.id), () => { Object.keys(h).forEach(k => delete h[k]); Object.assign(h, prev); }, 'Payment not recorded — ' + head);
     },
+    hasApproval: (code, kind) => REQUESTS.some(r => r.prn === STUDENT.prn && r.code === code && r.kind === kind && r.status === 'Approved'),
     register(code, sectionId) {
       if (state.registered.some(r => r.code === code)) return;
       const section = sectionId || (BY_CODE[code].sections[0] || {}).id || 'A';
@@ -1176,26 +1268,27 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       sync(() => db.rpc('swap_section', { p_from: SECTION_ID[code + '|' + from], p_to: SECTION_ID[code + '|' + sectionId] }),
         () => { state.registered = state.registered.map(r => r.code === code ? { code, section: from } : r); }, 'Could not swap section for ' + code);
     },
-    submitAttendance(code, date, marks, facId, time, type) {
-      time = time || '10:00'; type = type || 'Lecture';
-      if (db) facId = state.facultyId; // RLS only accepts the signed-in faculty
-      const prev = { attendanceLog: state.attendanceLog, facultySubmissions: state.facultySubmissions };
+    async submitAttendance(code, date, marks, facId, time, type) {
+      time = (time || '10:00').slice(0, 5) + ':00'; type = type || 'Lecture';
+      if (db) {
+        facId = state.facultyId; // RLS only accepts the signed-in faculty
+        const rows = Object.keys(marks).filter(prn => ENROLL[prn + '|' + code])
+          .map(prn => ({ enroll_id: ENROLL[prn + '|' + code], faculty_id: facId, held_on: date, held_at: time, type, status: marks[prn] }));
+        const present = Object.values(marks).filter(v => v === 'Present').length;
+        const r = rows.length ? await db.from('attendance').insert(rows) : {};
+        if (r.error) throw new Error(r.error.message);
+        await db.from('attendance_submission').insert({ section_id: MY_SECTION[code] || SECTION_ID[code + '|A'], faculty_id: facId, held_on: date, present, total: Object.keys(marks).length });
+      }
       Object.keys(marks).forEach(prn => {
-        if (prn !== STUDENT.prn) return; // only the demo student's own record feeds the student view
-        state.attendanceLog = [{ date, code, fac: facId, type, status: marks[prn], time }].concat(state.attendanceLog);
+        if (prn !== STUDENT.prn) return; // only the signed-in student's own record feeds the student view
+        state.attendanceLog = [{ date, code, fac: facId, type, status: marks[prn], time: time.slice(0, 5) }].concat(state.attendanceLog);
       });
       const present = Object.values(marks).filter(v => v === 'Present').length;
       state.facultySubmissions = [{ code, date, present, total: Object.keys(marks).length, at: Date.now() }].concat(state.facultySubmissions);
       const cls = TEACHING.find(t => t.code === code);
       if (cls) cls.students.forEach(x => { if (marks[x.prn]) { x.total++; if (marks[x.prn] !== 'Absent') x.attended++; x.pct = Math.round(x.attended / x.total * 100); } });
-      VIT.notify({ title: 'Attendance recorded — ' + courseName(code), body: present + ' of ' + Object.keys(marks).length + ' present · ' + date, kind: 'academic' }, true);
+      VIT.notify({ title: 'Attendance recorded — ' + courseName(code), body: present + ' of ' + Object.keys(marks).length + ' present · ' + date + ' ' + time.slice(0, 5), kind: 'academic' }, true);
       emit();
-      // Note: two inserts, not one transaction; wrap in an RPC if a half-saved roll call matters
-      const rows = Object.keys(marks).filter(prn => ENROLL[prn + '|' + code])
-        .map(prn => ({ enroll_id: ENROLL[prn + '|' + code], faculty_id: facId, held_on: date, held_at: time, type, status: marks[prn] }));
-      sync(() => (rows.length ? db.from('attendance').insert(rows) : Promise.resolve({})).then(r => r.error ? r
-        : db.from('attendance_submission').insert({ section_id: MY_SECTION[code] || SECTION_ID[code + '|A'], faculty_id: facId, held_on: date, present, total: Object.keys(marks).length })),
-        () => Object.assign(state, prev), 'Attendance not saved — ' + code);
     },
     toggleTopic(code, mod, topic) {
       const k = code + '|' + mod + '|' + topic;
@@ -1229,9 +1322,16 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
     fmtINR: (n) => '₹' + n.toLocaleString('en-IN'),
     today: () => new Date(),
     dayName: () => DAYS[new Date().getDay() - 1] || null,
+    // classes run from the term start to the "Last day of instruction", except on holiday / exam / vacation days
+    isTeachingDay(iso) {
+      iso = iso || new Date().toISOString().slice(0, 10);
+      const last = CALENDAR.find(e => /^last day of instruction/i.test(e.title));
+      if ((TERM.start && iso < TERM.start) || (last && iso > last.date)) return false;
+      return !CALENDAR.some(e => ['holiday', 'exam', 'vacation'].indexOf(e.kind) >= 0 && iso >= e.date && iso <= (e.end || e.date));
+    },
     todayClasses() {
       const dn = DAYS[new Date().getDay() - 1];
-      if (!dn) return [];
+      if (!dn || !VIT.isTeachingDay()) return [];
       const out = [];
       state.registered.forEach(r => meetingsOf(r.code, r.section).forEach(mt => { if (mt.day === dn) out.push(Object.assign({}, mt, { code: r.code, name: courseName(r.code), fac: BY_CODE[r.code].fac, section: r.section })); }));
       return out.sort((a, b) => toMin(a.start) - toMin(b.start));
