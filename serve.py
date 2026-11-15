@@ -6,15 +6,18 @@
 import datetime, gzip, http.server, json, os, re, sys
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
-try:
-    import mongo_db as M
-    M.client.admin.command("ping")
-    M.ensure_indexes()
-    M.ensure_feedback_form()
-    M.sync_years()  # years of study follow the current academic year
-    print("MongoDB:", M.MONGO_URI, "database vit_portal")
-except Exception as e:
-    sys.exit(f"MongoDB is not reachable ({e}). Start the MongoDB service (or set MONGODB_URI) and run serve.py again.")
+import mongo_db as M
+import career_ai
+
+def startup():  # run once per process (on Vercel: once per cold start)
+    try:
+        M.client.admin.command("ping")
+        M.ensure_indexes()
+        M.ensure_feedback_form()
+        M.sync_years()  # years of study follow the current academic year
+        print("MongoDB:", M.MONGO_URI.split("@")[-1], "database vit_portal")
+    except Exception as e:
+        sys.exit(f"MongoDB is not reachable ({e}). Start the MongoDB service (or set MONGODB_URI) and run serve.py again.")
 
 APP = os.path.join(os.getcwd(), "app")
 
@@ -84,8 +87,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                                               "action": str(b.get("action", ""))[:60], "table": str(b.get("table", ""))[:60], "detail": b.get("detail")})
                 return self.reply(201, {"ok": True})
             ctx = M.context(self.token())
+            if path == "/api/career-chat":
+                if not ctx or not ctx["student_id"]: raise M.DbError("The career assistant is for signed-in students.", "42501", 403)
+                b = self.body(40_000)
+                return self.reply(200, {"reply": career_ai.chat(ctx["student_id"], b.get("messages"), b.get("target"))})
             if path.startswith("/api/rpc/"):
                 return self.reply(200, {"data": M.rpc(ctx, path[9:], self.body(10_000))})
+            if path == "/api/db-batch":  # several selects in one round trip
+                out = []
+                for q in (self.body(2_000_000).get("queries") or [])[:60]:
+                    try:
+                        rows, count = M.select(ctx, q.get("table"), q.get("filters"), q.get("order"), q.get("range"), q.get("count"), q.get("head"))
+                        out.append({"data": None if q.get("head") else rows, "count": count, "error": None})
+                    except M.DbError as e: out.append({"data": None, "count": None, "error": e.json()})
+                return self.reply(200, {"data": out})
             if path == "/api/db":
                 b = self.body(); t, op, ret = b.get("table"), b.get("op"), b.get("returning", True)
                 if op == "select":
@@ -107,6 +122,8 @@ class Server(http.server.ThreadingHTTPServer):
     request_queue_size = 128  # the portal fires ~20 requests at once on sign-in; the default backlog (5) refuses some on Windows
     daemon_threads = True
 
-PORT = int(os.environ.get("PORT", 5500))  # hosts like Render set PORT
-print(f"Portal on http://localhost:{PORT}/")
-Server(("", PORT), Handler).serve_forever()
+if __name__ == "__main__":
+    startup()
+    PORT = int(os.environ.get("PORT", 5500))  # hosts like Render set PORT
+    print(f"Portal on http://localhost:{PORT}/")
+    Server(("", PORT), Handler).serve_forever()

@@ -19,6 +19,21 @@
     }
   }
 
+  // Selects issued in the same tick (e.g. one Promise.all) travel as ONE request: far fewer round trips over the internet.
+  let queue = null;
+  function batched(q) {
+    return new Promise(resolve => {
+      if (!queue) { queue = []; setTimeout(flush, 0); }
+      queue.push({ q, resolve });
+    });
+  }
+  async function flush() {
+    const items = queue; queue = null;
+    if (items.length === 1) { items[0].resolve(await post('/api/db', items[0].q)); return; }
+    const r = await post('/api/db-batch', { queries: items.map(i => i.q) });
+    items.forEach((it, k) => it.resolve(r.error || !Array.isArray(r.data) ? (r.error ? r : { data: null, count: null, error: { message: 'Bad batch response' } }) : r.data[k]));
+  }
+
   class Query {
     constructor(table) { this.q = { table, op: 'select', filters: [], order: [], returning: false }; }
     select(cols, opts) {
@@ -36,7 +51,7 @@
     order(col, opts) { this.q.order.push([col, !(opts && opts.ascending === false)]); return this; }
     range(from, to) { this.q.range = [from, to]; return this; }
     limit(n) { this.q.range = [0, n - 1]; return this; }
-    then(ok, fail) { if (this.q.op === 'select') this.q.returning = true; return post('/api/db', this.q).then(ok, fail); }
+    then(ok, fail) { if (this.q.op === 'select') this.q.returning = true; return (this.q.op === 'select' ? batched(this.q) : post('/api/db', this.q)).then(ok, fail); }
   }
 
   window.VITDB = {

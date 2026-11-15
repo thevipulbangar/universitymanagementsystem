@@ -1194,6 +1194,16 @@ const blankUser = (name, email, dept, code, ay) => swap(STUDENT, { prn: '', name
       if (r.error) throw new Error(r.error.message);
       return r.data || [];
     },
+    // career chatbot: the server builds this student's record and asks Claude. messages = [{ role: 'user'|'assistant', text }]
+    async careerChat(messages, target) {
+      if (!db) throw new Error('The AI assistant needs the live server.');
+      const session = (await db.auth.getSession()).data.session;
+      if (!session) throw new Error('Not signed in.');
+      const res = await fetch('/api/career-chat', { method: 'POST', headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1', Authorization: 'Bearer ' + session.access_token }, body: JSON.stringify({ messages, target }) });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) { const e = new Error((out.error && out.error.message) || 'The AI assistant is unavailable.'); e.code = out.error && out.error.code; throw e; }
+      return out.reply;
+    },
     async setRegWindow(opens, closes) {
       const r = await db.rpc('set_reg_window', { p_opens: opens, p_closes: closes });
       if (r.error) throw new Error(r.error.message);

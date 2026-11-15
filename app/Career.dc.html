@@ -25,7 +25,7 @@
       <div>
         <div style="display: flex; align-items: center; gap: 9px;">
           <span style="display: flex; align-items: center; gap: 7px; padding: 4px 11px; background: rgba(18,179,166,.16); border: 1px solid rgba(18,179,166,.38); border-radius: 30px; font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6FE3D6;">
-            <span style="width: 6px; height: 6px; border-radius: 50%; background: #12B3A6; animation: cPulse 1.8s ease-in-out infinite;"></span>Career Advisor · rule-based
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #12B3A6; animation: cPulse 1.8s ease-in-out infinite;"></span>Career Advisor · AI (Gemini)
           </span>
           <span style="font-size: 11.5px; color: #8FA0A4;">reading your academic record</span>
         </div>
@@ -239,7 +239,7 @@
             <sc-if value="{{ noMessages }}">
               <div style="display: flex; flex-direction: column; gap: 11px; padding: 26px 4px;">
                 <div style="font-size: 15.5px; font-weight: 700;">Ask about your academic path</div>
-                <p style="margin: 0; max-width: 58ch; font-size: 13px; color: #6B757E; line-height: 1.65;">The assistant sees your CGPA, every registered subject, grades, attendance, certificates and the courses you are eligible for. Try one of the actions above, or ask something specific.</p>
+                <p style="margin: 0; max-width: 58ch; font-size: 13px; color: #6B757E; line-height: 1.65;">The career assistant reads your real record: past grades, this semester's marks in each subject, attendance and CGPA. Ask what to focus on, which career fits your strengths, or how to improve a weak subject.</p>
                 <div style="display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px;">
                   <sc-for list="{{ suggestions }}" as="s" hint-placeholder-count="3">
                     <button type="button" onClick="{{ s.go }}" style="padding: 8px 12px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 20px; font-size: 12px; color: #4A555E; cursor: pointer; text-align: left; transition: border-color .2s;" style-hover="border-color: #0B8F86; color: #0B8F86;">{{ s.label }}</button>
@@ -328,7 +328,7 @@
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:980},&quot;nav&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(page: string, sub?: string) =&gt; void&quot;}}">
 const TABS = [['paths', 'Career Paths'], ['subject', 'Subject → Career'], ['roadmap', 'Roadmap'], ['assistant', 'Career Chatbot']];
 
-// Built-in career advisor: answers from the student's own record (no external service).
+// Built-in career advisor: the offline fallback, used when the AI assistant (Claude, via the server) is unavailable.
 // Replies use the chat's format: "## " heading lines and "- " list lines.
 function advise(question, target) {
   const S = window.VIT, q = question.toLowerCase();
@@ -437,18 +437,18 @@ class Component extends DCLogic {
 
   ask = async (prompt, label, userLabel) => {
     const S = window.VIT;
-    this.setState(s => ({
-      messages: s.messages.concat([{ role: 'user', text: userLabel || prompt }]),
-      busy: true, busyLabel: label || 'Reading your academic record…', error: '', draft: ''
-    }));
+    const history = this.state.messages.concat([{ role: 'user', text: userLabel || prompt, full: prompt }]);
+    this.setState({ messages: history, busy: true, busyLabel: label || 'Reading your academic record…', error: '', draft: '' });
+    const target = this.state.target || S.profile().paths[0].name;
+    let text, heading;
     try {
-      await new Promise(r => setTimeout(r, 450));   // brief "thinking" pause so the reply doesn't flash in
-      const text = advise(prompt, this.state.target || S.profile().paths[0].name);
-      this.setState(s => ({ messages: s.messages.concat([{ role: 'ai', text: String(text || '').trim(), heading: label || 'Advisor' }]), busy: false }));
+      text = await S.careerChat(history.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', text: m.full || m.text })), target);
+      heading = 'Career AI';
     } catch (e) {
-      console.error(e);
-      this.setState({ busy: false, error: 'The advisor could not read part of your record. Try rephrasing the question.' });
+      try { text = advise(prompt, target); heading = 'Offline advisor'; }
+      catch (e2) { console.error(e2); this.setState({ busy: false, error: 'The advisor could not read part of your record. Try rephrasing the question.' }); return; }
     }
+    this.setState(s => ({ messages: s.messages.concat([{ role: 'ai', text: String(text || '').trim(), heading }]), busy: false }));
   };
 
   renderVals() {
@@ -549,6 +549,7 @@ class Component extends DCLogic {
       target, targetOptions: S.careerPaths.map(p => p.name),
       setTarget: (e) => this.setState({ target: e.target.value, sel: e.target.value }),
       actions: [
+        ['What Should I Focus On?', 'Reading your marks', 'Look at my marks and grades in every subject. Which subjects should I focus on and why, and how does that connect to the careers I am best suited for?'],
         ['Analyze My Resume', 'Analysing your record', 'Review my academic profile as if it were a resume for ' + target + '. What reads strongest, what is thin, and what single change would improve it most?'],
         ['Tailor for Role', 'Tailoring for ' + target, 'Rewrite how I should present myself for a ' + target + ' role: which of my courses, grades and certificates to lead with, and in what order. Name the actual course codes.'],
         ['Improve Project Description', 'Rewriting your project entry', 'Pick my strongest project or lab course from my transcript and rewrite its resume entry in two lines for a ' + target + ' application, using the skills my transcript actually supports.'],
@@ -559,6 +560,7 @@ class Component extends DCLogic {
         style: 'padding: 8px 13px; background: #FFFFFF; border: 1px solid #E3DFD6; border-radius: 8px; font-size: 12px; font-weight: 700; color: #4A555E; cursor: ' + (st.busy ? 'wait' : 'pointer') + '; opacity: ' + (st.busy ? .5 : 1) + '; transition: all .2s;'
       })),
       suggestions: [
+        'Which subject should I focus on, based on my marks?',
         'Which career suits me best?',
         'Which elective should I add with ' + Math.max(S.registrationWindow.max - S.credits(), 0) + ' credits left?',
         'Am I on track to graduate in eight semesters?',
