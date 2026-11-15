@@ -20,11 +20,5 @@
       "source": "/",
       "destination": "/Portal.dc.html"
     }
-  ],
-  "functions": {
-    "api/index.py": {
-      "maxDuration": 60,
-      "includeFiles": "{mongo_db.py,career_ai.py,serve.py,supabase/*.sql}"
-    }
-  }
+  ]
 }
